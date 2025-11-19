@@ -1,0 +1,5 @@
+# Hashes of file build rules.
+2756ffb642867d5dbfa068f3f5acda32 CMakeFiles/bcb
+031ab3227c4fc0ed60eb55466b4e919c CMakeFiles/flash_bcb
+559268a608e8f6bcecab8b20997e06ed bcb.bin
+62441b2ebb466788e9f996bfcc7789f8 bcb.elf

@@ -1,0 +1,3 @@
+../Core/Src/bootloader.c:16:5:IMG_valid	3
+../Core/Src/bootloader.c:25:20:jump_to_reset	1
+../Core/Src/bootloader.c:35:6:jmp_to_IMG	2

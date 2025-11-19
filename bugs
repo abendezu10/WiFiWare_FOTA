@@ -1,0 +1,42 @@
+I (15448) http client: magic: BOOM and firmware size: 5836
+I (15454) http client: AES-CTR context initialised
+I (15459) http client: Package parsed out!
+the received_http is: 512stuck here 1I (15465) uart receiver: before decryption da b1 bd 6e
+
+stuck here 2stuck here 2stuck here 2stuck here 2stuck here 2stuck here 2stuck here 2stuck here 2stuck here 2stuck here 2stuck here 2I (16473) http client: The bytes received are: 512 and now being sent to queue [0]
+I (16481) http client: DA
+
+I (16484) http client: B1
+
+I (16488) http client: BD
+
+I (16492) http client: 6E
+
+I (16495) http client: 62
+
+the received_http is: 512stuck here 2stuck here 2stuck here 2stuck here 2stuck here 2I (17072) uart receiver: SENDTASK - first i: 00, length: 512, last chunk: 0 and id(0)
+I (17078) uart receiver: 00
+
+I (17082) uart receiver: 80
+
+I (17086) uart receiver: 01
+
+I (17089) uart receiver: 20
+
+I (17093) uart receiver: 2D
+
+
+efore if current slot: 0
+Staying in bootloader.
+Writing to SLOT_A
+len=4 last_chunk=0 first_word=00000000 last_word=00000000 and last byte=00
+success ...
+           address = 0x0800C004
+len=512 last_chunk=0 first_word=4770B004 last_word=E9C540CC and last byte=e9
+success ...
+           address = 0x0800C204
+len=512 last_chunk=0 first_word=21006400 last_word=603B2300 and last byte=60
+success ...
+           address = 0x0800C404
+
+           annoying 4 length even tho the esp pushes out 512 size fw img

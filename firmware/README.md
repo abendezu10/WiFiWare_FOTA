@@ -1,0 +1,1 @@
+Firmware .bin file goes here, name it firmware.bin but if you want a different you need to change the constant in the esp_FOTA .c file
