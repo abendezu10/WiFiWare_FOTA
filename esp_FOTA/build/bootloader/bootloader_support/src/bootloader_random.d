@@ -1,0 +1,6 @@
+src/bootloader_random.o: \
+ /home/abendezu/projects/WiFiWare_FOTA/ESP8266_RTOS_SDK/components/bootloader_support/src/bootloader_random.c \
+ /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/../include/sdkconfig.h
+
+/home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/../include/sdkconfig.h:
+/home/abendezu/projects/WiFiWare_FOTA/ESP8266_RTOS_SDK/components/bootloader_support/src/bootloader_random.c:
