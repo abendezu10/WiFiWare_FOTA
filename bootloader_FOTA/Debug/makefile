@@ -1,6 +1,6 @@
 ################################################################################
 # Automatically-generated file. Do not edit!
-# Toolchain: GNU Tools for STM32 (13.3.rel1)
+# Toolchain: GNU Tools for STM32 (14.3.rel1)
 ################################################################################
 
 -include ../makefile.init
@@ -60,8 +60,8 @@ all: main-build
 main-build: bootloader_FOTA.elf secondary-outputs
 
 # Tool invocations
-bootloader_FOTA.elf bootloader_FOTA.map: $(OBJS) $(USER_OBJS) C:\Users\abend\STM32CubeIDE\workspace_1.18.1\bootloader_FOTA\STM32F401RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "bootloader_FOTA.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\abend\STM32CubeIDE\workspace_1.18.1\bootloader_FOTA\STM32F401RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="bootloader_FOTA.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+bootloader_FOTA.elf bootloader_FOTA.map: $(OBJS) $(USER_OBJS) \\wsl$\Ubuntu-24.04\home\abendezu\projects\WiFiWare_FOTA\bootloader_FOTA\STM32F401RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "bootloader_FOTA.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"\\wsl$\Ubuntu-24.04\home\abendezu\projects\WiFiWare_FOTA\bootloader_FOTA\STM32F401RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="bootloader_FOTA.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

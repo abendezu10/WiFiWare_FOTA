@@ -1,1 +1,1 @@
-76735ce-dirty esp_fota v3.4-115-g858c7c2e
+3f1f7e5-dirty esp_fota v3.4-115-g858c7c2e

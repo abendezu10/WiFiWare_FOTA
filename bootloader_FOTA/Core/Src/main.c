@@ -18,6 +18,10 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "crc.h"
+#include "spi.h"
+#include "usart.h"
+#include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -25,19 +29,22 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "bootloader.h"
+#include "st7789.h"
+#include "st7789_bootloader.h"
 
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
+
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
 
 /* USER CODE END PD */
 
@@ -47,7 +54,6 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 
@@ -55,8 +61,6 @@ UART_HandleTypeDef huart2;
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-static void MX_GPIO_Init(void);
-static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -69,6 +73,9 @@ int __io_putchar(int ch)
     HAL_UART_Transmit(&huart2, &c, 1, HAL_MAX_DELAY);
     return ch;
 }
+
+
+
 /* USER CODE END 0 */
 
 /**
@@ -101,27 +108,136 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART2_UART_Init();
+  MX_CRC_Init();
+  MX_SPI1_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
+
+  HAL_GPIO_WritePin(TFT_BCKLIGHT_GPIO_Port, TFT_BCKLIGHT_Pin, GPIO_PIN_SET);
+
+  ST7789_Init();
+
   setvbuf(stdout, NULL, _IONBF, 0);
+
+
+  fw_chunk_t fw_chunk = {0};
+
 
   HAL_Delay(10);
   uint32_t btn = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13);
-  printf("PC13=%lu\r\n", btn);
+  printf("PC13=%lu\n\r", btn);
 
 
-  if (btn == GPIO_PIN_RESET) { // not pressed -> jump
-      if (IMG_valid()) {
-          printf("Jumping to active image...\r\n");
+  const bcb_t *bcb = (bcb_t*)BCB_SEC;
+  printf("before if current slot: %d\n\r", bcb->active_slot);
+  uint32_t active_addr = (bcb->active_slot) ? SLOT_A_SEC : SLOT_B_SEC;
+  uint8_t update_complete = 0;
+  //printf("active_addr: 0x%08lX\n\r", active_addr);
+
+  if (btn == GPIO_PIN_SET) {
+      if (IMG_valid(active_addr)) {
+
+          printf("Jumping to active image... Address: 0x%08lx\r\n", active_addr);
           HAL_Delay(10);
-          jmp_to_IMG();
+
+          jmp_to_IMG(active_addr);
       } else {
-          printf("No valid image. Staying in bootloader.\r\n");
+          printf("No valid image. Staying in bootloader... Address: 0x%08lx\r\n", active_addr);
+
           while(1) { HAL_Delay(100); }
       }
   } else {
+	  UI_Bootloader_ShowStart();
       printf("Staying in bootloader.\r\n");
-      while(1) { HAL_Delay(500); HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1); }
+      uint8_t recieved_signal = 2;
+
+
+      HAL_UART_Transmit(&huart1, (uint8_t*)&recieved_signal, sizeof(recieved_signal), HAL_MAX_DELAY );
+      uint32_t addr;
+      uint8_t fw_chunk_signal = 1;
+
+	  if(bcb->active_slot == SLOT_A){
+		  printf("Writing to SLOT_B\n\r");
+
+		  addr = SLOT_B_SEC;
+
+		  HAL_FLASH_Unlock();
+		  FLASH_Erase_Sector(FLASH_SECTOR_6, FLASH_VOLTAGE_RANGE_3);
+		  FLASH_Erase_Sector(FLASH_SECTOR_7, FLASH_VOLTAGE_RANGE_3);
+		  HAL_FLASH_Lock();
+
+		  bcb_slotswitch(SLOT_B);
+	  } else if(bcb->active_slot == SLOT_B){
+		  printf("Writing to SLOT_A\n\r");
+		  addr = SLOT_A_SEC;
+
+
+		  HAL_FLASH_Unlock();
+		  FLASH_Erase_Sector(FLASH_SECTOR_3, FLASH_VOLTAGE_RANGE_3);
+		  FLASH_Erase_Sector(FLASH_SECTOR_4, FLASH_VOLTAGE_RANGE_3);
+		  FLASH_Erase_Sector(FLASH_SECTOR_5, FLASH_VOLTAGE_RANGE_3);
+	      HAL_FLASH_Lock();
+
+	      bcb_slotswitch(SLOT_A);
+	  }else{
+    	  printf("ERROR HAS OCCURED! BCB IS NOT 1 OR 0");
+    	  update_complete = 0;
+      }
+
+	  do{
+		  fw_chunk_t fw_chunk = {0};
+
+	      HAL_UART_Receive(&huart1, (uint8_t*)&fw_chunk, sizeof(fw_chunk), HAL_MAX_DELAY);
+
+	      if (fw_chunk.length > 0 && fw_chunk.length <= FW_IMG_SIZE && fw_chunk.last_chunk <= 1) {
+	    	  if (fw_chunk.length >= 4) {
+	    		  uint32_t first_word;
+	    		  memcpy(&first_word, &fw_chunk.fw_img[0], sizeof(first_word));
+
+	    		  uint32_t last_word;
+	    		  memcpy(&last_word, &fw_chunk.fw_img[fw_chunk.length - 4], sizeof(last_word));
+
+	    		  printf("len=%d last_chunk=%d first_word=%08X last_word=%08X and last byte=%02x\r\n",
+	    			          			             fw_chunk.length, fw_chunk.last_chunk, first_word, last_word,fw_chunk.fw_img[fw_chunk.length - 1]);
+	    	  } else if (fw_chunk.length > 0) {
+	    		  printf("len=%d last_chunk=%d first_byte=%02X last_byte=%02X\r\n",
+	    			             fw_chunk.length, fw_chunk.last_chunk,
+	    			             fw_chunk.fw_img[0],
+	    			             fw_chunk.fw_img[fw_chunk.length - 1]);
+	    	  }
+
+	    	  if (write_to_flash(&fw_chunk, addr)) {
+
+	    		  printf("success ...\n\r");
+	    	  }
+	    	  addr += fw_chunk.length;
+	    	  printf("address = 0x%08lX\r\n", (uint32_t)addr);
+
+	    	  if (HAL_UART_Transmit(&huart1, &fw_chunk_signal, 1, HAL_MAX_DELAY) != HAL_OK) {
+	    		  printf("transmit error\n");
+	    	  }
+
+	    	  if (fw_chunk.last_chunk == 1) {
+	    		  printf("Last chunk, breaking.\n");
+	    		  break;
+	    	  }
+	      }
+
+	  }while(1);
+
+	  printf("after if current slot: %d\n\r", bcb->active_slot);
+	  update_complete = 1;
+
+      if(update_complete)
+    	  UI_Bootloader_ShowDone();
+      else
+    	  UI_Bootloader_ShowFailed();
+
+
+      printf("Update finished! Hold Button during Reset for the new image!");
+
   }
+
 
   /* USER CODE END 2 */
 
@@ -177,77 +293,8 @@ void SystemClock_Config(void)
   }
 }
 
-/**
-  * @brief USART2 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_USART2_UART_Init(void)
-{
-
-  /* USER CODE BEGIN USART2_Init 0 */
-
-  /* USER CODE END USART2_Init 0 */
-
-  /* USER CODE BEGIN USART2_Init 1 */
-
-  /* USER CODE END USART2_Init 1 */
-  huart2.Instance = USART2;
-  huart2.Init.BaudRate = 115200;
-  huart2.Init.WordLength = UART_WORDLENGTH_8B;
-  huart2.Init.StopBits = UART_STOPBITS_1;
-  huart2.Init.Parity = UART_PARITY_NONE;
-  huart2.Init.Mode = UART_MODE_TX_RX;
-  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
-  if (HAL_UART_Init(&huart2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN USART2_Init 2 */
-
-  /* USER CODE END USART2_Init 2 */
-
-}
-
-/**
-  * @brief GPIO Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_GPIO_Init(void)
-{
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
-  /* USER CODE BEGIN MX_GPIO_Init_1 */
-
-  /* USER CODE END MX_GPIO_Init_1 */
-
-  /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOC_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin : PC13 */
-  GPIO_InitStruct.Pin = GPIO_PIN_13;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : PA1 */
-  GPIO_InitStruct.Pin = GPIO_PIN_1;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  /* USER CODE BEGIN MX_GPIO_Init_2 */
-
-  /* USER CODE END MX_GPIO_Init_2 */
-}
-
 /* USER CODE BEGIN 4 */
+
 
 /* USER CODE END 4 */
 

@@ -1,0 +1,941 @@
+ARM GAS  /tmp/ccmf7400.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 1
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"st7789_bootloader.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.file 1 "Core/Src/st7789_bootloader.c"
+  20              		.section	.text.clamp_percent,"ax",%progbits
+  21              		.align	1
+  22              		.syntax unified
+  23              		.thumb
+  24              		.thumb_func
+  26              	clamp_percent:
+  27              	.LVL0:
+  28              	.LFB134:
+   1:Core/Src/st7789_bootloader.c **** #include <stdint.h>
+   2:Core/Src/st7789_bootloader.c **** #include "st7789_bootloader.h"
+   3:Core/Src/st7789_bootloader.c **** #include "st7789.h"
+   4:Core/Src/st7789_bootloader.c **** 
+   5:Core/Src/st7789_bootloader.c **** 
+   6:Core/Src/st7789_bootloader.c **** /* Layout constants */
+   7:Core/Src/st7789_bootloader.c **** #define BOOT_MSG_Y              10
+   8:Core/Src/st7789_bootloader.c **** #define DOWNLOAD_MSG_Y          45
+   9:Core/Src/st7789_bootloader.c **** #define DOTS_Y                  70
+  10:Core/Src/st7789_bootloader.c **** 
+  11:Core/Src/st7789_bootloader.c **** #define PROGRESS_BAR_X          10
+  12:Core/Src/st7789_bootloader.c **** #define PROGRESS_BAR_Y          100
+  13:Core/Src/st7789_bootloader.c **** #define PROGRESS_BAR_W          (ST7789_WIDTH - 2 * PROGRESS_BAR_X)
+  14:Core/Src/st7789_bootloader.c **** #define PROGRESS_BAR_H          16
+  15:Core/Src/st7789_bootloader.c **** 
+  16:Core/Src/st7789_bootloader.c **** #define DONE_MSG_Y              60
+  17:Core/Src/st7789_bootloader.c **** #define DONE_SUBMSG_Y           90
+  18:Core/Src/st7789_bootloader.c **** 
+  19:Core/Src/st7789_bootloader.c **** /* Colors – adjust to taste */
+  20:Core/Src/st7789_bootloader.c **** #define BOOT_BG                 BLACK
+  21:Core/Src/st7789_bootloader.c **** #define BOOT_FG                 WHITE
+  22:Core/Src/st7789_bootloader.c **** #define BOOT_ACCENT             GBLUE
+  23:Core/Src/st7789_bootloader.c **** #define BOOT_BAR_OUTLINE        WHITE
+  24:Core/Src/st7789_bootloader.c **** #define BOOT_BAR_FILL           GREEN
+  25:Core/Src/st7789_bootloader.c **** 
+  26:Core/Src/st7789_bootloader.c **** /* Internal state for dot animation */
+  27:Core/Src/st7789_bootloader.c **** static uint8_t s_dot_count = 0;
+  28:Core/Src/st7789_bootloader.c **** 
+  29:Core/Src/st7789_bootloader.c **** /* Helper: clamp 0..100 */
+  30:Core/Src/st7789_bootloader.c **** static uint8_t clamp_percent(uint8_t p)
+ARM GAS  /tmp/ccmf7400.s 			page 2
+
+
+  31:Core/Src/st7789_bootloader.c **** {
+  29              		.loc 1 31 1 view -0
+  30              		.cfi_startproc
+  31              		@ args = 0, pretend = 0, frame = 0
+  32              		@ frame_needed = 0, uses_anonymous_args = 0
+  33              		@ link register save eliminated.
+  32:Core/Src/st7789_bootloader.c ****     if (p > 100) return 100;
+  34              		.loc 1 32 5 view .LVU1
+  35              		.loc 1 32 8 is_stmt 0 view .LVU2
+  36 0000 6428     		cmp	r0, #100
+  37 0002 00D8     		bhi	.L4
+  38              	.LVL1:
+  39              	.L2:
+  33:Core/Src/st7789_bootloader.c ****     return p;
+  34:Core/Src/st7789_bootloader.c **** }
+  40              		.loc 1 34 1 view .LVU3
+  41 0004 7047     		bx	lr
+  42              	.LVL2:
+  43              	.L4:
+  32:Core/Src/st7789_bootloader.c ****     if (p > 100) return 100;
+  44              		.loc 1 32 25 discriminator 1 view .LVU4
+  45 0006 6420     		movs	r0, #100
+  46              	.LVL3:
+  32:Core/Src/st7789_bootloader.c ****     if (p > 100) return 100;
+  47              		.loc 1 32 25 discriminator 1 view .LVU5
+  48 0008 FCE7     		b	.L2
+  49              		.cfi_endproc
+  50              	.LFE134:
+  52              		.section	.text.clear_dots_area,"ax",%progbits
+  53              		.align	1
+  54              		.syntax unified
+  55              		.thumb
+  56              		.thumb_func
+  58              	clear_dots_area:
+  59              	.LFB137:
+  35:Core/Src/st7789_bootloader.c **** 
+  36:Core/Src/st7789_bootloader.c **** /* Draw empty progress bar frame */
+  37:Core/Src/st7789_bootloader.c **** static void draw_progress_bar_frame(void)
+  38:Core/Src/st7789_bootloader.c **** {
+  39:Core/Src/st7789_bootloader.c ****     ST7789_DrawRectangle(PROGRESS_BAR_X,
+  40:Core/Src/st7789_bootloader.c ****                          PROGRESS_BAR_Y,
+  41:Core/Src/st7789_bootloader.c ****                          PROGRESS_BAR_X + PROGRESS_BAR_W,
+  42:Core/Src/st7789_bootloader.c ****                          PROGRESS_BAR_Y + PROGRESS_BAR_H,
+  43:Core/Src/st7789_bootloader.c ****                          BOOT_BAR_OUTLINE);
+  44:Core/Src/st7789_bootloader.c **** }
+  45:Core/Src/st7789_bootloader.c **** 
+  46:Core/Src/st7789_bootloader.c **** /* Fill progress bar according to percent */
+  47:Core/Src/st7789_bootloader.c **** static void draw_progress_bar_fill(uint8_t percent)
+  48:Core/Src/st7789_bootloader.c **** {
+  49:Core/Src/st7789_bootloader.c ****     uint8_t p = clamp_percent(percent);
+  50:Core/Src/st7789_bootloader.c **** 
+  51:Core/Src/st7789_bootloader.c ****     /* Compute filled width (inside the rectangle) */
+  52:Core/Src/st7789_bootloader.c ****     uint16_t inner_x      = PROGRESS_BAR_X + 1;
+  53:Core/Src/st7789_bootloader.c ****     uint16_t inner_y      = PROGRESS_BAR_Y + 1;
+  54:Core/Src/st7789_bootloader.c ****     uint16_t inner_w_max  = PROGRESS_BAR_W - 1;   /* leave 1px margin on right */
+  55:Core/Src/st7789_bootloader.c ****     uint16_t inner_h      = PROGRESS_BAR_H - 1;
+  56:Core/Src/st7789_bootloader.c **** 
+ARM GAS  /tmp/ccmf7400.s 			page 3
+
+
+  57:Core/Src/st7789_bootloader.c ****     uint16_t filled_w = (inner_w_max * p) / 100;
+  58:Core/Src/st7789_bootloader.c **** 
+  59:Core/Src/st7789_bootloader.c ****     if (filled_w == 0) {
+  60:Core/Src/st7789_bootloader.c ****         return;
+  61:Core/Src/st7789_bootloader.c ****     }
+  62:Core/Src/st7789_bootloader.c **** 
+  63:Core/Src/st7789_bootloader.c ****     ST7789_DrawFilledRectangle(inner_x,
+  64:Core/Src/st7789_bootloader.c ****                                inner_y,
+  65:Core/Src/st7789_bootloader.c ****                                filled_w,
+  66:Core/Src/st7789_bootloader.c ****                                inner_h,
+  67:Core/Src/st7789_bootloader.c ****                                BOOT_BAR_FILL);
+  68:Core/Src/st7789_bootloader.c **** }
+  69:Core/Src/st7789_bootloader.c **** 
+  70:Core/Src/st7789_bootloader.c **** /* Clear dots area */
+  71:Core/Src/st7789_bootloader.c **** static void clear_dots_area(void)
+  72:Core/Src/st7789_bootloader.c **** {
+  60              		.loc 1 72 1 is_stmt 1 view -0
+  61              		.cfi_startproc
+  62              		@ args = 0, pretend = 0, frame = 0
+  63              		@ frame_needed = 0, uses_anonymous_args = 0
+  64 0000 00B5     		push	{lr}
+  65              	.LCFI0:
+  66              		.cfi_def_cfa_offset 4
+  67              		.cfi_offset 14, -4
+  68 0002 83B0     		sub	sp, sp, #12
+  69              	.LCFI1:
+  70              		.cfi_def_cfa_offset 16
+  73:Core/Src/st7789_bootloader.c ****     ST7789_Fill(DOWNLOAD_MSG_Y,
+  71              		.loc 1 73 5 view .LVU7
+  74:Core/Src/st7789_bootloader.c ****                 DOTS_Y,
+  75:Core/Src/st7789_bootloader.c ****                 ST7789_WIDTH - 1,
+  76:Core/Src/st7789_bootloader.c ****                 DOTS_Y + Font_11x18.height,
+  72              		.loc 1 76 36 is_stmt 0 view .LVU8
+  73 0004 064B     		ldr	r3, .L7
+  74 0006 5B78     		ldrb	r3, [r3, #1]	@ zero_extendqisi2
+  73:Core/Src/st7789_bootloader.c ****     ST7789_Fill(DOWNLOAD_MSG_Y,
+  75              		.loc 1 73 5 view .LVU9
+  76 0008 0022     		movs	r2, #0
+  77 000a 0092     		str	r2, [sp]
+  78 000c 4633     		adds	r3, r3, #70
+  79 000e 40F23F12 		movw	r2, #319
+  80 0012 4621     		movs	r1, #70
+  81 0014 2D20     		movs	r0, #45
+  82 0016 FFF7FEFF 		bl	ST7789_Fill
+  83              	.LVL4:
+  77:Core/Src/st7789_bootloader.c ****                 BOOT_BG);
+  78:Core/Src/st7789_bootloader.c **** }
+  84              		.loc 1 78 1 view .LVU10
+  85 001a 03B0     		add	sp, sp, #12
+  86              	.LCFI2:
+  87              		.cfi_def_cfa_offset 4
+  88              		@ sp needed
+  89 001c 5DF804FB 		ldr	pc, [sp], #4
+  90              	.L8:
+  91              		.align	2
+  92              	.L7:
+  93 0020 00000000 		.word	Font_11x18
+ARM GAS  /tmp/ccmf7400.s 			page 4
+
+
+  94              		.cfi_endproc
+  95              	.LFE137:
+  97              		.section	.text.draw_progress_bar_frame,"ax",%progbits
+  98              		.align	1
+  99              		.syntax unified
+ 100              		.thumb
+ 101              		.thumb_func
+ 103              	draw_progress_bar_frame:
+ 104              	.LFB135:
+  38:Core/Src/st7789_bootloader.c ****     ST7789_DrawRectangle(PROGRESS_BAR_X,
+ 105              		.loc 1 38 1 is_stmt 1 view -0
+ 106              		.cfi_startproc
+ 107              		@ args = 0, pretend = 0, frame = 0
+ 108              		@ frame_needed = 0, uses_anonymous_args = 0
+ 109 0000 00B5     		push	{lr}
+ 110              	.LCFI3:
+ 111              		.cfi_def_cfa_offset 4
+ 112              		.cfi_offset 14, -4
+ 113 0002 83B0     		sub	sp, sp, #12
+ 114              	.LCFI4:
+ 115              		.cfi_def_cfa_offset 16
+  39:Core/Src/st7789_bootloader.c ****                          PROGRESS_BAR_Y,
+ 116              		.loc 1 39 5 view .LVU12
+ 117 0004 4FF6FF73 		movw	r3, #65535
+ 118 0008 0093     		str	r3, [sp]
+ 119 000a 7423     		movs	r3, #116
+ 120 000c 4FF49B72 		mov	r2, #310
+ 121 0010 6421     		movs	r1, #100
+ 122 0012 0A20     		movs	r0, #10
+ 123 0014 FFF7FEFF 		bl	ST7789_DrawRectangle
+ 124              	.LVL5:
+  44:Core/Src/st7789_bootloader.c **** 
+ 125              		.loc 1 44 1 is_stmt 0 view .LVU13
+ 126 0018 03B0     		add	sp, sp, #12
+ 127              	.LCFI5:
+ 128              		.cfi_def_cfa_offset 4
+ 129              		@ sp needed
+ 130 001a 5DF804FB 		ldr	pc, [sp], #4
+ 131              		.cfi_endproc
+ 132              	.LFE135:
+ 134              		.section	.text.draw_progress_bar_fill,"ax",%progbits
+ 135              		.align	1
+ 136              		.syntax unified
+ 137              		.thumb
+ 138              		.thumb_func
+ 140              	draw_progress_bar_fill:
+ 141              	.LVL6:
+ 142              	.LFB136:
+  48:Core/Src/st7789_bootloader.c ****     uint8_t p = clamp_percent(percent);
+ 143              		.loc 1 48 1 is_stmt 1 view -0
+ 144              		.cfi_startproc
+ 145              		@ args = 0, pretend = 0, frame = 0
+ 146              		@ frame_needed = 0, uses_anonymous_args = 0
+  48:Core/Src/st7789_bootloader.c ****     uint8_t p = clamp_percent(percent);
+ 147              		.loc 1 48 1 is_stmt 0 view .LVU15
+ 148 0000 00B5     		push	{lr}
+ 149              	.LCFI6:
+ARM GAS  /tmp/ccmf7400.s 			page 5
+
+
+ 150              		.cfi_def_cfa_offset 4
+ 151              		.cfi_offset 14, -4
+ 152 0002 83B0     		sub	sp, sp, #12
+ 153              	.LCFI7:
+ 154              		.cfi_def_cfa_offset 16
+  49:Core/Src/st7789_bootloader.c **** 
+ 155              		.loc 1 49 5 is_stmt 1 view .LVU16
+  49:Core/Src/st7789_bootloader.c **** 
+ 156              		.loc 1 49 17 is_stmt 0 view .LVU17
+ 157 0004 FFF7FEFF 		bl	clamp_percent
+ 158              	.LVL7:
+  52:Core/Src/st7789_bootloader.c ****     uint16_t inner_y      = PROGRESS_BAR_Y + 1;
+ 159              		.loc 1 52 5 is_stmt 1 view .LVU18
+  53:Core/Src/st7789_bootloader.c ****     uint16_t inner_w_max  = PROGRESS_BAR_W - 1;   /* leave 1px margin on right */
+ 160              		.loc 1 53 5 view .LVU19
+  54:Core/Src/st7789_bootloader.c ****     uint16_t inner_h      = PROGRESS_BAR_H - 1;
+ 161              		.loc 1 54 5 view .LVU20
+  55:Core/Src/st7789_bootloader.c **** 
+ 162              		.loc 1 55 5 view .LVU21
+  57:Core/Src/st7789_bootloader.c **** 
+ 163              		.loc 1 57 5 view .LVU22
+  57:Core/Src/st7789_bootloader.c **** 
+ 164              		.loc 1 57 38 is_stmt 0 view .LVU23
+ 165 0008 40F22B13 		movw	r3, #299
+ 166 000c 03FB00F0 		mul	r0, r3, r0
+ 167              	.LVL8:
+  57:Core/Src/st7789_bootloader.c **** 
+ 168              		.loc 1 57 43 view .LVU24
+ 169 0010 094B     		ldr	r3, .L15
+ 170 0012 83FB0023 		smull	r2, r3, r3, r0
+ 171 0016 C217     		asrs	r2, r0, #31
+ 172 0018 C2EB6312 		rsb	r2, r2, r3, asr #5
+  57:Core/Src/st7789_bootloader.c **** 
+ 173              		.loc 1 57 14 view .LVU25
+ 174 001c 92B2     		uxth	r2, r2
+ 175              	.LVL9:
+  59:Core/Src/st7789_bootloader.c ****         return;
+ 176              		.loc 1 59 5 is_stmt 1 view .LVU26
+  59:Core/Src/st7789_bootloader.c ****         return;
+ 177              		.loc 1 59 8 is_stmt 0 view .LVU27
+ 178 001e 12B9     		cbnz	r2, .L14
+ 179              	.LVL10:
+ 180              	.L11:
+  68:Core/Src/st7789_bootloader.c **** 
+ 181              		.loc 1 68 1 view .LVU28
+ 182 0020 03B0     		add	sp, sp, #12
+ 183              	.LCFI8:
+ 184              		.cfi_remember_state
+ 185              		.cfi_def_cfa_offset 4
+ 186              		@ sp needed
+ 187 0022 5DF804FB 		ldr	pc, [sp], #4
+ 188              	.LVL11:
+ 189              	.L14:
+ 190              	.LCFI9:
+ 191              		.cfi_restore_state
+  63:Core/Src/st7789_bootloader.c ****                                inner_y,
+ 192              		.loc 1 63 5 is_stmt 1 view .LVU29
+ARM GAS  /tmp/ccmf7400.s 			page 6
+
+
+ 193 0026 4FF4FC63 		mov	r3, #2016
+ 194 002a 0093     		str	r3, [sp]
+ 195 002c 0F23     		movs	r3, #15
+ 196 002e 6521     		movs	r1, #101
+ 197 0030 0B20     		movs	r0, #11
+ 198 0032 FFF7FEFF 		bl	ST7789_DrawFilledRectangle
+ 199              	.LVL12:
+  63:Core/Src/st7789_bootloader.c ****                                inner_y,
+ 200              		.loc 1 63 5 is_stmt 0 view .LVU30
+ 201 0036 F3E7     		b	.L11
+ 202              	.L16:
+ 203              		.align	2
+ 204              	.L15:
+ 205 0038 1F85EB51 		.word	1374389535
+ 206              		.cfi_endproc
+ 207              	.LFE136:
+ 209              		.section	.rodata.UI_Bootloader_ShowStart.str1.4,"aMS",%progbits,1
+ 210              		.align	2
+ 211              	.LC0:
+ 212 0000 496E2042 		.ascii	"In Bootloader\000"
+ 212      6F6F746C 
+ 212      6F616465 
+ 212      7200
+ 213 000e 0000     		.align	2
+ 214              	.LC1:
+ 215 0010 446F776E 		.ascii	"Downloading Image\000"
+ 215      6C6F6164 
+ 215      696E6720 
+ 215      496D6167 
+ 215      6500
+ 216              		.section	.text.UI_Bootloader_ShowStart,"ax",%progbits
+ 217              		.align	1
+ 218              		.global	UI_Bootloader_ShowStart
+ 219              		.syntax unified
+ 220              		.thumb
+ 221              		.thumb_func
+ 223              	UI_Bootloader_ShowStart:
+ 224              	.LFB138:
+  79:Core/Src/st7789_bootloader.c **** 
+  80:Core/Src/st7789_bootloader.c **** /* ------------------------------------------------------------------------- */
+  81:Core/Src/st7789_bootloader.c **** /* PUBLIC API                                                                */
+  82:Core/Src/st7789_bootloader.c **** /* ------------------------------------------------------------------------- */
+  83:Core/Src/st7789_bootloader.c **** 
+  84:Core/Src/st7789_bootloader.c **** void UI_Bootloader_ShowStart(void)
+  85:Core/Src/st7789_bootloader.c **** {
+ 225              		.loc 1 85 1 is_stmt 1 view -0
+ 226              		.cfi_startproc
+ 227              		@ args = 0, pretend = 0, frame = 0
+ 228              		@ frame_needed = 0, uses_anonymous_args = 0
+ 229 0000 10B5     		push	{r4, lr}
+ 230              	.LCFI10:
+ 231              		.cfi_def_cfa_offset 8
+ 232              		.cfi_offset 4, -8
+ 233              		.cfi_offset 14, -4
+ 234 0002 84B0     		sub	sp, sp, #16
+ 235              	.LCFI11:
+ 236              		.cfi_def_cfa_offset 24
+ARM GAS  /tmp/ccmf7400.s 			page 7
+
+
+  86:Core/Src/st7789_bootloader.c ****     ST7789_Fill_Color(BOOT_BG);
+ 237              		.loc 1 86 5 view .LVU32
+ 238 0004 0020     		movs	r0, #0
+ 239 0006 FFF7FEFF 		bl	ST7789_Fill_Color
+ 240              	.LVL13:
+  87:Core/Src/st7789_bootloader.c **** 
+  88:Core/Src/st7789_bootloader.c ****     /* Title */
+  89:Core/Src/st7789_bootloader.c ****     ST7789_WriteString(10,
+ 241              		.loc 1 89 5 view .LVU33
+ 242 000a 134B     		ldr	r3, .L19
+ 243 000c 0024     		movs	r4, #0
+ 244 000e 0294     		str	r4, [sp, #8]
+ 245 0010 40F2FF72 		movw	r2, #2047
+ 246 0014 0192     		str	r2, [sp, #4]
+ 247 0016 5A68     		ldr	r2, [r3, #4]
+ 248 0018 0092     		str	r2, [sp]
+ 249 001a 1B68     		ldr	r3, [r3]
+ 250 001c 0F4A     		ldr	r2, .L19+4
+ 251 001e 0A21     		movs	r1, #10
+ 252 0020 0846     		mov	r0, r1
+ 253 0022 FFF7FEFF 		bl	ST7789_WriteString
+ 254              	.LVL14:
+  90:Core/Src/st7789_bootloader.c ****                        BOOT_MSG_Y,
+  91:Core/Src/st7789_bootloader.c ****                        "In Bootloader",
+  92:Core/Src/st7789_bootloader.c ****                        Font_16x26,
+  93:Core/Src/st7789_bootloader.c ****                        BOOT_ACCENT,
+  94:Core/Src/st7789_bootloader.c ****                        BOOT_BG);
+  95:Core/Src/st7789_bootloader.c **** 
+  96:Core/Src/st7789_bootloader.c ****     /* Download message */
+  97:Core/Src/st7789_bootloader.c ****     ST7789_WriteString(10,
+ 255              		.loc 1 97 5 view .LVU34
+ 256 0026 0E4B     		ldr	r3, .L19+8
+ 257 0028 0294     		str	r4, [sp, #8]
+ 258 002a 4FF6FF72 		movw	r2, #65535
+ 259 002e 0192     		str	r2, [sp, #4]
+ 260 0030 5A68     		ldr	r2, [r3, #4]
+ 261 0032 0092     		str	r2, [sp]
+ 262 0034 1B68     		ldr	r3, [r3]
+ 263 0036 0B4A     		ldr	r2, .L19+12
+ 264 0038 2D21     		movs	r1, #45
+ 265 003a 0A20     		movs	r0, #10
+ 266 003c FFF7FEFF 		bl	ST7789_WriteString
+ 267              	.LVL15:
+  98:Core/Src/st7789_bootloader.c ****                        DOWNLOAD_MSG_Y,
+  99:Core/Src/st7789_bootloader.c ****                        "Downloading Image",
+ 100:Core/Src/st7789_bootloader.c ****                        Font_11x18,
+ 101:Core/Src/st7789_bootloader.c ****                        BOOT_FG,
+ 102:Core/Src/st7789_bootloader.c ****                        BOOT_BG);
+ 103:Core/Src/st7789_bootloader.c **** 
+ 104:Core/Src/st7789_bootloader.c ****     /* Initial empty dots and progress bar */
+ 105:Core/Src/st7789_bootloader.c ****     s_dot_count = 0;
+ 268              		.loc 1 105 5 view .LVU35
+ 269              		.loc 1 105 17 is_stmt 0 view .LVU36
+ 270 0040 094B     		ldr	r3, .L19+16
+ 271 0042 1C70     		strb	r4, [r3]
+ 106:Core/Src/st7789_bootloader.c ****     clear_dots_area();
+ 272              		.loc 1 106 5 is_stmt 1 view .LVU37
+ARM GAS  /tmp/ccmf7400.s 			page 8
+
+
+ 273 0044 FFF7FEFF 		bl	clear_dots_area
+ 274              	.LVL16:
+ 107:Core/Src/st7789_bootloader.c **** 
+ 108:Core/Src/st7789_bootloader.c ****     draw_progress_bar_frame();
+ 275              		.loc 1 108 5 view .LVU38
+ 276 0048 FFF7FEFF 		bl	draw_progress_bar_frame
+ 277              	.LVL17:
+ 109:Core/Src/st7789_bootloader.c ****     draw_progress_bar_fill(0);
+ 278              		.loc 1 109 5 view .LVU39
+ 279 004c 2046     		mov	r0, r4
+ 280 004e FFF7FEFF 		bl	draw_progress_bar_fill
+ 281              	.LVL18:
+ 110:Core/Src/st7789_bootloader.c **** }
+ 282              		.loc 1 110 1 is_stmt 0 view .LVU40
+ 283 0052 04B0     		add	sp, sp, #16
+ 284              	.LCFI12:
+ 285              		.cfi_def_cfa_offset 8
+ 286              		@ sp needed
+ 287 0054 10BD     		pop	{r4, pc}
+ 288              	.L20:
+ 289 0056 00BF     		.align	2
+ 290              	.L19:
+ 291 0058 00000000 		.word	Font_16x26
+ 292 005c 00000000 		.word	.LC0
+ 293 0060 00000000 		.word	Font_11x18
+ 294 0064 10000000 		.word	.LC1
+ 295 0068 00000000 		.word	s_dot_count
+ 296              		.cfi_endproc
+ 297              	.LFE138:
+ 299              		.section	.text.UI_Bootloader_UpdateProgress,"ax",%progbits
+ 300              		.align	1
+ 301              		.global	UI_Bootloader_UpdateProgress
+ 302              		.syntax unified
+ 303              		.thumb
+ 304              		.thumb_func
+ 306              	UI_Bootloader_UpdateProgress:
+ 307              	.LVL19:
+ 308              	.LFB139:
+ 111:Core/Src/st7789_bootloader.c **** 
+ 112:Core/Src/st7789_bootloader.c **** /* Call this when you have real % progress (0–100). */
+ 113:Core/Src/st7789_bootloader.c **** void UI_Bootloader_UpdateProgress(uint8_t percent)
+ 114:Core/Src/st7789_bootloader.c **** {
+ 309              		.loc 1 114 1 is_stmt 1 view -0
+ 310              		.cfi_startproc
+ 311              		@ args = 0, pretend = 0, frame = 0
+ 312              		@ frame_needed = 0, uses_anonymous_args = 0
+ 313              		.loc 1 114 1 is_stmt 0 view .LVU42
+ 314 0000 10B5     		push	{r4, lr}
+ 315              	.LCFI13:
+ 316              		.cfi_def_cfa_offset 8
+ 317              		.cfi_offset 4, -8
+ 318              		.cfi_offset 14, -4
+ 319 0002 0446     		mov	r4, r0
+ 115:Core/Src/st7789_bootloader.c ****     /* Re-draw bar frame once (cheap), then fill portion */
+ 116:Core/Src/st7789_bootloader.c ****     draw_progress_bar_frame();
+ 320              		.loc 1 116 5 is_stmt 1 view .LVU43
+ 321 0004 FFF7FEFF 		bl	draw_progress_bar_frame
+ARM GAS  /tmp/ccmf7400.s 			page 9
+
+
+ 322              	.LVL20:
+ 117:Core/Src/st7789_bootloader.c ****     draw_progress_bar_fill(percent);
+ 323              		.loc 1 117 5 view .LVU44
+ 324 0008 2046     		mov	r0, r4
+ 325 000a FFF7FEFF 		bl	draw_progress_bar_fill
+ 326              	.LVL21:
+ 118:Core/Src/st7789_bootloader.c **** }
+ 327              		.loc 1 118 1 is_stmt 0 view .LVU45
+ 328 000e 10BD     		pop	{r4, pc}
+ 329              		.loc 1 118 1 view .LVU46
+ 330              		.cfi_endproc
+ 331              	.LFE139:
+ 333              		.section	.rodata.UI_Bootloader_TickDots.str1.4,"aMS",%progbits,1
+ 334              		.align	2
+ 335              	.LC2:
+ 336 0000 446F776E 		.ascii	"Downloading Image.\000"
+ 336      6C6F6164 
+ 336      696E6720 
+ 336      496D6167 
+ 336      652E00
+ 337 0013 00       		.align	2
+ 338              	.LC3:
+ 339 0014 446F776E 		.ascii	"Downloading Image..\000"
+ 339      6C6F6164 
+ 339      696E6720 
+ 339      496D6167 
+ 339      652E2E00 
+ 340              		.align	2
+ 341              	.LC4:
+ 342 0028 446F776E 		.ascii	"Downloading Image...\000"
+ 342      6C6F6164 
+ 342      696E6720 
+ 342      496D6167 
+ 342      652E2E2E 
+ 343              		.section	.text.UI_Bootloader_TickDots,"ax",%progbits
+ 344              		.align	1
+ 345              		.global	UI_Bootloader_TickDots
+ 346              		.syntax unified
+ 347              		.thumb
+ 348              		.thumb_func
+ 350              	UI_Bootloader_TickDots:
+ 351              	.LFB140:
+ 119:Core/Src/st7789_bootloader.c **** 
+ 120:Core/Src/st7789_bootloader.c **** /* Call this periodically (e.g. in your download loop) if you
+ 121:Core/Src/st7789_bootloader.c ****  * DON'T have real progress yet. It animates "Downloading Image" with dots.
+ 122:Core/Src/st7789_bootloader.c ****  */
+ 123:Core/Src/st7789_bootloader.c **** void UI_Bootloader_TickDots(void)
+ 124:Core/Src/st7789_bootloader.c **** {
+ 352              		.loc 1 124 1 is_stmt 1 view -0
+ 353              		.cfi_startproc
+ 354              		@ args = 0, pretend = 0, frame = 32
+ 355              		@ frame_needed = 0, uses_anonymous_args = 0
+ 356 0000 30B5     		push	{r4, r5, lr}
+ 357              	.LCFI14:
+ 358              		.cfi_def_cfa_offset 12
+ 359              		.cfi_offset 4, -12
+ 360              		.cfi_offset 5, -8
+ARM GAS  /tmp/ccmf7400.s 			page 10
+
+
+ 361              		.cfi_offset 14, -4
+ 362 0002 8DB0     		sub	sp, sp, #52
+ 363              	.LCFI15:
+ 364              		.cfi_def_cfa_offset 64
+ 125:Core/Src/st7789_bootloader.c ****     char buf[32];
+ 365              		.loc 1 125 5 view .LVU48
+ 126:Core/Src/st7789_bootloader.c **** 
+ 127:Core/Src/st7789_bootloader.c ****     s_dot_count = (s_dot_count + 1) % 4;   /* 0,1,2,3 */
+ 366              		.loc 1 127 5 view .LVU49
+ 367              		.loc 1 127 32 is_stmt 0 view .LVU50
+ 368 0004 2349     		ldr	r1, .L32
+ 369 0006 0B78     		ldrb	r3, [r1]	@ zero_extendqisi2
+ 370 0008 0133     		adds	r3, r3, #1
+ 371              		.loc 1 127 37 view .LVU51
+ 372 000a 5A42     		rsbs	r2, r3, #0
+ 373 000c 03F00303 		and	r3, r3, #3
+ 374 0010 02F00302 		and	r2, r2, #3
+ 375 0014 58BF     		it	pl
+ 376 0016 5342     		rsbpl	r3, r2, #0
+ 377              		.loc 1 127 17 view .LVU52
+ 378 0018 DBB2     		uxtb	r3, r3
+ 379 001a 0B70     		strb	r3, [r1]
+ 128:Core/Src/st7789_bootloader.c **** 
+ 129:Core/Src/st7789_bootloader.c ****     /* Build string: "Downloading Image", "Downloading Image.", "..", "..." */
+ 130:Core/Src/st7789_bootloader.c ****     if (s_dot_count == 0) {
+ 380              		.loc 1 130 5 is_stmt 1 view .LVU53
+ 381              		.loc 1 130 8 is_stmt 0 view .LVU54
+ 382 001c 0BB3     		cbz	r3, .L29
+ 131:Core/Src/st7789_bootloader.c ****         snprintf(buf, sizeof(buf), "Downloading Image");
+ 132:Core/Src/st7789_bootloader.c ****     } else if (s_dot_count == 1) {
+ 383              		.loc 1 132 12 is_stmt 1 view .LVU55
+ 384              		.loc 1 132 15 is_stmt 0 view .LVU56
+ 385 001e 012B     		cmp	r3, #1
+ 386 0020 26D0     		beq	.L30
+ 133:Core/Src/st7789_bootloader.c ****         snprintf(buf, sizeof(buf), "Downloading Image.");
+ 134:Core/Src/st7789_bootloader.c ****     } else if (s_dot_count == 2) {
+ 387              		.loc 1 134 12 is_stmt 1 view .LVU57
+ 388              		.loc 1 134 15 is_stmt 0 view .LVU58
+ 389 0022 022B     		cmp	r3, #2
+ 390 0024 2ED0     		beq	.L31
+ 391              	.LBB2:
+ 135:Core/Src/st7789_bootloader.c ****         snprintf(buf, sizeof(buf), "Downloading Image..");
+ 136:Core/Src/st7789_bootloader.c ****     } else {
+ 137:Core/Src/st7789_bootloader.c ****         snprintf(buf, sizeof(buf), "Downloading Image...");
+ 392              		.loc 1 137 9 is_stmt 1 view .LVU59
+ 393 0026 0DF1100C 		add	ip, sp, #16
+ 394 002a 1B4C     		ldr	r4, .L32+4
+ 395 002c 0FCC     		ldmia	r4!, {r0, r1, r2, r3}
+ 396 002e ACE80F00 		stmia	ip!, {r0, r1, r2, r3}
+ 397 0032 94E80300 		ldm	r4, {r0, r1}
+ 398 0036 4CF8040B 		str	r0, [ip], #4
+ 399 003a 8CF80010 		strb	r1, [ip]
+ 400              	.L25:
+ 401              	.LBE2:
+ 138:Core/Src/st7789_bootloader.c ****     }
+ 139:Core/Src/st7789_bootloader.c **** 
+ 140:Core/Src/st7789_bootloader.c ****     /* Clear dots/text area and re-print */
+ARM GAS  /tmp/ccmf7400.s 			page 11
+
+
+ 141:Core/Src/st7789_bootloader.c ****     clear_dots_area();
+ 402              		.loc 1 141 5 view .LVU60
+ 403 003e FFF7FEFF 		bl	clear_dots_area
+ 404              	.LVL22:
+ 142:Core/Src/st7789_bootloader.c ****     ST7789_WriteString(10,
+ 405              		.loc 1 142 5 view .LVU61
+ 406 0042 164B     		ldr	r3, .L32+8
+ 407 0044 0022     		movs	r2, #0
+ 408 0046 0292     		str	r2, [sp, #8]
+ 409 0048 4FF6FF72 		movw	r2, #65535
+ 410 004c 0192     		str	r2, [sp, #4]
+ 411 004e 5A68     		ldr	r2, [r3, #4]
+ 412 0050 0092     		str	r2, [sp]
+ 413 0052 1B68     		ldr	r3, [r3]
+ 414 0054 04AA     		add	r2, sp, #16
+ 415 0056 2D21     		movs	r1, #45
+ 416 0058 0A20     		movs	r0, #10
+ 417 005a FFF7FEFF 		bl	ST7789_WriteString
+ 418              	.LVL23:
+ 143:Core/Src/st7789_bootloader.c ****                        DOWNLOAD_MSG_Y,
+ 144:Core/Src/st7789_bootloader.c ****                        buf,
+ 145:Core/Src/st7789_bootloader.c ****                        Font_11x18,
+ 146:Core/Src/st7789_bootloader.c ****                        BOOT_FG,
+ 147:Core/Src/st7789_bootloader.c ****                        BOOT_BG);
+ 148:Core/Src/st7789_bootloader.c **** }
+ 419              		.loc 1 148 1 is_stmt 0 view .LVU62
+ 420 005e 0DB0     		add	sp, sp, #52
+ 421              	.LCFI16:
+ 422              		.cfi_remember_state
+ 423              		.cfi_def_cfa_offset 12
+ 424              		@ sp needed
+ 425 0060 30BD     		pop	{r4, r5, pc}
+ 426              	.L29:
+ 427              	.LCFI17:
+ 428              		.cfi_restore_state
+ 429              	.LBB3:
+ 131:Core/Src/st7789_bootloader.c ****     } else if (s_dot_count == 1) {
+ 430              		.loc 1 131 9 is_stmt 1 view .LVU63
+ 431 0062 04AC     		add	r4, sp, #16
+ 432 0064 0E4D     		ldr	r5, .L32+12
+ 433 0066 0FCD     		ldmia	r5!, {r0, r1, r2, r3}
+ 434 0068 0FC4     		stmia	r4!, {r0, r1, r2, r3}
+ 435 006a 2B68     		ldr	r3, [r5]
+ 436 006c 2380     		strh	r3, [r4]	@ movhi
+ 437              	.LBE3:
+ 438 006e E6E7     		b	.L25
+ 439              	.L30:
+ 440              	.LBB4:
+ 133:Core/Src/st7789_bootloader.c ****     } else if (s_dot_count == 2) {
+ 441              		.loc 1 133 9 view .LVU64
+ 442 0070 04AC     		add	r4, sp, #16
+ 443 0072 0C4D     		ldr	r5, .L32+16
+ 444 0074 0FCD     		ldmia	r5!, {r0, r1, r2, r3}
+ 445 0076 0FC4     		stmia	r4!, {r0, r1, r2, r3}
+ 446 0078 2B68     		ldr	r3, [r5]
+ 447 007a 24F8023B 		strh	r3, [r4], #2	@ movhi
+ 448 007e 1B0C     		lsrs	r3, r3, #16
+ARM GAS  /tmp/ccmf7400.s 			page 12
+
+
+ 449 0080 2370     		strb	r3, [r4]
+ 450              	.LBE4:
+ 451 0082 DCE7     		b	.L25
+ 452              	.L31:
+ 453              	.LBB5:
+ 135:Core/Src/st7789_bootloader.c ****     } else {
+ 454              		.loc 1 135 9 view .LVU65
+ 455 0084 04AC     		add	r4, sp, #16
+ 456 0086 084D     		ldr	r5, .L32+20
+ 457 0088 0FCD     		ldmia	r5!, {r0, r1, r2, r3}
+ 458 008a 0FC4     		stmia	r4!, {r0, r1, r2, r3}
+ 459 008c 2B68     		ldr	r3, [r5]
+ 460 008e 2360     		str	r3, [r4]
+ 461              	.LBE5:
+ 462 0090 D5E7     		b	.L25
+ 463              	.L33:
+ 464 0092 00BF     		.align	2
+ 465              	.L32:
+ 466 0094 00000000 		.word	s_dot_count
+ 467 0098 28000000 		.word	.LC4
+ 468 009c 00000000 		.word	Font_11x18
+ 469 00a0 10000000 		.word	.LC1
+ 470 00a4 00000000 		.word	.LC2
+ 471 00a8 14000000 		.word	.LC3
+ 472              		.cfi_endproc
+ 473              	.LFE140:
+ 475              		.section	.rodata.UI_Bootloader_ShowDone.str1.4,"aMS",%progbits,1
+ 476              		.align	2
+ 477              	.LC5:
+ 478 0000 55706461 		.ascii	"Update Complete\000"
+ 478      74652043 
+ 478      6F6D706C 
+ 478      65746500 
+ 479              		.align	2
+ 480              	.LC6:
+ 481 0010 52657365 		.ascii	"Reset board\000"
+ 481      7420626F 
+ 481      61726400 
+ 482              		.section	.text.UI_Bootloader_ShowDone,"ax",%progbits
+ 483              		.align	1
+ 484              		.global	UI_Bootloader_ShowDone
+ 485              		.syntax unified
+ 486              		.thumb
+ 487              		.thumb_func
+ 489              	UI_Bootloader_ShowDone:
+ 490              	.LFB141:
+ 149:Core/Src/st7789_bootloader.c **** 
+ 150:Core/Src/st7789_bootloader.c **** /* Call once when update completes successfully */
+ 151:Core/Src/st7789_bootloader.c **** void UI_Bootloader_ShowDone(void)
+ 152:Core/Src/st7789_bootloader.c **** {
+ 491              		.loc 1 152 1 view -0
+ 492              		.cfi_startproc
+ 493              		@ args = 0, pretend = 0, frame = 0
+ 494              		@ frame_needed = 0, uses_anonymous_args = 0
+ 495 0000 10B5     		push	{r4, lr}
+ 496              	.LCFI18:
+ 497              		.cfi_def_cfa_offset 8
+ARM GAS  /tmp/ccmf7400.s 			page 13
+
+
+ 498              		.cfi_offset 4, -8
+ 499              		.cfi_offset 14, -4
+ 500 0002 84B0     		sub	sp, sp, #16
+ 501              	.LCFI19:
+ 502              		.cfi_def_cfa_offset 24
+ 153:Core/Src/st7789_bootloader.c ****     ST7789_Fill_Color(BOOT_BG);
+ 503              		.loc 1 153 5 view .LVU67
+ 504 0004 0020     		movs	r0, #0
+ 505 0006 FFF7FEFF 		bl	ST7789_Fill_Color
+ 506              	.LVL24:
+ 154:Core/Src/st7789_bootloader.c **** 
+ 155:Core/Src/st7789_bootloader.c ****     ST7789_WriteString(10,
+ 507              		.loc 1 155 5 view .LVU68
+ 508 000a 0E4B     		ldr	r3, .L36
+ 509 000c 0024     		movs	r4, #0
+ 510 000e 0294     		str	r4, [sp, #8]
+ 511 0010 4FF4FC62 		mov	r2, #2016
+ 512 0014 0192     		str	r2, [sp, #4]
+ 513 0016 5A68     		ldr	r2, [r3, #4]
+ 514 0018 0092     		str	r2, [sp]
+ 515 001a 1B68     		ldr	r3, [r3]
+ 516 001c 0A4A     		ldr	r2, .L36+4
+ 517 001e 3C21     		movs	r1, #60
+ 518 0020 0A20     		movs	r0, #10
+ 519 0022 FFF7FEFF 		bl	ST7789_WriteString
+ 520              	.LVL25:
+ 156:Core/Src/st7789_bootloader.c ****                        DONE_MSG_Y,
+ 157:Core/Src/st7789_bootloader.c ****                        "Update Complete",
+ 158:Core/Src/st7789_bootloader.c ****                        Font_16x26,
+ 159:Core/Src/st7789_bootloader.c ****                        GREEN,
+ 160:Core/Src/st7789_bootloader.c ****                        BOOT_BG);
+ 161:Core/Src/st7789_bootloader.c **** 
+ 162:Core/Src/st7789_bootloader.c ****     ST7789_WriteString(10,
+ 521              		.loc 1 162 5 view .LVU69
+ 522 0026 094B     		ldr	r3, .L36+8
+ 523 0028 0294     		str	r4, [sp, #8]
+ 524 002a 4FF6FF72 		movw	r2, #65535
+ 525 002e 0192     		str	r2, [sp, #4]
+ 526 0030 5A68     		ldr	r2, [r3, #4]
+ 527 0032 0092     		str	r2, [sp]
+ 528 0034 1B68     		ldr	r3, [r3]
+ 529 0036 064A     		ldr	r2, .L36+12
+ 530 0038 5A21     		movs	r1, #90
+ 531 003a 0A20     		movs	r0, #10
+ 532 003c FFF7FEFF 		bl	ST7789_WriteString
+ 533              	.LVL26:
+ 163:Core/Src/st7789_bootloader.c ****                        DONE_SUBMSG_Y,
+ 164:Core/Src/st7789_bootloader.c ****                        "Reset board",
+ 165:Core/Src/st7789_bootloader.c ****                        Font_11x18,
+ 166:Core/Src/st7789_bootloader.c ****                        BOOT_FG,
+ 167:Core/Src/st7789_bootloader.c ****                        BOOT_BG);
+ 168:Core/Src/st7789_bootloader.c **** }
+ 534              		.loc 1 168 1 is_stmt 0 view .LVU70
+ 535 0040 04B0     		add	sp, sp, #16
+ 536              	.LCFI20:
+ 537              		.cfi_def_cfa_offset 8
+ 538              		@ sp needed
+ARM GAS  /tmp/ccmf7400.s 			page 14
+
+
+ 539 0042 10BD     		pop	{r4, pc}
+ 540              	.L37:
+ 541              		.align	2
+ 542              	.L36:
+ 543 0044 00000000 		.word	Font_16x26
+ 544 0048 00000000 		.word	.LC5
+ 545 004c 00000000 		.word	Font_11x18
+ 546 0050 10000000 		.word	.LC6
+ 547              		.cfi_endproc
+ 548              	.LFE141:
+ 550              		.section	.rodata.UI_Bootloader_Failed.str1.4,"aMS",%progbits,1
+ 551              		.align	2
+ 552              	.LC7:
+ 553 0000 55706461 		.ascii	"Update Failed\000"
+ 553      74652046 
+ 553      61696C65 
+ 553      6400
+ 554              		.section	.text.UI_Bootloader_Failed,"ax",%progbits
+ 555              		.align	1
+ 556              		.global	UI_Bootloader_Failed
+ 557              		.syntax unified
+ 558              		.thumb
+ 559              		.thumb_func
+ 561              	UI_Bootloader_Failed:
+ 562              	.LFB142:
+ 169:Core/Src/st7789_bootloader.c **** 
+ 170:Core/Src/st7789_bootloader.c **** void UI_Bootloader_Failed(void)
+ 171:Core/Src/st7789_bootloader.c **** {
+ 563              		.loc 1 171 1 is_stmt 1 view -0
+ 564              		.cfi_startproc
+ 565              		@ args = 0, pretend = 0, frame = 0
+ 566              		@ frame_needed = 0, uses_anonymous_args = 0
+ 567 0000 10B5     		push	{r4, lr}
+ 568              	.LCFI21:
+ 569              		.cfi_def_cfa_offset 8
+ 570              		.cfi_offset 4, -8
+ 571              		.cfi_offset 14, -4
+ 572 0002 84B0     		sub	sp, sp, #16
+ 573              	.LCFI22:
+ 574              		.cfi_def_cfa_offset 24
+ 172:Core/Src/st7789_bootloader.c ****     ST7789_Fill_Color(BOOT_BG);
+ 575              		.loc 1 172 5 view .LVU72
+ 576 0004 0020     		movs	r0, #0
+ 577 0006 FFF7FEFF 		bl	ST7789_Fill_Color
+ 578              	.LVL27:
+ 173:Core/Src/st7789_bootloader.c **** 
+ 174:Core/Src/st7789_bootloader.c ****     ST7789_WriteString(10,
+ 579              		.loc 1 174 5 view .LVU73
+ 580 000a 0E4B     		ldr	r3, .L40
+ 581 000c 0024     		movs	r4, #0
+ 582 000e 0294     		str	r4, [sp, #8]
+ 583 0010 4FF47842 		mov	r2, #63488
+ 584 0014 0192     		str	r2, [sp, #4]
+ 585 0016 5A68     		ldr	r2, [r3, #4]
+ 586 0018 0092     		str	r2, [sp]
+ 587 001a 1B68     		ldr	r3, [r3]
+ 588 001c 0A4A     		ldr	r2, .L40+4
+ARM GAS  /tmp/ccmf7400.s 			page 15
+
+
+ 589 001e 3C21     		movs	r1, #60
+ 590 0020 0A20     		movs	r0, #10
+ 591 0022 FFF7FEFF 		bl	ST7789_WriteString
+ 592              	.LVL28:
+ 175:Core/Src/st7789_bootloader.c ****                        DONE_MSG_Y,
+ 176:Core/Src/st7789_bootloader.c ****                        "Update Failed",
+ 177:Core/Src/st7789_bootloader.c ****                        Font_16x26,
+ 178:Core/Src/st7789_bootloader.c ****                        RED,
+ 179:Core/Src/st7789_bootloader.c ****                        BOOT_BG);
+ 180:Core/Src/st7789_bootloader.c **** 
+ 181:Core/Src/st7789_bootloader.c ****     ST7789_WriteString(10,
+ 593              		.loc 1 181 5 view .LVU74
+ 594 0026 094B     		ldr	r3, .L40+8
+ 595 0028 0294     		str	r4, [sp, #8]
+ 596 002a 4FF6FF72 		movw	r2, #65535
+ 597 002e 0192     		str	r2, [sp, #4]
+ 598 0030 5A68     		ldr	r2, [r3, #4]
+ 599 0032 0092     		str	r2, [sp]
+ 600 0034 1B68     		ldr	r3, [r3]
+ 601 0036 064A     		ldr	r2, .L40+12
+ 602 0038 5A21     		movs	r1, #90
+ 603 003a 0A20     		movs	r0, #10
+ 604 003c FFF7FEFF 		bl	ST7789_WriteString
+ 605              	.LVL29:
+ 182:Core/Src/st7789_bootloader.c ****                        DONE_SUBMSG_Y,
+ 183:Core/Src/st7789_bootloader.c ****                        "Reset board",
+ 184:Core/Src/st7789_bootloader.c ****                        Font_11x18,
+ 185:Core/Src/st7789_bootloader.c ****                        BOOT_FG,
+ 186:Core/Src/st7789_bootloader.c ****                        BOOT_BG);
+ 187:Core/Src/st7789_bootloader.c **** }
+ 606              		.loc 1 187 1 is_stmt 0 view .LVU75
+ 607 0040 04B0     		add	sp, sp, #16
+ 608              	.LCFI23:
+ 609              		.cfi_def_cfa_offset 8
+ 610              		@ sp needed
+ 611 0042 10BD     		pop	{r4, pc}
+ 612              	.L41:
+ 613              		.align	2
+ 614              	.L40:
+ 615 0044 00000000 		.word	Font_16x26
+ 616 0048 00000000 		.word	.LC7
+ 617 004c 00000000 		.word	Font_11x18
+ 618 0050 10000000 		.word	.LC6
+ 619              		.cfi_endproc
+ 620              	.LFE142:
+ 622              		.section	.bss.s_dot_count,"aw",%nobits
+ 625              	s_dot_count:
+ 626 0000 00       		.space	1
+ 627              		.text
+ 628              	.Letext0:
+ 629              		.file 2 "/usr/lib/gcc/arm-none-eabi/13.2.1/include/stdint.h"
+ 630              		.file 3 "Core/Inc/fonts.h"
+ 631              		.file 4 "Core/Inc/st7789.h"
+ 632              		.file 5 "<built-in>"
+ARM GAS  /tmp/ccmf7400.s 			page 16
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 st7789_bootloader.c
+     /tmp/ccmf7400.s:21     .text.clamp_percent:00000000 $t
+     /tmp/ccmf7400.s:26     .text.clamp_percent:00000000 clamp_percent
+     /tmp/ccmf7400.s:53     .text.clear_dots_area:00000000 $t
+     /tmp/ccmf7400.s:58     .text.clear_dots_area:00000000 clear_dots_area
+     /tmp/ccmf7400.s:93     .text.clear_dots_area:00000020 $d
+     /tmp/ccmf7400.s:98     .text.draw_progress_bar_frame:00000000 $t
+     /tmp/ccmf7400.s:103    .text.draw_progress_bar_frame:00000000 draw_progress_bar_frame
+     /tmp/ccmf7400.s:135    .text.draw_progress_bar_fill:00000000 $t
+     /tmp/ccmf7400.s:140    .text.draw_progress_bar_fill:00000000 draw_progress_bar_fill
+     /tmp/ccmf7400.s:205    .text.draw_progress_bar_fill:00000038 $d
+     /tmp/ccmf7400.s:210    .rodata.UI_Bootloader_ShowStart.str1.4:00000000 $d
+     /tmp/ccmf7400.s:217    .text.UI_Bootloader_ShowStart:00000000 $t
+     /tmp/ccmf7400.s:223    .text.UI_Bootloader_ShowStart:00000000 UI_Bootloader_ShowStart
+     /tmp/ccmf7400.s:291    .text.UI_Bootloader_ShowStart:00000058 $d
+     /tmp/ccmf7400.s:625    .bss.s_dot_count:00000000 s_dot_count
+     /tmp/ccmf7400.s:300    .text.UI_Bootloader_UpdateProgress:00000000 $t
+     /tmp/ccmf7400.s:306    .text.UI_Bootloader_UpdateProgress:00000000 UI_Bootloader_UpdateProgress
+     /tmp/ccmf7400.s:334    .rodata.UI_Bootloader_TickDots.str1.4:00000000 $d
+     /tmp/ccmf7400.s:344    .text.UI_Bootloader_TickDots:00000000 $t
+     /tmp/ccmf7400.s:350    .text.UI_Bootloader_TickDots:00000000 UI_Bootloader_TickDots
+     /tmp/ccmf7400.s:466    .text.UI_Bootloader_TickDots:00000094 $d
+     /tmp/ccmf7400.s:476    .rodata.UI_Bootloader_ShowDone.str1.4:00000000 $d
+     /tmp/ccmf7400.s:483    .text.UI_Bootloader_ShowDone:00000000 $t
+     /tmp/ccmf7400.s:489    .text.UI_Bootloader_ShowDone:00000000 UI_Bootloader_ShowDone
+     /tmp/ccmf7400.s:543    .text.UI_Bootloader_ShowDone:00000044 $d
+     /tmp/ccmf7400.s:551    .rodata.UI_Bootloader_Failed.str1.4:00000000 $d
+     /tmp/ccmf7400.s:555    .text.UI_Bootloader_Failed:00000000 $t
+     /tmp/ccmf7400.s:561    .text.UI_Bootloader_Failed:00000000 UI_Bootloader_Failed
+     /tmp/ccmf7400.s:615    .text.UI_Bootloader_Failed:00000044 $d
+     /tmp/ccmf7400.s:626    .bss.s_dot_count:00000000 $d
+
+UNDEFINED SYMBOLS
+ST7789_Fill
+Font_11x18
+ST7789_DrawRectangle
+ST7789_DrawFilledRectangle
+ST7789_Fill_Color
+ST7789_WriteString
+Font_16x26
