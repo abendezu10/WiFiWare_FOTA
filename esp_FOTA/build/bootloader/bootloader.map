@@ -218,7 +218,7 @@ Discarded input sections
  .debug_aranges
                 0x0000000000000000       0x30 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/esp8266/libesp8266.a(esp_fast_boot.o)
  .debug_ranges  0x0000000000000000       0x20 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/esp8266/libesp8266.a(esp_fast_boot.o)
- .debug_line    0x0000000000000000      0x575 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/esp8266/libesp8266.a(esp_fast_boot.o)
+ .debug_line    0x0000000000000000      0x4c4 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/esp8266/libesp8266.a(esp_fast_boot.o)
  .debug_str     0x0000000000000000      0x71a /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/esp8266/libesp8266.a(esp_fast_boot.o)
  .comment       0x0000000000000000       0x32 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/esp8266/libesp8266.a(esp_fast_boot.o)
  .xt.lit        0x0000000000000000       0x18 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/esp8266/libesp8266.a(esp_fast_boot.o)
@@ -249,8 +249,8 @@ LOAD /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/spi_flash/l
 LOAD /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/log/liblog.a
 LOAD /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/esp8266/libesp8266.a
 LOAD /home/abendezu/esp/ESP8266_RTOS_SDK/components/esp8266/lib/libgcc.a
-LOAD /home/abendezu/.espressif/tools/xtensa-lx106-elf/esp-2020r3-49-gd5524c1-8.4.0/xtensa-lx106-elf/bin/../lib/gcc/xtensa-lx106-elf/8.4.0/../../../../xtensa-lx106-elf/lib/libstdc++.a
-LOAD /home/abendezu/.espressif/tools/xtensa-lx106-elf/esp-2020r3-49-gd5524c1-8.4.0/xtensa-lx106-elf/bin/../lib/gcc/xtensa-lx106-elf/8.4.0/libgcov.a
+LOAD /home/abendezu/esp/xtensa-lx106-elf/bin/../lib/gcc/xtensa-lx106-elf/8.4.0/../../../../xtensa-lx106-elf/lib/libstdc++.a
+LOAD /home/abendezu/esp/xtensa-lx106-elf/bin/../lib/gcc/xtensa-lx106-elf/8.4.0/libgcov.a
 END GROUP
 
 .text           0x0000000040100000     0x1d75
@@ -1065,19 +1065,19 @@ OUTPUT(/home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloade
  .debug_ranges  0x00000000000002f8       0x28 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/esp8266/libesp8266.a(ets_printf.o)
  .debug_ranges  0x0000000000000320       0x20 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/esp8266/libesp8266.a(crc.o)
 
-.debug_line     0x0000000000000000     0x8bf2
- .debug_line    0x0000000000000000      0x62e /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/main/libmain.a(bootloader_start.o)
- .debug_line    0x000000000000062e      0x884 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(bootloader_init.o)
- .debug_line    0x0000000000000eb2     0x13c6 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(bootloader_utility.o)
- .debug_line    0x0000000000002278     0x12c9 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(esp_image_format.o)
- .debug_line    0x0000000000003541      0x674 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(flash_partitions.o)
- .debug_line    0x0000000000003bb5      0x657 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(bootloader_common.o)
- .debug_line    0x000000000000420c      0xf57 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(bootloader_flash.o)
- .debug_line    0x0000000000005163     0x1ffc /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/spi_flash/libspi_flash.a(spi_flash.o)
- .debug_line    0x000000000000715f      0xc2b /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/spi_flash/libspi_flash.a(spi_flash_raw.o)
- .debug_line    0x0000000000007d8a      0x5e3 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/log/liblog.a(log.o)
- .debug_line    0x000000000000836d      0x4b4 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/esp8266/libesp8266.a(ets_printf.o)
- .debug_line    0x0000000000008821      0x3d1 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/esp8266/libesp8266.a(crc.o)
+.debug_line     0x0000000000000000     0x8330
+ .debug_line    0x0000000000000000      0x57d /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/main/libmain.a(bootloader_start.o)
+ .debug_line    0x000000000000057d      0x7d3 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(bootloader_init.o)
+ .debug_line    0x0000000000000d50     0x1315 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(bootloader_utility.o)
+ .debug_line    0x0000000000002065     0x11dd /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(esp_image_format.o)
+ .debug_line    0x0000000000003242      0x5c3 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(flash_partitions.o)
+ .debug_line    0x0000000000003805      0x5a6 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(bootloader_common.o)
+ .debug_line    0x0000000000003dab      0xea6 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(bootloader_flash.o)
+ .debug_line    0x0000000000004c51     0x1f4b /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/spi_flash/libspi_flash.a(spi_flash.o)
+ .debug_line    0x0000000000006b9c      0xb7a /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/spi_flash/libspi_flash.a(spi_flash_raw.o)
+ .debug_line    0x0000000000007716      0x4f7 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/log/liblog.a(log.o)
+ .debug_line    0x0000000000007c0d      0x3c8 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/esp8266/libesp8266.a(ets_printf.o)
+ .debug_line    0x0000000000007fd5      0x35b /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/esp8266/libesp8266.a(crc.o)
 
 .debug_str      0x0000000000000000     0x26ca
  .debug_str     0x0000000000000000      0x85d /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/main/libmain.a(bootloader_start.o)

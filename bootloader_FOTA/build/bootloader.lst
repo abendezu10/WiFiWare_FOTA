@@ -1,4 +1,4 @@
-ARM GAS  /tmp/ccNGTdW6.s 			page 1
+ARM GAS  /tmp/ccEYOayA.s 			page 1
 
 
    1              		.cpu cortex-m4
@@ -27,7 +27,7 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
   24              		.thumb_func
   26              	jump_to_reset:
   27              	.LVL0:
-  28              	.LFB136:
+  28              	.LFB137:
    1:Core/Src/bootloader.c **** /*
    2:Core/Src/bootloader.c ****  * bootloader.c
    3:Core/Src/bootloader.c ****  *
@@ -58,171 +58,369 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
   28:Core/Src/bootloader.c **** {
   29:Core/Src/bootloader.c ****     uint8_t c = (uint8_t)ch;
   30:Core/Src/bootloader.c ****     HAL_UART_Transmit(&huart2, &c, 1, HAL_MAX_DELAY);
-ARM GAS  /tmp/ccNGTdW6.s 			page 2
+ARM GAS  /tmp/ccEYOayA.s 			page 2
 
 
   31:Core/Src/bootloader.c ****     return ch;
   32:Core/Src/bootloader.c **** }
   33:Core/Src/bootloader.c **** 
   34:Core/Src/bootloader.c **** /*
-  35:Core/Src/bootloader.c ****  * Fetches the first value in the Vector Table, which is the Main Stack Pointer.
-  36:Core/Src/bootloader.c ****  * Returns 1 if the MSP is the range of the correct SRAM region
-  37:Core/Src/bootloader.c ****  */
-  38:Core/Src/bootloader.c **** int IMG_valid(uint32_t addr){
-  39:Core/Src/bootloader.c **** 	uint32_t msp = *((volatile uint32_t *) addr);
-  40:Core/Src/bootloader.c **** 	printf("0x%08lx\n\r", msp);
-  41:Core/Src/bootloader.c **** 	return (msp >= START_SRAM) && (msp <= END_SRAM);
-  42:Core/Src/bootloader.c **** }
-  43:Core/Src/bootloader.c **** 
-  44:Core/Src/bootloader.c **** /*
-  45:Core/Src/bootloader.c ****  * Creates a function pointer to point to address of the reset handler.
-  46:Core/Src/bootloader.c ****  * Then runs the Reset Handler, which switches to the image stored in section 1 of RAM
-  47:Core/Src/bootloader.c ****  */
-  48:Core/Src/bootloader.c **** __attribute__((noreturn)) static inline void jump_to_reset(uint32_t rh_addr){
-  29              		.loc 1 48 77 view -0
+  35:Core/Src/bootloader.c ****  * Erase a contiguous run of sectors.
+  36:Core/Src/bootloader.c ****  *
+  37:Core/Src/bootloader.c ****  * Do NOT call FLASH_Erase_Sector() directly. It is an internal HAL helper that
+  38:Core/Src/bootloader.c ****  * only pokes FLASH_CR (SNB/SER/STRT) and returns immediately. It never waits
+  39:Core/Src/bootloader.c ****  * for BSY to clear and never clears SER afterwards. Two consequences:
+  40:Core/Src/bootloader.c ****  *
+  41:Core/Src/bootloader.c ****  *   1) A second call lands while the first erase is still running. SNB is read
+  42:Core/Src/bootloader.c ****  *      continuously by the flash controller, not latched at STRT, so clearing
+  43:Core/Src/bootloader.c ****  *      SNB mid-erase retargets the running erase at sector 0 - the bootloader.
+  44:Core/Src/bootloader.c ****  *   2) SER is left set, so the next HAL_FLASH_Program() runs with SER and PG
+  45:Core/Src/bootloader.c ****  *      both set in FLASH_CR, which the reference manual forbids.
+  46:Core/Src/bootloader.c ****  *
+  47:Core/Src/bootloader.c ****  * HAL_FLASHEx_Erase() does the full protocol: wait, check flags, clear SER.
+  48:Core/Src/bootloader.c ****  */
+  49:Core/Src/bootloader.c **** HAL_StatusTypeDef flash_erase_sectors(uint32_t first_sector, uint32_t nb_sectors)
+  50:Core/Src/bootloader.c **** {
+  51:Core/Src/bootloader.c **** 	FLASH_EraseInitTypeDef erase = {0};
+  52:Core/Src/bootloader.c **** 	uint32_t sector_err = 0xFFFFFFFFU;
+  53:Core/Src/bootloader.c **** 
+  54:Core/Src/bootloader.c **** 	erase.TypeErase    = FLASH_TYPEERASE_SECTORS;
+  55:Core/Src/bootloader.c **** 	erase.VoltageRange = FLASH_VOLTAGE_RANGE_3;
+  56:Core/Src/bootloader.c **** 	erase.Banks        = FLASH_BANK_1;
+  57:Core/Src/bootloader.c **** 	erase.Sector       = first_sector;
+  58:Core/Src/bootloader.c **** 	erase.NbSectors    = nb_sectors;
+  59:Core/Src/bootloader.c **** 
+  60:Core/Src/bootloader.c **** 	HAL_FLASH_Unlock();
+  61:Core/Src/bootloader.c **** 
+  62:Core/Src/bootloader.c **** 	__HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_EOP    | FLASH_FLAG_OPERR  |
+  63:Core/Src/bootloader.c **** 	                       FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR |
+  64:Core/Src/bootloader.c **** 	                       FLASH_FLAG_PGSERR | FLASH_FLAG_PGPERR);
+  65:Core/Src/bootloader.c **** 
+  66:Core/Src/bootloader.c **** 	HAL_StatusTypeDef status = HAL_FLASHEx_Erase(&erase, &sector_err);
+  67:Core/Src/bootloader.c **** 
+  68:Core/Src/bootloader.c **** 	HAL_FLASH_Lock();
+  69:Core/Src/bootloader.c **** 
+  70:Core/Src/bootloader.c **** 	if (status != HAL_OK) {
+  71:Core/Src/bootloader.c **** 		printf("erase failed at sector %lu err=0x%08lX\r\n",
+  72:Core/Src/bootloader.c **** 		       (unsigned long)sector_err,
+  73:Core/Src/bootloader.c **** 		       (unsigned long)HAL_FLASH_GetError());
+  74:Core/Src/bootloader.c **** 	}
+  75:Core/Src/bootloader.c **** 
+  76:Core/Src/bootloader.c **** 	return status;
+  77:Core/Src/bootloader.c **** }
+  78:Core/Src/bootloader.c **** 
+  79:Core/Src/bootloader.c **** /*
+  80:Core/Src/bootloader.c ****  * Fetches the first value in the Vector Table, which is the Main Stack Pointer.
+  81:Core/Src/bootloader.c ****  * Returns 1 if the MSP is the range of the correct SRAM region
+  82:Core/Src/bootloader.c ****  */
+  83:Core/Src/bootloader.c **** int IMG_valid(uint32_t addr){
+  84:Core/Src/bootloader.c **** 	uint32_t msp = *((volatile uint32_t *) addr);
+  85:Core/Src/bootloader.c **** 	printf("0x%08lx\n\r", msp);
+  86:Core/Src/bootloader.c **** 	return (msp >= START_SRAM) && (msp <= END_SRAM);
+  87:Core/Src/bootloader.c **** }
+ARM GAS  /tmp/ccEYOayA.s 			page 3
+
+
+  88:Core/Src/bootloader.c **** 
+  89:Core/Src/bootloader.c **** /*
+  90:Core/Src/bootloader.c ****  * Creates a function pointer to point to address of the reset handler.
+  91:Core/Src/bootloader.c ****  * Then runs the Reset Handler, which switches to the image stored in section 1 of RAM
+  92:Core/Src/bootloader.c ****  */
+  93:Core/Src/bootloader.c **** __attribute__((noreturn)) static inline void jump_to_reset(uint32_t rh_addr){
+  29              		.loc 1 93 77 view -0
   30              		.cfi_startproc
   31              		@ Volatile: function does not return.
   32              		@ args = 0, pretend = 0, frame = 0
   33              		@ frame_needed = 0, uses_anonymous_args = 0
-  34              		.loc 1 48 77 is_stmt 0 view .LVU1
+  34              		.loc 1 93 77 is_stmt 0 view .LVU1
   35 0000 08B5     		push	{r3, lr}
   36              	.LCFI0:
   37              		.cfi_def_cfa_offset 8
   38              		.cfi_offset 3, -8
   39              		.cfi_offset 14, -4
-  49:Core/Src/bootloader.c **** 
-  50:Core/Src/bootloader.c **** 
-  51:Core/Src/bootloader.c **** 	void (*reset_fn)(void) = (void(*)(void)) rh_addr;
-  40              		.loc 1 51 2 is_stmt 1 view .LVU2
+  94:Core/Src/bootloader.c **** 
+  95:Core/Src/bootloader.c **** 
+  96:Core/Src/bootloader.c **** 	void (*reset_fn)(void) = (void(*)(void)) rh_addr;
+  40              		.loc 1 96 2 is_stmt 1 view .LVU2
   41              	.LVL1:
-  52:Core/Src/bootloader.c **** 	reset_fn();
-  42              		.loc 1 52 2 view .LVU3
+  97:Core/Src/bootloader.c **** 	reset_fn();
+  42              		.loc 1 97 2 view .LVU3
   43 0002 8047     		blx	r0
   44              	.LVL2:
-  53:Core/Src/bootloader.c **** }
-  45              		.loc 1 53 1 is_stmt 0 view .LVU4
+  98:Core/Src/bootloader.c **** }
+  45              		.loc 1 98 1 is_stmt 0 view .LVU4
   46 0004 FFDE     		.inst	0xdeff
   47              		.cfi_endproc
-  48              	.LFE136:
-  50              		.section	.rodata.IMG_valid.str1.4,"aMS",%progbits,1
+  48              	.LFE137:
+  50              		.section	.rodata.flash_erase_sectors.str1.4,"aMS",%progbits,1
   51              		.align	2
   52              	.LC0:
-  53 0000 30782530 		.ascii	"0x%08lx\012\015\000"
-  53      386C780A 
-  53      0D00
-  54              		.section	.text.IMG_valid,"ax",%progbits
+  53 0000 65726173 		.ascii	"erase failed at sector %lu err=0x%08lX\015\012\000"
+  53      65206661 
+  53      696C6564 
+  53      20617420 
+  53      73656374 
+  54              		.section	.text.flash_erase_sectors,"ax",%progbits
   55              		.align	1
-  56              		.global	IMG_valid
+  56              		.global	flash_erase_sectors
   57              		.syntax unified
   58              		.thumb
   59              		.thumb_func
-  61              	IMG_valid:
+  61              	flash_erase_sectors:
   62              	.LVL3:
-ARM GAS  /tmp/ccNGTdW6.s 			page 3
-
-
   63              	.LFB135:
-  38:Core/Src/bootloader.c **** 	uint32_t msp = *((volatile uint32_t *) addr);
-  64              		.loc 1 38 29 is_stmt 1 view -0
+  50:Core/Src/bootloader.c **** 	FLASH_EraseInitTypeDef erase = {0};
+  64              		.loc 1 50 1 is_stmt 1 view -0
   65              		.cfi_startproc
-  66              		@ args = 0, pretend = 0, frame = 0
+  66              		@ args = 0, pretend = 0, frame = 24
   67              		@ frame_needed = 0, uses_anonymous_args = 0
-  38:Core/Src/bootloader.c **** 	uint32_t msp = *((volatile uint32_t *) addr);
-  68              		.loc 1 38 29 is_stmt 0 view .LVU6
-  69 0000 10B5     		push	{r4, lr}
+  50:Core/Src/bootloader.c **** 	FLASH_EraseInitTypeDef erase = {0};
+  68              		.loc 1 50 1 is_stmt 0 view .LVU6
+  69 0000 30B5     		push	{r4, r5, lr}
   70              	.LCFI1:
-  71              		.cfi_def_cfa_offset 8
-  72              		.cfi_offset 4, -8
-  73              		.cfi_offset 14, -4
-  39:Core/Src/bootloader.c **** 	printf("0x%08lx\n\r", msp);
-  74              		.loc 1 39 2 is_stmt 1 view .LVU7
-  39:Core/Src/bootloader.c **** 	printf("0x%08lx\n\r", msp);
-  75              		.loc 1 39 11 is_stmt 0 view .LVU8
-  76 0002 0468     		ldr	r4, [r0]
-  77              	.LVL4:
-  40:Core/Src/bootloader.c **** 	return (msp >= START_SRAM) && (msp <= END_SRAM);
-  78              		.loc 1 40 2 is_stmt 1 view .LVU9
-  79 0004 2146     		mov	r1, r4
-  80 0006 0548     		ldr	r0, .L5
-  81              	.LVL5:
-  40:Core/Src/bootloader.c **** 	return (msp >= START_SRAM) && (msp <= END_SRAM);
-  82              		.loc 1 40 2 is_stmt 0 view .LVU10
-  83 0008 FFF7FEFF 		bl	printf
-  84              	.LVL6:
-  41:Core/Src/bootloader.c **** }
-  85              		.loc 1 41 2 is_stmt 1 view .LVU11
-  41:Core/Src/bootloader.c **** }
-  86              		.loc 1 41 29 is_stmt 0 view .LVU12
-  87 000c 04F16040 		add	r0, r4, #-536870912
-  42:Core/Src/bootloader.c **** 
-  88              		.loc 1 42 1 view .LVU13
-  89 0010 B0F5C03F 		cmp	r0, #98304
-  90 0014 8CBF     		ite	hi
-  91 0016 0020     		movhi	r0, #0
-  92 0018 0120     		movls	r0, #1
-  93 001a 10BD     		pop	{r4, pc}
-  94              	.LVL7:
-  95              	.L6:
-  42:Core/Src/bootloader.c **** 
-  96              		.loc 1 42 1 view .LVU14
-  97              		.align	2
-  98              	.L5:
-  99 001c 00000000 		.word	.LC0
- 100              		.cfi_endproc
- 101              	.LFE135:
- 103              		.section	.text.jmp_to_IMG,"ax",%progbits
- 104              		.align	1
- 105              		.global	jmp_to_IMG
- 106              		.syntax unified
- 107              		.thumb
- 108              		.thumb_func
- 110              	jmp_to_IMG:
- 111              	.LVL8:
-ARM GAS  /tmp/ccNGTdW6.s 			page 4
+ARM GAS  /tmp/ccEYOayA.s 			page 4
 
 
- 112              	.LFB137:
-  54:Core/Src/bootloader.c **** 
-  55:Core/Src/bootloader.c **** /*
-  56:Core/Src/bootloader.c ****  * Store the dereferenced type-casted macro where both the MSP and Reset Handler are stored in the 
-  57:Core/Src/bootloader.c ****  * In order to switch, you have to disable any interrupts, SysTick, and peripherals
-  58:Core/Src/bootloader.c ****  */
-  59:Core/Src/bootloader.c **** void jmp_to_IMG(uint32_t addr){
- 113              		.loc 1 59 31 is_stmt 1 view -0
- 114              		.cfi_startproc
- 115              		@ args = 0, pretend = 0, frame = 0
- 116              		@ frame_needed = 0, uses_anonymous_args = 0
- 117              		.loc 1 59 31 is_stmt 0 view .LVU16
- 118 0000 F8B5     		push	{r3, r4, r5, r6, r7, lr}
- 119              	.LCFI2:
- 120              		.cfi_def_cfa_offset 24
- 121              		.cfi_offset 3, -24
- 122              		.cfi_offset 4, -20
- 123              		.cfi_offset 5, -16
- 124              		.cfi_offset 6, -12
- 125              		.cfi_offset 7, -8
- 126              		.cfi_offset 14, -4
- 127 0002 0646     		mov	r6, r0
+  71              		.cfi_def_cfa_offset 12
+  72              		.cfi_offset 4, -12
+  73              		.cfi_offset 5, -8
+  74              		.cfi_offset 14, -4
+  75 0002 87B0     		sub	sp, sp, #28
+  76              	.LCFI2:
+  77              		.cfi_def_cfa_offset 40
+  51:Core/Src/bootloader.c **** 	uint32_t sector_err = 0xFFFFFFFFU;
+  78              		.loc 1 51 2 is_stmt 1 view .LVU7
+  51:Core/Src/bootloader.c **** 	uint32_t sector_err = 0xFFFFFFFFU;
+  79              		.loc 1 51 25 is_stmt 0 view .LVU8
+  80 0004 0023     		movs	r3, #0
+  81 0006 0193     		str	r3, [sp, #4]
+  82 0008 0293     		str	r3, [sp, #8]
+  83 000a 0393     		str	r3, [sp, #12]
+  84 000c 0493     		str	r3, [sp, #16]
+  85 000e 0593     		str	r3, [sp, #20]
+  52:Core/Src/bootloader.c **** 
+  86              		.loc 1 52 2 is_stmt 1 view .LVU9
+  52:Core/Src/bootloader.c **** 
+  87              		.loc 1 52 11 is_stmt 0 view .LVU10
+  88 0010 4FF0FF33 		mov	r3, #-1
+  89 0014 0093     		str	r3, [sp]
+  54:Core/Src/bootloader.c **** 	erase.VoltageRange = FLASH_VOLTAGE_RANGE_3;
+  90              		.loc 1 54 2 is_stmt 1 view .LVU11
+  55:Core/Src/bootloader.c **** 	erase.Banks        = FLASH_BANK_1;
+  91              		.loc 1 55 2 view .LVU12
+  55:Core/Src/bootloader.c **** 	erase.Banks        = FLASH_BANK_1;
+  92              		.loc 1 55 21 is_stmt 0 view .LVU13
+  93 0016 0223     		movs	r3, #2
+  94 0018 0593     		str	r3, [sp, #20]
+  56:Core/Src/bootloader.c **** 	erase.Sector       = first_sector;
+  95              		.loc 1 56 2 is_stmt 1 view .LVU14
+  56:Core/Src/bootloader.c **** 	erase.Sector       = first_sector;
+  96              		.loc 1 56 21 is_stmt 0 view .LVU15
+  97 001a 0123     		movs	r3, #1
+  98 001c 0293     		str	r3, [sp, #8]
+  57:Core/Src/bootloader.c **** 	erase.NbSectors    = nb_sectors;
+  99              		.loc 1 57 2 is_stmt 1 view .LVU16
+  57:Core/Src/bootloader.c **** 	erase.NbSectors    = nb_sectors;
+ 100              		.loc 1 57 21 is_stmt 0 view .LVU17
+ 101 001e 0390     		str	r0, [sp, #12]
+  58:Core/Src/bootloader.c **** 
+ 102              		.loc 1 58 2 is_stmt 1 view .LVU18
+  58:Core/Src/bootloader.c **** 
+ 103              		.loc 1 58 21 is_stmt 0 view .LVU19
+ 104 0020 0491     		str	r1, [sp, #16]
   60:Core/Src/bootloader.c **** 
-  61:Core/Src/bootloader.c **** 
-  62:Core/Src/bootloader.c **** 	uint32_t msp_addr  = *(uint32_t *) (addr + 0x00);
- 128              		.loc 1 62 2 is_stmt 1 view .LVU17
- 129              		.loc 1 62 11 is_stmt 0 view .LVU18
- 130 0004 0568     		ldr	r5, [r0]
- 131              	.LVL9:
-  63:Core/Src/bootloader.c **** 	uint32_t reset_addr = *(uint32_t *) (addr + 0x04);
- 132              		.loc 1 63 2 is_stmt 1 view .LVU19
- 133              		.loc 1 63 11 is_stmt 0 view .LVU20
- 134 0006 4468     		ldr	r4, [r0, #4]
- 135              	.LVL10:
-  64:Core/Src/bootloader.c **** 
-  65:Core/Src/bootloader.c **** 	__disable_irq();
- 136              		.loc 1 65 2 is_stmt 1 view .LVU21
- 137              	.LBB25:
- 138              	.LBI25:
- 139              		.file 2 "Drivers/CMSIS/Include/cmsis_gcc.h"
+ 105              		.loc 1 60 2 is_stmt 1 view .LVU20
+ 106 0022 FFF7FEFF 		bl	HAL_FLASH_Unlock
+ 107              	.LVL4:
+  62:Core/Src/bootloader.c **** 	                       FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR |
+ 108              		.loc 1 62 2 view .LVU21
+ 109 0026 0B4B     		ldr	r3, .L7
+ 110 0028 F322     		movs	r2, #243
+ 111 002a DA60     		str	r2, [r3, #12]
+  66:Core/Src/bootloader.c **** 
+ARM GAS  /tmp/ccEYOayA.s 			page 5
+
+
+ 112              		.loc 1 66 2 view .LVU22
+  66:Core/Src/bootloader.c **** 
+ 113              		.loc 1 66 29 is_stmt 0 view .LVU23
+ 114 002c 6946     		mov	r1, sp
+ 115 002e 01A8     		add	r0, sp, #4
+ 116 0030 FFF7FEFF 		bl	HAL_FLASHEx_Erase
+ 117              	.LVL5:
+ 118 0034 0446     		mov	r4, r0
+ 119              	.LVL6:
+  68:Core/Src/bootloader.c **** 
+ 120              		.loc 1 68 2 is_stmt 1 view .LVU24
+ 121 0036 FFF7FEFF 		bl	HAL_FLASH_Lock
+ 122              	.LVL7:
+  70:Core/Src/bootloader.c **** 		printf("erase failed at sector %lu err=0x%08lX\r\n",
+ 123              		.loc 1 70 2 view .LVU25
+  70:Core/Src/bootloader.c **** 		printf("erase failed at sector %lu err=0x%08lX\r\n",
+ 124              		.loc 1 70 5 is_stmt 0 view .LVU26
+ 125 003a 14B9     		cbnz	r4, .L6
+ 126              	.L4:
+  76:Core/Src/bootloader.c **** }
+ 127              		.loc 1 76 2 is_stmt 1 view .LVU27
+  77:Core/Src/bootloader.c **** 
+ 128              		.loc 1 77 1 is_stmt 0 view .LVU28
+ 129 003c 2046     		mov	r0, r4
+ 130 003e 07B0     		add	sp, sp, #28
+ 131              	.LCFI3:
+ 132              		.cfi_remember_state
+ 133              		.cfi_def_cfa_offset 12
+ 134              		@ sp needed
+ 135 0040 30BD     		pop	{r4, r5, pc}
+ 136              	.LVL8:
+ 137              	.L6:
+ 138              	.LCFI4:
+ 139              		.cfi_restore_state
+ 140              	.LBB25:
+  71:Core/Src/bootloader.c **** 		       (unsigned long)sector_err,
+ 141              		.loc 1 71 3 is_stmt 1 view .LVU29
+ 142 0042 009D     		ldr	r5, [sp]
+  73:Core/Src/bootloader.c **** 	}
+ 143              		.loc 1 73 25 is_stmt 0 view .LVU30
+ 144 0044 FFF7FEFF 		bl	HAL_FLASH_GetError
+ 145              	.LVL9:
+ 146 0048 0246     		mov	r2, r0
+  71:Core/Src/bootloader.c **** 		       (unsigned long)sector_err,
+ 147              		.loc 1 71 3 view .LVU31
+ 148 004a 2946     		mov	r1, r5
+ 149 004c 0248     		ldr	r0, .L7+4
+ 150 004e FFF7FEFF 		bl	printf
+ 151              	.LVL10:
+ 152 0052 F3E7     		b	.L4
+ 153              	.L8:
+ 154              		.align	2
+ 155              	.L7:
+ 156 0054 003C0240 		.word	1073888256
+ 157 0058 00000000 		.word	.LC0
+ 158              	.LBE25:
+ 159              		.cfi_endproc
+ARM GAS  /tmp/ccEYOayA.s 			page 6
+
+
+ 160              	.LFE135:
+ 162              		.section	.rodata.IMG_valid.str1.4,"aMS",%progbits,1
+ 163              		.align	2
+ 164              	.LC1:
+ 165 0000 30782530 		.ascii	"0x%08lx\012\015\000"
+ 165      386C780A 
+ 165      0D00
+ 166              		.section	.text.IMG_valid,"ax",%progbits
+ 167              		.align	1
+ 168              		.global	IMG_valid
+ 169              		.syntax unified
+ 170              		.thumb
+ 171              		.thumb_func
+ 173              	IMG_valid:
+ 174              	.LVL11:
+ 175              	.LFB136:
+  83:Core/Src/bootloader.c **** 	uint32_t msp = *((volatile uint32_t *) addr);
+ 176              		.loc 1 83 29 is_stmt 1 view -0
+ 177              		.cfi_startproc
+ 178              		@ args = 0, pretend = 0, frame = 0
+ 179              		@ frame_needed = 0, uses_anonymous_args = 0
+  83:Core/Src/bootloader.c **** 	uint32_t msp = *((volatile uint32_t *) addr);
+ 180              		.loc 1 83 29 is_stmt 0 view .LVU33
+ 181 0000 10B5     		push	{r4, lr}
+ 182              	.LCFI5:
+ 183              		.cfi_def_cfa_offset 8
+ 184              		.cfi_offset 4, -8
+ 185              		.cfi_offset 14, -4
+  84:Core/Src/bootloader.c **** 	printf("0x%08lx\n\r", msp);
+ 186              		.loc 1 84 2 is_stmt 1 view .LVU34
+  84:Core/Src/bootloader.c **** 	printf("0x%08lx\n\r", msp);
+ 187              		.loc 1 84 11 is_stmt 0 view .LVU35
+ 188 0002 0468     		ldr	r4, [r0]
+ 189              	.LVL12:
+  85:Core/Src/bootloader.c **** 	return (msp >= START_SRAM) && (msp <= END_SRAM);
+ 190              		.loc 1 85 2 is_stmt 1 view .LVU36
+ 191 0004 2146     		mov	r1, r4
+ 192 0006 0548     		ldr	r0, .L11
+ 193              	.LVL13:
+  85:Core/Src/bootloader.c **** 	return (msp >= START_SRAM) && (msp <= END_SRAM);
+ 194              		.loc 1 85 2 is_stmt 0 view .LVU37
+ 195 0008 FFF7FEFF 		bl	printf
+ 196              	.LVL14:
+  86:Core/Src/bootloader.c **** }
+ 197              		.loc 1 86 2 is_stmt 1 view .LVU38
+  86:Core/Src/bootloader.c **** }
+ 198              		.loc 1 86 29 is_stmt 0 view .LVU39
+ 199 000c 04F16040 		add	r0, r4, #-536870912
+  87:Core/Src/bootloader.c **** 
+ 200              		.loc 1 87 1 view .LVU40
+ 201 0010 B0F5C03F 		cmp	r0, #98304
+ 202 0014 8CBF     		ite	hi
+ 203 0016 0020     		movhi	r0, #0
+ 204 0018 0120     		movls	r0, #1
+ 205 001a 10BD     		pop	{r4, pc}
+ 206              	.LVL15:
+ 207              	.L12:
+ARM GAS  /tmp/ccEYOayA.s 			page 7
+
+
+  87:Core/Src/bootloader.c **** 
+ 208              		.loc 1 87 1 view .LVU41
+ 209              		.align	2
+ 210              	.L11:
+ 211 001c 00000000 		.word	.LC1
+ 212              		.cfi_endproc
+ 213              	.LFE136:
+ 215              		.section	.text.jmp_to_IMG,"ax",%progbits
+ 216              		.align	1
+ 217              		.global	jmp_to_IMG
+ 218              		.syntax unified
+ 219              		.thumb
+ 220              		.thumb_func
+ 222              	jmp_to_IMG:
+ 223              	.LVL16:
+ 224              	.LFB138:
+  99:Core/Src/bootloader.c **** 
+ 100:Core/Src/bootloader.c **** /*
+ 101:Core/Src/bootloader.c ****  * Store the dereferenced type-casted macro where both the MSP and Reset Handler are stored in the 
+ 102:Core/Src/bootloader.c ****  * In order to switch, you have to disable any interrupts, SysTick, and peripherals
+ 103:Core/Src/bootloader.c ****  */
+ 104:Core/Src/bootloader.c **** void jmp_to_IMG(uint32_t addr){
+ 225              		.loc 1 104 31 is_stmt 1 view -0
+ 226              		.cfi_startproc
+ 227              		@ args = 0, pretend = 0, frame = 0
+ 228              		@ frame_needed = 0, uses_anonymous_args = 0
+ 229              		.loc 1 104 31 is_stmt 0 view .LVU43
+ 230 0000 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 231              	.LCFI6:
+ 232              		.cfi_def_cfa_offset 24
+ 233              		.cfi_offset 3, -24
+ 234              		.cfi_offset 4, -20
+ 235              		.cfi_offset 5, -16
+ 236              		.cfi_offset 6, -12
+ 237              		.cfi_offset 7, -8
+ 238              		.cfi_offset 14, -4
+ 239 0002 0646     		mov	r6, r0
+ 105:Core/Src/bootloader.c **** 
+ 106:Core/Src/bootloader.c **** 
+ 107:Core/Src/bootloader.c **** 	uint32_t msp_addr  = *(uint32_t *) (addr + 0x00);
+ 240              		.loc 1 107 2 is_stmt 1 view .LVU44
+ 241              		.loc 1 107 11 is_stmt 0 view .LVU45
+ 242 0004 0568     		ldr	r5, [r0]
+ 243              	.LVL17:
+ 108:Core/Src/bootloader.c **** 	uint32_t reset_addr = *(uint32_t *) (addr + 0x04);
+ 244              		.loc 1 108 2 is_stmt 1 view .LVU46
+ 245              		.loc 1 108 11 is_stmt 0 view .LVU47
+ 246 0006 4468     		ldr	r4, [r0, #4]
+ 247              	.LVL18:
+ 109:Core/Src/bootloader.c **** 
+ 110:Core/Src/bootloader.c **** 	__disable_irq();
+ 248              		.loc 1 110 2 is_stmt 1 view .LVU48
+ 249              	.LBB26:
+ 250              	.LBI26:
+ 251              		.file 2 "Drivers/CMSIS/Include/cmsis_gcc.h"
    1:Drivers/CMSIS/Include/cmsis_gcc.h **** /**************************************************************************//**
    2:Drivers/CMSIS/Include/cmsis_gcc.h ****  * @file     cmsis_gcc.h
+ARM GAS  /tmp/ccEYOayA.s 			page 8
+
+
    3:Drivers/CMSIS/Include/cmsis_gcc.h ****  * @brief    CMSIS compiler GCC header file
    4:Drivers/CMSIS/Include/cmsis_gcc.h ****  * @version  V5.4.1
    5:Drivers/CMSIS/Include/cmsis_gcc.h ****  * @date     27. May 2021
@@ -238,9 +436,6 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
   15:Drivers/CMSIS/Include/cmsis_gcc.h ****  *
   16:Drivers/CMSIS/Include/cmsis_gcc.h ****  * www.apache.org/licenses/LICENSE-2.0
   17:Drivers/CMSIS/Include/cmsis_gcc.h ****  *
-ARM GAS  /tmp/ccNGTdW6.s 			page 5
-
-
   18:Drivers/CMSIS/Include/cmsis_gcc.h ****  * Unless required by applicable law or agreed to in writing, software
   19:Drivers/CMSIS/Include/cmsis_gcc.h ****  * distributed under the License is distributed on an AS IS BASIS, WITHOUT
   20:Drivers/CMSIS/Include/cmsis_gcc.h ****  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -283,6 +478,9 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
   57:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
   58:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __WEAK
   59:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __WEAK                                 __attribute__((weak))
+ARM GAS  /tmp/ccEYOayA.s 			page 9
+
+
   60:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
   61:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __PACKED
   62:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __PACKED                               __attribute__((packed, aligned(1)))
@@ -298,9 +496,6 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
   72:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
   73:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
   74:Drivers/CMSIS/Include/cmsis_gcc.h ****   struct __attribute__((packed)) T_UINT32 { uint32_t v; };
-ARM GAS  /tmp/ccNGTdW6.s 			page 6
-
-
   75:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
   76:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT32(x)                  (((struct T_UINT32 *)(x))->v)
   77:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
@@ -343,6 +538,9 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
  114:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __RESTRICT                             __restrict
  115:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
  116:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __COMPILER_BARRIER
+ARM GAS  /tmp/ccEYOayA.s 			page 10
+
+
  117:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __COMPILER_BARRIER()                   __ASM volatile("":::"memory")
  118:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
  119:Drivers/CMSIS/Include/cmsis_gcc.h **** 
@@ -358,9 +556,6 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
  129:Drivers/CMSIS/Include/cmsis_gcc.h **** 
  130:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
  131:Drivers/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE __NO_RETURN void __cmsis_start(void)
-ARM GAS  /tmp/ccNGTdW6.s 			page 7
-
-
  132:Drivers/CMSIS/Include/cmsis_gcc.h **** {
  133:Drivers/CMSIS/Include/cmsis_gcc.h ****   extern void _start(void) __NO_RETURN;
  134:Drivers/CMSIS/Include/cmsis_gcc.h **** 
@@ -403,6 +598,9 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
  171:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
  172:Drivers/CMSIS/Include/cmsis_gcc.h **** 
  173:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef __STACK_LIMIT
+ARM GAS  /tmp/ccEYOayA.s 			page 11
+
+
  174:Drivers/CMSIS/Include/cmsis_gcc.h **** #define __STACK_LIMIT             __StackLimit
  175:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
  176:Drivers/CMSIS/Include/cmsis_gcc.h **** 
@@ -418,9 +616,6 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
  186:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef __STACK_SEAL
  187:Drivers/CMSIS/Include/cmsis_gcc.h **** #define __STACK_SEAL              __StackSeal
  188:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
-ARM GAS  /tmp/ccNGTdW6.s 			page 8
-
-
  189:Drivers/CMSIS/Include/cmsis_gcc.h **** 
  190:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef __TZ_STACK_SEAL_SIZE
  191:Drivers/CMSIS/Include/cmsis_gcc.h **** #define __TZ_STACK_SEAL_SIZE      8U
@@ -463,6 +658,9 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
  228:Drivers/CMSIS/Include/cmsis_gcc.h **** #define __NOP()                             __ASM volatile ("nop")
  229:Drivers/CMSIS/Include/cmsis_gcc.h **** 
  230:Drivers/CMSIS/Include/cmsis_gcc.h **** /**
+ARM GAS  /tmp/ccEYOayA.s 			page 12
+
+
  231:Drivers/CMSIS/Include/cmsis_gcc.h ****   \brief   Wait For Interrupt
  232:Drivers/CMSIS/Include/cmsis_gcc.h ****   \details Wait For Interrupt is a hint instruction that suspends execution until one of a number o
  233:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
@@ -478,9 +676,6 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
  243:Drivers/CMSIS/Include/cmsis_gcc.h **** 
  244:Drivers/CMSIS/Include/cmsis_gcc.h **** 
  245:Drivers/CMSIS/Include/cmsis_gcc.h **** /**
-ARM GAS  /tmp/ccNGTdW6.s 			page 9
-
-
  246:Drivers/CMSIS/Include/cmsis_gcc.h ****   \brief   Send Event
  247:Drivers/CMSIS/Include/cmsis_gcc.h ****   \details Send Event is a hint instruction. It causes an event to be signaled to the CPU.
  248:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
@@ -523,6 +718,9 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
  285:Drivers/CMSIS/Include/cmsis_gcc.h **** 
  286:Drivers/CMSIS/Include/cmsis_gcc.h **** /**
  287:Drivers/CMSIS/Include/cmsis_gcc.h ****   \brief   Reverse byte order (32 bit)
+ARM GAS  /tmp/ccEYOayA.s 			page 13
+
+
  288:Drivers/CMSIS/Include/cmsis_gcc.h ****   \details Reverses the byte order in unsigned integer value. For example, 0x12345678 becomes 0x785
  289:Drivers/CMSIS/Include/cmsis_gcc.h ****   \param [in]    value  Value to reverse
  290:Drivers/CMSIS/Include/cmsis_gcc.h ****   \return               Reversed value
@@ -538,9 +736,6 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
  300:Drivers/CMSIS/Include/cmsis_gcc.h ****   return result;
  301:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
  302:Drivers/CMSIS/Include/cmsis_gcc.h **** }
-ARM GAS  /tmp/ccNGTdW6.s 			page 10
-
-
  303:Drivers/CMSIS/Include/cmsis_gcc.h **** 
  304:Drivers/CMSIS/Include/cmsis_gcc.h **** 
  305:Drivers/CMSIS/Include/cmsis_gcc.h **** /**
@@ -583,6 +778,9 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
  342:Drivers/CMSIS/Include/cmsis_gcc.h ****   \param [in]    op1  Value to rotate
  343:Drivers/CMSIS/Include/cmsis_gcc.h ****   \param [in]    op2  Number of Bits to rotate
  344:Drivers/CMSIS/Include/cmsis_gcc.h ****   \return               Rotated value
+ARM GAS  /tmp/ccEYOayA.s 			page 14
+
+
  345:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
  346:Drivers/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __ROR(uint32_t op1, uint32_t op2)
  347:Drivers/CMSIS/Include/cmsis_gcc.h **** {
@@ -598,9 +796,6 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
  357:Drivers/CMSIS/Include/cmsis_gcc.h **** /**
  358:Drivers/CMSIS/Include/cmsis_gcc.h ****   \brief   Breakpoint
  359:Drivers/CMSIS/Include/cmsis_gcc.h ****   \details Causes the processor to enter Debug state.
-ARM GAS  /tmp/ccNGTdW6.s 			page 11
-
-
  360:Drivers/CMSIS/Include/cmsis_gcc.h ****            Debug tools can use this to investigate system state when the instruction at a particula
  361:Drivers/CMSIS/Include/cmsis_gcc.h ****   \param [in]    value  is ignored by the processor.
  362:Drivers/CMSIS/Include/cmsis_gcc.h ****                  If required, a debugger can use it to store additional information about the break
@@ -643,6 +838,9 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
  399:Drivers/CMSIS/Include/cmsis_gcc.h ****   \details Counts the number of leading zeros of a data value.
  400:Drivers/CMSIS/Include/cmsis_gcc.h ****   \param [in]  value  Value to count the leading zeros
  401:Drivers/CMSIS/Include/cmsis_gcc.h ****   \return             number of leading zeros in value
+ARM GAS  /tmp/ccEYOayA.s 			page 15
+
+
  402:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
  403:Drivers/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint8_t __CLZ(uint32_t value)
  404:Drivers/CMSIS/Include/cmsis_gcc.h **** {
@@ -658,9 +856,6 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
  414:Drivers/CMSIS/Include/cmsis_gcc.h ****   if (value == 0U)
  415:Drivers/CMSIS/Include/cmsis_gcc.h ****   {
  416:Drivers/CMSIS/Include/cmsis_gcc.h ****     return 32U;
-ARM GAS  /tmp/ccNGTdW6.s 			page 12
-
-
  417:Drivers/CMSIS/Include/cmsis_gcc.h ****   }
  418:Drivers/CMSIS/Include/cmsis_gcc.h ****   return __builtin_clz(value);
  419:Drivers/CMSIS/Include/cmsis_gcc.h **** }
@@ -703,6 +898,9 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
  456:Drivers/CMSIS/Include/cmsis_gcc.h ****     uint32_t result;
  457:Drivers/CMSIS/Include/cmsis_gcc.h **** 
  458:Drivers/CMSIS/Include/cmsis_gcc.h **** #if (__GNUC__ > 4) || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8)
+ARM GAS  /tmp/ccEYOayA.s 			page 16
+
+
  459:Drivers/CMSIS/Include/cmsis_gcc.h ****    __ASM volatile ("ldrexh %0, %1" : "=r" (result) : "Q" (*addr) );
  460:Drivers/CMSIS/Include/cmsis_gcc.h **** #else
  461:Drivers/CMSIS/Include/cmsis_gcc.h ****     /* Prior to GCC 4.8, "Q" will be expanded to [rx, #0] which is not
@@ -718,9 +916,6 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
  471:Drivers/CMSIS/Include/cmsis_gcc.h ****   \brief   LDR Exclusive (32 bit)
  472:Drivers/CMSIS/Include/cmsis_gcc.h ****   \details Executes a exclusive LDR instruction for 32 bit values.
  473:Drivers/CMSIS/Include/cmsis_gcc.h ****   \param [in]    ptr  Pointer to data
-ARM GAS  /tmp/ccNGTdW6.s 			page 13
-
-
  474:Drivers/CMSIS/Include/cmsis_gcc.h ****   \return        value of type uint32_t at (*ptr)
  475:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
  476:Drivers/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __LDREXW(volatile uint32_t *addr)
@@ -763,6 +958,9 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
  513:Drivers/CMSIS/Include/cmsis_gcc.h **** 
  514:Drivers/CMSIS/Include/cmsis_gcc.h ****    __ASM volatile ("strexh %0, %2, %1" : "=&r" (result), "=Q" (*addr) : "r" ((uint32_t)value) );
  515:Drivers/CMSIS/Include/cmsis_gcc.h ****    return(result);
+ARM GAS  /tmp/ccEYOayA.s 			page 17
+
+
  516:Drivers/CMSIS/Include/cmsis_gcc.h **** }
  517:Drivers/CMSIS/Include/cmsis_gcc.h **** 
  518:Drivers/CMSIS/Include/cmsis_gcc.h **** 
@@ -778,9 +976,6 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
  528:Drivers/CMSIS/Include/cmsis_gcc.h **** {
  529:Drivers/CMSIS/Include/cmsis_gcc.h ****    uint32_t result;
  530:Drivers/CMSIS/Include/cmsis_gcc.h **** 
-ARM GAS  /tmp/ccNGTdW6.s 			page 14
-
-
  531:Drivers/CMSIS/Include/cmsis_gcc.h ****    __ASM volatile ("strex %0, %2, %1" : "=&r" (result), "=Q" (*addr) : "r" (value) );
  532:Drivers/CMSIS/Include/cmsis_gcc.h ****    return(result);
  533:Drivers/CMSIS/Include/cmsis_gcc.h **** }
@@ -823,6 +1018,9 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
  570:Drivers/CMSIS/Include/cmsis_gcc.h **** /**
  571:Drivers/CMSIS/Include/cmsis_gcc.h ****   \brief   Unsigned Saturate
  572:Drivers/CMSIS/Include/cmsis_gcc.h ****   \details Saturates an unsigned value.
+ARM GAS  /tmp/ccEYOayA.s 			page 18
+
+
  573:Drivers/CMSIS/Include/cmsis_gcc.h ****   \param [in]  ARG1  Value to be saturated
  574:Drivers/CMSIS/Include/cmsis_gcc.h ****   \param [in]  ARG2  Bit position to saturate to (0..31)
  575:Drivers/CMSIS/Include/cmsis_gcc.h ****   \return             Saturated value
@@ -838,9 +1036,6 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
  585:Drivers/CMSIS/Include/cmsis_gcc.h **** 
  586:Drivers/CMSIS/Include/cmsis_gcc.h **** /**
  587:Drivers/CMSIS/Include/cmsis_gcc.h ****   \brief   Rotate Right with Extend (32 bit)
-ARM GAS  /tmp/ccNGTdW6.s 			page 15
-
-
  588:Drivers/CMSIS/Include/cmsis_gcc.h ****   \details Moves each bit of a bitstring right by one bit.
  589:Drivers/CMSIS/Include/cmsis_gcc.h ****            The carry input is shifted in at the left end of the bitstring.
  590:Drivers/CMSIS/Include/cmsis_gcc.h ****   \param [in]    value  Value to rotate
@@ -883,6 +1078,9 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
  627:Drivers/CMSIS/Include/cmsis_gcc.h ****   \param [in]    ptr  Pointer to data
  628:Drivers/CMSIS/Include/cmsis_gcc.h ****   \return        value of type uint16_t at (*ptr)
  629:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
+ARM GAS  /tmp/ccEYOayA.s 			page 19
+
+
  630:Drivers/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint16_t __LDRHT(volatile uint16_t *ptr)
  631:Drivers/CMSIS/Include/cmsis_gcc.h **** {
  632:Drivers/CMSIS/Include/cmsis_gcc.h ****     uint32_t result;
@@ -898,9 +1096,6 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
  642:Drivers/CMSIS/Include/cmsis_gcc.h ****    return ((uint16_t) result);    /* Add explicit type cast here */
  643:Drivers/CMSIS/Include/cmsis_gcc.h **** }
  644:Drivers/CMSIS/Include/cmsis_gcc.h **** 
-ARM GAS  /tmp/ccNGTdW6.s 			page 16
-
-
  645:Drivers/CMSIS/Include/cmsis_gcc.h **** 
  646:Drivers/CMSIS/Include/cmsis_gcc.h **** /**
  647:Drivers/CMSIS/Include/cmsis_gcc.h ****   \brief   LDRT Unprivileged (32 bit)
@@ -943,6 +1138,9 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
  684:Drivers/CMSIS/Include/cmsis_gcc.h **** 
  685:Drivers/CMSIS/Include/cmsis_gcc.h **** /**
  686:Drivers/CMSIS/Include/cmsis_gcc.h ****   \brief   STRT Unprivileged (32 bit)
+ARM GAS  /tmp/ccEYOayA.s 			page 20
+
+
  687:Drivers/CMSIS/Include/cmsis_gcc.h ****   \details Executes a Unprivileged STRT instruction for 32 bit values.
  688:Drivers/CMSIS/Include/cmsis_gcc.h ****   \param [in]  value  Value to store
  689:Drivers/CMSIS/Include/cmsis_gcc.h ****   \param [in]    ptr  Pointer to location
@@ -958,9 +1156,6 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
  699:Drivers/CMSIS/Include/cmsis_gcc.h **** 
  700:Drivers/CMSIS/Include/cmsis_gcc.h **** /**
  701:Drivers/CMSIS/Include/cmsis_gcc.h ****   \brief   Signed Saturate
-ARM GAS  /tmp/ccNGTdW6.s 			page 17
-
-
  702:Drivers/CMSIS/Include/cmsis_gcc.h ****   \details Saturates a signed value.
  703:Drivers/CMSIS/Include/cmsis_gcc.h ****   \param [in]  value  Value to be saturated
  704:Drivers/CMSIS/Include/cmsis_gcc.h ****   \param [in]    sat  Bit position to saturate to (1..32)
@@ -1003,6 +1198,9 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
  741:Drivers/CMSIS/Include/cmsis_gcc.h ****     else if (val < 0)
  742:Drivers/CMSIS/Include/cmsis_gcc.h ****     {
  743:Drivers/CMSIS/Include/cmsis_gcc.h ****       return 0U;
+ARM GAS  /tmp/ccEYOayA.s 			page 21
+
+
  744:Drivers/CMSIS/Include/cmsis_gcc.h ****     }
  745:Drivers/CMSIS/Include/cmsis_gcc.h ****   }
  746:Drivers/CMSIS/Include/cmsis_gcc.h ****   return (uint32_t)val;
@@ -1018,9 +1216,6 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
  756:Drivers/CMSIS/Include/cmsis_gcc.h **** /**
  757:Drivers/CMSIS/Include/cmsis_gcc.h ****   \brief   Load-Acquire (8 bit)
  758:Drivers/CMSIS/Include/cmsis_gcc.h ****   \details Executes a LDAB instruction for 8 bit value.
-ARM GAS  /tmp/ccNGTdW6.s 			page 18
-
-
  759:Drivers/CMSIS/Include/cmsis_gcc.h ****   \param [in]    ptr  Pointer to data
  760:Drivers/CMSIS/Include/cmsis_gcc.h ****   \return             value of type uint8_t at (*ptr)
  761:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
@@ -1063,6 +1258,9 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
  798:Drivers/CMSIS/Include/cmsis_gcc.h **** }
  799:Drivers/CMSIS/Include/cmsis_gcc.h **** 
  800:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+ARM GAS  /tmp/ccEYOayA.s 			page 22
+
+
  801:Drivers/CMSIS/Include/cmsis_gcc.h **** /**
  802:Drivers/CMSIS/Include/cmsis_gcc.h ****   \brief   Store-Release (8 bit)
  803:Drivers/CMSIS/Include/cmsis_gcc.h ****   \details Executes a STLB instruction for 8 bit values.
@@ -1078,9 +1276,6 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
  813:Drivers/CMSIS/Include/cmsis_gcc.h **** /**
  814:Drivers/CMSIS/Include/cmsis_gcc.h ****   \brief   Store-Release (16 bit)
  815:Drivers/CMSIS/Include/cmsis_gcc.h ****   \details Executes a STLH instruction for 16 bit values.
-ARM GAS  /tmp/ccNGTdW6.s 			page 19
-
-
  816:Drivers/CMSIS/Include/cmsis_gcc.h ****   \param [in]  value  Value to store
  817:Drivers/CMSIS/Include/cmsis_gcc.h ****   \param [in]    ptr  Pointer to location
  818:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
@@ -1123,6 +1318,9 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
  855:Drivers/CMSIS/Include/cmsis_gcc.h ****   \param [in]    ptr  Pointer to data
  856:Drivers/CMSIS/Include/cmsis_gcc.h ****   \return        value of type uint16_t at (*ptr)
  857:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
+ARM GAS  /tmp/ccEYOayA.s 			page 23
+
+
  858:Drivers/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint16_t __LDAEXH(volatile uint16_t *ptr)
  859:Drivers/CMSIS/Include/cmsis_gcc.h **** {
  860:Drivers/CMSIS/Include/cmsis_gcc.h ****     uint32_t result;
@@ -1138,9 +1336,6 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
  870:Drivers/CMSIS/Include/cmsis_gcc.h ****   \param [in]    ptr  Pointer to data
  871:Drivers/CMSIS/Include/cmsis_gcc.h ****   \return        value of type uint32_t at (*ptr)
  872:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
-ARM GAS  /tmp/ccNGTdW6.s 			page 20
-
-
  873:Drivers/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __LDAEX(volatile uint32_t *ptr)
  874:Drivers/CMSIS/Include/cmsis_gcc.h **** {
  875:Drivers/CMSIS/Include/cmsis_gcc.h ****     uint32_t result;
@@ -1183,6 +1378,9 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
  912:Drivers/CMSIS/Include/cmsis_gcc.h ****    return(result);
  913:Drivers/CMSIS/Include/cmsis_gcc.h **** }
  914:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+ARM GAS  /tmp/ccEYOayA.s 			page 24
+
+
  915:Drivers/CMSIS/Include/cmsis_gcc.h **** 
  916:Drivers/CMSIS/Include/cmsis_gcc.h **** /**
  917:Drivers/CMSIS/Include/cmsis_gcc.h ****   \brief   Store-Release Exclusive (32 bit)
@@ -1198,9 +1396,6 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
  927:Drivers/CMSIS/Include/cmsis_gcc.h **** 
  928:Drivers/CMSIS/Include/cmsis_gcc.h ****    __ASM volatile ("stlex %0, %2, %1" : "=&r" (result), "=Q" (*ptr) : "r" ((uint32_t)value) : "memo
  929:Drivers/CMSIS/Include/cmsis_gcc.h ****    return(result);
-ARM GAS  /tmp/ccNGTdW6.s 			page 21
-
-
  930:Drivers/CMSIS/Include/cmsis_gcc.h **** }
  931:Drivers/CMSIS/Include/cmsis_gcc.h **** 
  932:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif /* ((defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)) || \
@@ -1232,197 +1427,200 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
  958:Drivers/CMSIS/Include/cmsis_gcc.h ****            Can only be executed in Privileged modes.
  959:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
  960:Drivers/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __disable_irq(void)
- 140              		.loc 2 960 27 view .LVU22
- 141              	.LBB26:
+ 252              		.loc 2 960 27 view .LVU49
+ 253              	.LBB27:
  961:Drivers/CMSIS/Include/cmsis_gcc.h **** {
  962:Drivers/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("cpsid i" : : : "memory");
- 142              		.loc 2 962 3 view .LVU23
- 143              		.syntax unified
- 144              	@ 962 "Drivers/CMSIS/Include/cmsis_gcc.h" 1
- 145 0008 72B6     		cpsid i
- 146              	@ 0 "" 2
- 147              		.thumb
- 148              		.syntax unified
- 149              	.LBE26:
- 150              	.LBE25:
-  66:Core/Src/bootloader.c **** 
-  67:Core/Src/bootloader.c **** 	SysTick->CTRL = 0;
- 151              		.loc 1 67 2 view .LVU24
- 152              		.loc 1 67 16 is_stmt 0 view .LVU25
- 153 000a 4FF0E022 		mov	r2, #-536813568
- 154 000e 0023     		movs	r3, #0
- 155 0010 1361     		str	r3, [r2, #16]
-  68:Core/Src/bootloader.c **** 	SysTick->LOAD = 0;
- 156              		.loc 1 68 2 is_stmt 1 view .LVU26
- 157              		.loc 1 68 16 is_stmt 0 view .LVU27
- 158 0012 5361     		str	r3, [r2, #20]
-  69:Core/Src/bootloader.c **** 	SysTick->VAL  = 0;
- 159              		.loc 1 69 2 is_stmt 1 view .LVU28
-ARM GAS  /tmp/ccNGTdW6.s 			page 22
+ 254              		.loc 2 962 3 view .LVU50
+ 255              		.syntax unified
+ 256              	@ 962 "Drivers/CMSIS/Include/cmsis_gcc.h" 1
+ 257 0008 72B6     		cpsid i
+ 258              	@ 0 "" 2
+ 259              		.thumb
+ 260              		.syntax unified
+ARM GAS  /tmp/ccEYOayA.s 			page 25
 
 
- 160              		.loc 1 69 16 is_stmt 0 view .LVU29
- 161 0014 9361     		str	r3, [r2, #24]
-  70:Core/Src/bootloader.c **** 
-  71:Core/Src/bootloader.c **** 	uint32_t blocks = ((SCnSCB->ICTR & 0xF) + 1); // number of ICER/ICPR regs
- 162              		.loc 1 71 2 is_stmt 1 view .LVU30
- 163              		.loc 1 71 28 is_stmt 0 view .LVU31
- 164 0016 5268     		ldr	r2, [r2, #4]
- 165              		.loc 1 71 35 view .LVU32
- 166 0018 02F00F0E 		and	lr, r2, #15
- 167              		.loc 1 71 11 view .LVU33
- 168 001c 0EF1010E 		add	lr, lr, #1
- 169              	.LVL11:
-  72:Core/Src/bootloader.c **** 
-  73:Core/Src/bootloader.c **** 	for (uint32_t i = 0; i < blocks; ++i) {
- 170              		.loc 1 73 2 is_stmt 1 view .LVU34
- 171              	.LBB27:
- 172              		.loc 1 73 7 view .LVU35
- 173              		.loc 1 73 2 is_stmt 0 view .LVU36
- 174 0020 0BE0     		b	.L8
- 175              	.LVL12:
- 176              	.L9:
-  74:Core/Src/bootloader.c **** 		NVIC->ICER[i] = 0xFFFFFFFF;
- 177              		.loc 1 74 3 is_stmt 1 view .LVU37
- 178              		.loc 1 74 17 is_stmt 0 view .LVU38
- 179 0022 264A     		ldr	r2, .L11
- 180 0024 03F12000 		add	r0, r3, #32
- 181 0028 4FF0FF31 		mov	r1, #-1
- 182 002c 42F82010 		str	r1, [r2, r0, lsl #2]
-  75:Core/Src/bootloader.c **** 	    NVIC->ICPR[i] = 0xFFFFFFFF;
- 183              		.loc 1 75 6 is_stmt 1 view .LVU39
- 184              		.loc 1 75 20 is_stmt 0 view .LVU40
- 185 0030 03F1600C 		add	ip, r3, #96
- 186 0034 42F82C10 		str	r1, [r2, ip, lsl #2]
-  73:Core/Src/bootloader.c **** 		NVIC->ICER[i] = 0xFFFFFFFF;
- 187              		.loc 1 73 35 is_stmt 1 discriminator 3 view .LVU41
- 188 0038 0133     		adds	r3, r3, #1
- 189              	.LVL13:
- 190              	.L8:
-  73:Core/Src/bootloader.c **** 		NVIC->ICER[i] = 0xFFFFFFFF;
- 191              		.loc 1 73 25 discriminator 1 view .LVU42
- 192 003a 7345     		cmp	r3, lr
- 193 003c F1D3     		bcc	.L9
- 194              	.LBE27:
-  76:Core/Src/bootloader.c **** 	}
-  77:Core/Src/bootloader.c **** 
-  78:Core/Src/bootloader.c **** 	SCB->ICSR = SCB_ICSR_PENDSVCLR_Msk;
- 195              		.loc 1 78 2 view .LVU43
- 196              		.loc 1 78 12 is_stmt 0 view .LVU44
- 197 003e 204F     		ldr	r7, .L11+4
- 198 0040 4FF00063 		mov	r3, #134217728
- 199              	.LVL14:
- 200              		.loc 1 78 12 view .LVU45
- 201 0044 7B60     		str	r3, [r7, #4]
-  79:Core/Src/bootloader.c **** 
-  80:Core/Src/bootloader.c **** 
-  81:Core/Src/bootloader.c **** 	HAL_DeInit();
- 202              		.loc 1 81 2 is_stmt 1 view .LVU46
-ARM GAS  /tmp/ccNGTdW6.s 			page 23
+ 261              	.LBE27:
+ 262              	.LBE26:
+ 111:Core/Src/bootloader.c **** 
+ 112:Core/Src/bootloader.c **** 	SysTick->CTRL = 0;
+ 263              		.loc 1 112 2 view .LVU51
+ 264              		.loc 1 112 16 is_stmt 0 view .LVU52
+ 265 000a 4FF0E022 		mov	r2, #-536813568
+ 266 000e 0023     		movs	r3, #0
+ 267 0010 1361     		str	r3, [r2, #16]
+ 113:Core/Src/bootloader.c **** 	SysTick->LOAD = 0;
+ 268              		.loc 1 113 2 is_stmt 1 view .LVU53
+ 269              		.loc 1 113 16 is_stmt 0 view .LVU54
+ 270 0012 5361     		str	r3, [r2, #20]
+ 114:Core/Src/bootloader.c **** 	SysTick->VAL  = 0;
+ 271              		.loc 1 114 2 is_stmt 1 view .LVU55
+ 272              		.loc 1 114 16 is_stmt 0 view .LVU56
+ 273 0014 9361     		str	r3, [r2, #24]
+ 115:Core/Src/bootloader.c **** 
+ 116:Core/Src/bootloader.c **** 	uint32_t blocks = ((SCnSCB->ICTR & 0xF) + 1); // number of ICER/ICPR regs
+ 274              		.loc 1 116 2 is_stmt 1 view .LVU57
+ 275              		.loc 1 116 28 is_stmt 0 view .LVU58
+ 276 0016 5268     		ldr	r2, [r2, #4]
+ 277              		.loc 1 116 35 view .LVU59
+ 278 0018 02F00F0E 		and	lr, r2, #15
+ 279              		.loc 1 116 11 view .LVU60
+ 280 001c 0EF1010E 		add	lr, lr, #1
+ 281              	.LVL19:
+ 117:Core/Src/bootloader.c **** 
+ 118:Core/Src/bootloader.c **** 	for (uint32_t i = 0; i < blocks; ++i) {
+ 282              		.loc 1 118 2 is_stmt 1 view .LVU61
+ 283              	.LBB28:
+ 284              		.loc 1 118 7 view .LVU62
+ 285              		.loc 1 118 2 is_stmt 0 view .LVU63
+ 286 0020 0BE0     		b	.L14
+ 287              	.LVL20:
+ 288              	.L15:
+ 119:Core/Src/bootloader.c **** 		NVIC->ICER[i] = 0xFFFFFFFF;
+ 289              		.loc 1 119 3 is_stmt 1 view .LVU64
+ 290              		.loc 1 119 17 is_stmt 0 view .LVU65
+ 291 0022 264A     		ldr	r2, .L17
+ 292 0024 03F12000 		add	r0, r3, #32
+ 293 0028 4FF0FF31 		mov	r1, #-1
+ 294 002c 42F82010 		str	r1, [r2, r0, lsl #2]
+ 120:Core/Src/bootloader.c **** 	    NVIC->ICPR[i] = 0xFFFFFFFF;
+ 295              		.loc 1 120 6 is_stmt 1 view .LVU66
+ 296              		.loc 1 120 20 is_stmt 0 view .LVU67
+ 297 0030 03F1600C 		add	ip, r3, #96
+ 298 0034 42F82C10 		str	r1, [r2, ip, lsl #2]
+ 118:Core/Src/bootloader.c **** 		NVIC->ICER[i] = 0xFFFFFFFF;
+ 299              		.loc 1 118 35 is_stmt 1 discriminator 3 view .LVU68
+ 300 0038 0133     		adds	r3, r3, #1
+ 301              	.LVL21:
+ 302              	.L14:
+ 118:Core/Src/bootloader.c **** 		NVIC->ICER[i] = 0xFFFFFFFF;
+ 303              		.loc 1 118 25 discriminator 1 view .LVU69
+ 304 003a 7345     		cmp	r3, lr
+ 305 003c F1D3     		bcc	.L15
+ARM GAS  /tmp/ccEYOayA.s 			page 26
 
 
- 203 0046 FFF7FEFF 		bl	HAL_DeInit
- 204              	.LVL15:
-  82:Core/Src/bootloader.c **** 	HAL_RCC_DeInit();
- 205              		.loc 1 82 2 view .LVU47
- 206 004a FFF7FEFF 		bl	HAL_RCC_DeInit
- 207              	.LVL16:
-  83:Core/Src/bootloader.c **** 
-  84:Core/Src/bootloader.c **** 
-  85:Core/Src/bootloader.c **** 	SCB->VTOR = (uint32_t)addr;
- 208              		.loc 1 85 2 view .LVU48
- 209              		.loc 1 85 12 is_stmt 0 view .LVU49
- 210 004e BE60     		str	r6, [r7, #8]
-  86:Core/Src/bootloader.c **** 	__DSB();
- 211              		.loc 1 86 2 is_stmt 1 view .LVU50
- 212              	.LBB28:
- 213              	.LBI28:
+ 306              	.LBE28:
+ 121:Core/Src/bootloader.c **** 	}
+ 122:Core/Src/bootloader.c **** 
+ 123:Core/Src/bootloader.c **** 	SCB->ICSR = SCB_ICSR_PENDSVCLR_Msk;
+ 307              		.loc 1 123 2 view .LVU70
+ 308              		.loc 1 123 12 is_stmt 0 view .LVU71
+ 309 003e 204F     		ldr	r7, .L17+4
+ 310 0040 4FF00063 		mov	r3, #134217728
+ 311              	.LVL22:
+ 312              		.loc 1 123 12 view .LVU72
+ 313 0044 7B60     		str	r3, [r7, #4]
+ 124:Core/Src/bootloader.c **** 
+ 125:Core/Src/bootloader.c **** 
+ 126:Core/Src/bootloader.c **** 	HAL_DeInit();
+ 314              		.loc 1 126 2 is_stmt 1 view .LVU73
+ 315 0046 FFF7FEFF 		bl	HAL_DeInit
+ 316              	.LVL23:
+ 127:Core/Src/bootloader.c **** 	HAL_RCC_DeInit();
+ 317              		.loc 1 127 2 view .LVU74
+ 318 004a FFF7FEFF 		bl	HAL_RCC_DeInit
+ 319              	.LVL24:
+ 128:Core/Src/bootloader.c **** 
+ 129:Core/Src/bootloader.c **** 
+ 130:Core/Src/bootloader.c **** 	SCB->VTOR = (uint32_t)addr;
+ 320              		.loc 1 130 2 view .LVU75
+ 321              		.loc 1 130 12 is_stmt 0 view .LVU76
+ 322 004e BE60     		str	r6, [r7, #8]
+ 131:Core/Src/bootloader.c **** 	__DSB();
+ 323              		.loc 1 131 2 is_stmt 1 view .LVU77
+ 324              	.LBB29:
+ 325              	.LBI29:
  269:Drivers/CMSIS/Include/cmsis_gcc.h **** {
- 214              		.loc 2 269 27 view .LVU51
- 215              	.LBB29:
+ 326              		.loc 2 269 27 view .LVU78
+ 327              	.LBB30:
  271:Drivers/CMSIS/Include/cmsis_gcc.h **** }
- 216              		.loc 2 271 3 view .LVU52
- 217              		.syntax unified
- 218              	@ 271 "Drivers/CMSIS/Include/cmsis_gcc.h" 1
- 219 0050 BFF34F8F 		dsb 0xF
- 220              	@ 0 "" 2
- 221              		.thumb
- 222              		.syntax unified
- 223              	.LBE29:
- 224              	.LBE28:
-  87:Core/Src/bootloader.c **** 	__ISB();
- 225              		.loc 1 87 2 view .LVU53
- 226              	.LBB30:
- 227              	.LBI30:
+ 328              		.loc 2 271 3 view .LVU79
+ 329              		.syntax unified
+ 330              	@ 271 "Drivers/CMSIS/Include/cmsis_gcc.h" 1
+ 331 0050 BFF34F8F 		dsb 0xF
+ 332              	@ 0 "" 2
+ 333              		.thumb
+ 334              		.syntax unified
+ 335              	.LBE30:
+ 336              	.LBE29:
+ 132:Core/Src/bootloader.c **** 	__ISB();
+ 337              		.loc 1 132 2 view .LVU80
+ 338              	.LBB31:
+ 339              	.LBI31:
  258:Drivers/CMSIS/Include/cmsis_gcc.h **** {
- 228              		.loc 2 258 27 view .LVU54
- 229              	.LBB31:
+ 340              		.loc 2 258 27 view .LVU81
+ 341              	.LBB32:
  260:Drivers/CMSIS/Include/cmsis_gcc.h **** }
- 230              		.loc 2 260 3 view .LVU55
- 231              		.syntax unified
- 232              	@ 260 "Drivers/CMSIS/Include/cmsis_gcc.h" 1
- 233 0054 BFF36F8F 		isb 0xF
- 234              	@ 0 "" 2
- 235              		.thumb
- 236              		.syntax unified
- 237              	.LBE31:
- 238              	.LBE30:
-  88:Core/Src/bootloader.c **** 
-  89:Core/Src/bootloader.c **** 	__HAL_FLASH_DATA_CACHE_DISABLE();
- 239              		.loc 1 89 2 view .LVU56
- 240 0058 1A4B     		ldr	r3, .L11+8
- 241 005a 1A68     		ldr	r2, [r3]
- 242 005c 22F48062 		bic	r2, r2, #1024
- 243 0060 1A60     		str	r2, [r3]
-  90:Core/Src/bootloader.c **** 	__HAL_FLASH_INSTRUCTION_CACHE_DISABLE();
- 244              		.loc 1 90 2 view .LVU57
- 245 0062 1A68     		ldr	r2, [r3]
- 246 0064 22F40072 		bic	r2, r2, #512
-ARM GAS  /tmp/ccNGTdW6.s 			page 24
+ 342              		.loc 2 260 3 view .LVU82
+ 343              		.syntax unified
+ 344              	@ 260 "Drivers/CMSIS/Include/cmsis_gcc.h" 1
+ 345 0054 BFF36F8F 		isb 0xF
+ 346              	@ 0 "" 2
+ARM GAS  /tmp/ccEYOayA.s 			page 27
 
 
- 247 0068 1A60     		str	r2, [r3]
-  91:Core/Src/bootloader.c **** 	__HAL_FLASH_DATA_CACHE_RESET();
- 248              		.loc 1 91 2 view .LVU58
- 249              		.loc 1 91 2 view .LVU59
- 250 006a 1A68     		ldr	r2, [r3]
- 251 006c 42F48052 		orr	r2, r2, #4096
- 252 0070 1A60     		str	r2, [r3]
- 253              		.loc 1 91 2 view .LVU60
- 254 0072 1A68     		ldr	r2, [r3]
- 255 0074 22F48052 		bic	r2, r2, #4096
- 256 0078 1A60     		str	r2, [r3]
- 257              		.loc 1 91 2 view .LVU61
-  92:Core/Src/bootloader.c **** 	__HAL_FLASH_INSTRUCTION_CACHE_RESET();
- 258              		.loc 1 92 2 view .LVU62
- 259              		.loc 1 92 2 view .LVU63
- 260 007a 1A68     		ldr	r2, [r3]
- 261 007c 42F40062 		orr	r2, r2, #2048
- 262 0080 1A60     		str	r2, [r3]
- 263              		.loc 1 92 2 view .LVU64
- 264 0082 1A68     		ldr	r2, [r3]
- 265 0084 22F40062 		bic	r2, r2, #2048
- 266 0088 1A60     		str	r2, [r3]
- 267              		.loc 1 92 2 view .LVU65
-  93:Core/Src/bootloader.c **** 	__HAL_FLASH_INSTRUCTION_CACHE_ENABLE();
- 268              		.loc 1 93 2 view .LVU66
- 269 008a 1A68     		ldr	r2, [r3]
- 270 008c 42F40072 		orr	r2, r2, #512
- 271 0090 1A60     		str	r2, [r3]
-  94:Core/Src/bootloader.c **** 	__HAL_FLASH_DATA_CACHE_ENABLE();
- 272              		.loc 1 94 2 view .LVU67
- 273 0092 1A68     		ldr	r2, [r3]
- 274 0094 42F48062 		orr	r2, r2, #1024
- 275 0098 1A60     		str	r2, [r3]
-  95:Core/Src/bootloader.c **** 
-  96:Core/Src/bootloader.c **** 	__set_CONTROL(0);
- 276              		.loc 1 96 2 view .LVU68
- 277              	.LVL17:
- 278              	.LBB32:
- 279              	.LBI32:
+ 347              		.thumb
+ 348              		.syntax unified
+ 349              	.LBE32:
+ 350              	.LBE31:
+ 133:Core/Src/bootloader.c **** 
+ 134:Core/Src/bootloader.c **** 	__HAL_FLASH_DATA_CACHE_DISABLE();
+ 351              		.loc 1 134 2 view .LVU83
+ 352 0058 1A4B     		ldr	r3, .L17+8
+ 353 005a 1A68     		ldr	r2, [r3]
+ 354 005c 22F48062 		bic	r2, r2, #1024
+ 355 0060 1A60     		str	r2, [r3]
+ 135:Core/Src/bootloader.c **** 	__HAL_FLASH_INSTRUCTION_CACHE_DISABLE();
+ 356              		.loc 1 135 2 view .LVU84
+ 357 0062 1A68     		ldr	r2, [r3]
+ 358 0064 22F40072 		bic	r2, r2, #512
+ 359 0068 1A60     		str	r2, [r3]
+ 136:Core/Src/bootloader.c **** 	__HAL_FLASH_DATA_CACHE_RESET();
+ 360              		.loc 1 136 2 view .LVU85
+ 361              		.loc 1 136 2 view .LVU86
+ 362 006a 1A68     		ldr	r2, [r3]
+ 363 006c 42F48052 		orr	r2, r2, #4096
+ 364 0070 1A60     		str	r2, [r3]
+ 365              		.loc 1 136 2 view .LVU87
+ 366 0072 1A68     		ldr	r2, [r3]
+ 367 0074 22F48052 		bic	r2, r2, #4096
+ 368 0078 1A60     		str	r2, [r3]
+ 369              		.loc 1 136 2 view .LVU88
+ 137:Core/Src/bootloader.c **** 	__HAL_FLASH_INSTRUCTION_CACHE_RESET();
+ 370              		.loc 1 137 2 view .LVU89
+ 371              		.loc 1 137 2 view .LVU90
+ 372 007a 1A68     		ldr	r2, [r3]
+ 373 007c 42F40062 		orr	r2, r2, #2048
+ 374 0080 1A60     		str	r2, [r3]
+ 375              		.loc 1 137 2 view .LVU91
+ 376 0082 1A68     		ldr	r2, [r3]
+ 377 0084 22F40062 		bic	r2, r2, #2048
+ 378 0088 1A60     		str	r2, [r3]
+ 379              		.loc 1 137 2 view .LVU92
+ 138:Core/Src/bootloader.c **** 	__HAL_FLASH_INSTRUCTION_CACHE_ENABLE();
+ 380              		.loc 1 138 2 view .LVU93
+ 381 008a 1A68     		ldr	r2, [r3]
+ 382 008c 42F40072 		orr	r2, r2, #512
+ 383 0090 1A60     		str	r2, [r3]
+ 139:Core/Src/bootloader.c **** 	__HAL_FLASH_DATA_CACHE_ENABLE();
+ 384              		.loc 1 139 2 view .LVU94
+ 385 0092 1A68     		ldr	r2, [r3]
+ 386 0094 42F48062 		orr	r2, r2, #1024
+ 387 0098 1A60     		str	r2, [r3]
+ 140:Core/Src/bootloader.c **** 
+ 141:Core/Src/bootloader.c **** 	__set_CONTROL(0);
+ 388              		.loc 1 141 2 view .LVU95
+ 389              	.LVL25:
+ 390              	.LBB33:
+ 391              	.LBI33:
  963:Drivers/CMSIS/Include/cmsis_gcc.h **** }
  964:Drivers/CMSIS/Include/cmsis_gcc.h **** 
  965:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+ARM GAS  /tmp/ccEYOayA.s 			page 28
+
+
  966:Drivers/CMSIS/Include/cmsis_gcc.h **** /**
  967:Drivers/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Control Register
  968:Drivers/CMSIS/Include/cmsis_gcc.h ****   \details Returns the content of the Control Register.
@@ -1438,9 +1636,6 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
  978:Drivers/CMSIS/Include/cmsis_gcc.h **** 
  979:Drivers/CMSIS/Include/cmsis_gcc.h **** 
  980:Drivers/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
-ARM GAS  /tmp/ccNGTdW6.s 			page 25
-
-
  981:Drivers/CMSIS/Include/cmsis_gcc.h **** /**
  982:Drivers/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Control Register (non-secure)
  983:Drivers/CMSIS/Include/cmsis_gcc.h ****   \details Returns the content of the non-secure Control Register when in secure mode.
@@ -1462,65 +1657,65 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
  999:Drivers/CMSIS/Include/cmsis_gcc.h ****   \param [in]    control  Control Register value to set
 1000:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
 1001:Drivers/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_CONTROL(uint32_t control)
- 280              		.loc 2 1001 27 view .LVU69
- 281              	.LBB33:
+ 392              		.loc 2 1001 27 view .LVU96
+ 393              	.LBB34:
 1002:Drivers/CMSIS/Include/cmsis_gcc.h **** {
 1003:Drivers/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR control, %0" : : "r" (control) : "memory");
- 282              		.loc 2 1003 3 view .LVU70
- 283 009a 0023     		movs	r3, #0
- 284              		.syntax unified
- 285              	@ 1003 "Drivers/CMSIS/Include/cmsis_gcc.h" 1
- 286 009c 83F31488 		MSR control, r3
- 287              	@ 0 "" 2
+ 394              		.loc 2 1003 3 view .LVU97
+ 395 009a 0023     		movs	r3, #0
+ 396              		.syntax unified
+ 397              	@ 1003 "Drivers/CMSIS/Include/cmsis_gcc.h" 1
+ 398 009c 83F31488 		MSR control, r3
+ 399              	@ 0 "" 2
 1004:Drivers/CMSIS/Include/cmsis_gcc.h ****   __ISB();
- 288              		.loc 2 1004 3 view .LVU71
- 289              		.thumb
- 290              		.syntax unified
- 291              	.LBB34:
- 292              	.LBI34:
+ 400              		.loc 2 1004 3 view .LVU98
+ 401              		.thumb
+ 402              		.syntax unified
+ 403              	.LBB35:
+ 404              	.LBI35:
  258:Drivers/CMSIS/Include/cmsis_gcc.h **** {
- 293              		.loc 2 258 27 view .LVU72
- 294              	.LBB35:
+ 405              		.loc 2 258 27 view .LVU99
+ 406              	.LBB36:
  260:Drivers/CMSIS/Include/cmsis_gcc.h **** }
- 295              		.loc 2 260 3 view .LVU73
- 296              		.syntax unified
- 297              	@ 260 "Drivers/CMSIS/Include/cmsis_gcc.h" 1
- 298 00a0 BFF36F8F 		isb 0xF
- 299              	@ 0 "" 2
- 300              	.LVL18:
- 260:Drivers/CMSIS/Include/cmsis_gcc.h **** }
- 301              		.loc 2 260 3 is_stmt 0 view .LVU74
- 302              		.thumb
- 303              		.syntax unified
- 304              	.LBE35:
- 305              	.LBE34:
- 306              	.LBE33:
- 307              	.LBE32:
-  97:Core/Src/bootloader.c **** 	__ISB();
- 308              		.loc 1 97 2 is_stmt 1 view .LVU75
-ARM GAS  /tmp/ccNGTdW6.s 			page 26
+ 407              		.loc 2 260 3 view .LVU100
+ARM GAS  /tmp/ccEYOayA.s 			page 29
 
 
- 309              	.LBB36:
- 310              	.LBI36:
- 258:Drivers/CMSIS/Include/cmsis_gcc.h **** {
- 311              		.loc 2 258 27 view .LVU76
- 312              	.LBB37:
+ 408              		.syntax unified
+ 409              	@ 260 "Drivers/CMSIS/Include/cmsis_gcc.h" 1
+ 410 00a0 BFF36F8F 		isb 0xF
+ 411              	@ 0 "" 2
+ 412              	.LVL26:
  260:Drivers/CMSIS/Include/cmsis_gcc.h **** }
- 313              		.loc 2 260 3 view .LVU77
- 314              		.syntax unified
- 315              	@ 260 "Drivers/CMSIS/Include/cmsis_gcc.h" 1
- 316 00a4 BFF36F8F 		isb 0xF
- 317              	@ 0 "" 2
- 318              		.thumb
- 319              		.syntax unified
- 320              	.LBE37:
- 321              	.LBE36:
-  98:Core/Src/bootloader.c **** 	__set_MSP(msp_addr);
- 322              		.loc 1 98 2 view .LVU78
- 323              	.LVL19:
- 324              	.LBB38:
- 325              	.LBI38:
+ 413              		.loc 2 260 3 is_stmt 0 view .LVU101
+ 414              		.thumb
+ 415              		.syntax unified
+ 416              	.LBE36:
+ 417              	.LBE35:
+ 418              	.LBE34:
+ 419              	.LBE33:
+ 142:Core/Src/bootloader.c **** 	__ISB();
+ 420              		.loc 1 142 2 is_stmt 1 view .LVU102
+ 421              	.LBB37:
+ 422              	.LBI37:
+ 258:Drivers/CMSIS/Include/cmsis_gcc.h **** {
+ 423              		.loc 2 258 27 view .LVU103
+ 424              	.LBB38:
+ 260:Drivers/CMSIS/Include/cmsis_gcc.h **** }
+ 425              		.loc 2 260 3 view .LVU104
+ 426              		.syntax unified
+ 427              	@ 260 "Drivers/CMSIS/Include/cmsis_gcc.h" 1
+ 428 00a4 BFF36F8F 		isb 0xF
+ 429              	@ 0 "" 2
+ 430              		.thumb
+ 431              		.syntax unified
+ 432              	.LBE38:
+ 433              	.LBE37:
+ 143:Core/Src/bootloader.c **** 	__set_MSP(msp_addr);
+ 434              		.loc 1 143 2 view .LVU105
+ 435              	.LVL27:
+ 436              	.LBB39:
+ 437              	.LBI39:
 1005:Drivers/CMSIS/Include/cmsis_gcc.h **** }
 1006:Drivers/CMSIS/Include/cmsis_gcc.h **** 
 1007:Drivers/CMSIS/Include/cmsis_gcc.h **** 
@@ -1543,6 +1738,9 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
 1024:Drivers/CMSIS/Include/cmsis_gcc.h ****   \details Returns the content of the IPSR Register.
 1025:Drivers/CMSIS/Include/cmsis_gcc.h ****   \return               IPSR Register value
 1026:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
+ARM GAS  /tmp/ccEYOayA.s 			page 30
+
+
 1027:Drivers/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_IPSR(void)
 1028:Drivers/CMSIS/Include/cmsis_gcc.h **** {
 1029:Drivers/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
@@ -1558,9 +1756,6 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
 1039:Drivers/CMSIS/Include/cmsis_gcc.h ****   \return               APSR Register value
 1040:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
 1041:Drivers/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_APSR(void)
-ARM GAS  /tmp/ccNGTdW6.s 			page 27
-
-
 1042:Drivers/CMSIS/Include/cmsis_gcc.h **** {
 1043:Drivers/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
 1044:Drivers/CMSIS/Include/cmsis_gcc.h **** 
@@ -1603,6 +1798,9 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
 1081:Drivers/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the non-secure Process Stack Pointer (PSP) when in secure s
 1082:Drivers/CMSIS/Include/cmsis_gcc.h ****   \return               PSP Register value
 1083:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
+ARM GAS  /tmp/ccEYOayA.s 			page 31
+
+
 1084:Drivers/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_PSP_NS(void)
 1085:Drivers/CMSIS/Include/cmsis_gcc.h **** {
 1086:Drivers/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
@@ -1618,9 +1816,6 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
 1096:Drivers/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Process Stack Pointer (PSP).
 1097:Drivers/CMSIS/Include/cmsis_gcc.h ****   \param [in]    topOfProcStack  Process Stack Pointer value to set
 1098:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
-ARM GAS  /tmp/ccNGTdW6.s 			page 28
-
-
 1099:Drivers/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_PSP(uint32_t topOfProcStack)
 1100:Drivers/CMSIS/Include/cmsis_gcc.h **** {
 1101:Drivers/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR psp, %0" : : "r" (topOfProcStack) : );
@@ -1663,6 +1858,9 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
 1138:Drivers/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_MSP_NS(void)
 1139:Drivers/CMSIS/Include/cmsis_gcc.h **** {
 1140:Drivers/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ARM GAS  /tmp/ccEYOayA.s 			page 32
+
+
 1141:Drivers/CMSIS/Include/cmsis_gcc.h **** 
 1142:Drivers/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, msp_ns" : "=r" (result) );
 1143:Drivers/CMSIS/Include/cmsis_gcc.h ****   return(result);
@@ -1676,29 +1874,26 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
 1151:Drivers/CMSIS/Include/cmsis_gcc.h ****   \param [in]    topOfMainStack  Main Stack Pointer value to set
 1152:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
 1153:Drivers/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_MSP(uint32_t topOfMainStack)
- 326              		.loc 2 1153 27 view .LVU79
- 327              	.LBB39:
-ARM GAS  /tmp/ccNGTdW6.s 			page 29
-
-
+ 438              		.loc 2 1153 27 view .LVU106
+ 439              	.LBB40:
 1154:Drivers/CMSIS/Include/cmsis_gcc.h **** {
 1155:Drivers/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR msp, %0" : : "r" (topOfMainStack) : );
- 328              		.loc 2 1155 3 view .LVU80
- 329              		.syntax unified
- 330              	@ 1155 "Drivers/CMSIS/Include/cmsis_gcc.h" 1
- 331 00a8 85F30888 		MSR msp, r5
- 332              	@ 0 "" 2
- 333              	.LVL20:
- 334              		.loc 2 1155 3 is_stmt 0 view .LVU81
- 335              		.thumb
- 336              		.syntax unified
- 337              	.LBE39:
- 338              	.LBE38:
-  99:Core/Src/bootloader.c **** 
- 100:Core/Src/bootloader.c **** 	__set_BASEPRI(0);
- 339              		.loc 1 100 2 is_stmt 1 view .LVU82
- 340              	.LBB40:
- 341              	.LBI40:
+ 440              		.loc 2 1155 3 view .LVU107
+ 441              		.syntax unified
+ 442              	@ 1155 "Drivers/CMSIS/Include/cmsis_gcc.h" 1
+ 443 00a8 85F30888 		MSR msp, r5
+ 444              	@ 0 "" 2
+ 445              	.LVL28:
+ 446              		.loc 2 1155 3 is_stmt 0 view .LVU108
+ 447              		.thumb
+ 448              		.syntax unified
+ 449              	.LBE40:
+ 450              	.LBE39:
+ 144:Core/Src/bootloader.c **** 
+ 145:Core/Src/bootloader.c **** 	__set_BASEPRI(0);
+ 451              		.loc 1 145 2 is_stmt 1 view .LVU109
+ 452              	.LBB41:
+ 453              	.LBI41:
 1156:Drivers/CMSIS/Include/cmsis_gcc.h **** }
 1157:Drivers/CMSIS/Include/cmsis_gcc.h **** 
 1158:Drivers/CMSIS/Include/cmsis_gcc.h **** 
@@ -1723,6 +1918,9 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
 1177:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
 1178:Drivers/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_SP_NS(void)
 1179:Drivers/CMSIS/Include/cmsis_gcc.h **** {
+ARM GAS  /tmp/ccEYOayA.s 			page 33
+
+
 1180:Drivers/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
 1181:Drivers/CMSIS/Include/cmsis_gcc.h **** 
 1182:Drivers/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, sp_ns" : "=r" (result) );
@@ -1738,9 +1936,6 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
 1192:Drivers/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_SP_NS(uint32_t topOfStack)
 1193:Drivers/CMSIS/Include/cmsis_gcc.h **** {
 1194:Drivers/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR sp_ns, %0" : : "r" (topOfStack) : );
-ARM GAS  /tmp/ccNGTdW6.s 			page 30
-
-
 1195:Drivers/CMSIS/Include/cmsis_gcc.h **** }
 1196:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
 1197:Drivers/CMSIS/Include/cmsis_gcc.h **** 
@@ -1783,6 +1978,9 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
 1234:Drivers/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_PRIMASK(uint32_t priMask)
 1235:Drivers/CMSIS/Include/cmsis_gcc.h **** {
 1236:Drivers/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR primask, %0" : : "r" (priMask) : "memory");
+ARM GAS  /tmp/ccEYOayA.s 			page 34
+
+
 1237:Drivers/CMSIS/Include/cmsis_gcc.h **** }
 1238:Drivers/CMSIS/Include/cmsis_gcc.h **** 
 1239:Drivers/CMSIS/Include/cmsis_gcc.h **** 
@@ -1798,9 +1996,6 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
 1249:Drivers/CMSIS/Include/cmsis_gcc.h **** }
 1250:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
 1251:Drivers/CMSIS/Include/cmsis_gcc.h **** 
-ARM GAS  /tmp/ccNGTdW6.s 			page 31
-
-
 1252:Drivers/CMSIS/Include/cmsis_gcc.h **** 
 1253:Drivers/CMSIS/Include/cmsis_gcc.h **** #if ((defined (__ARM_ARCH_7M__      ) && (__ARM_ARCH_7M__      == 1)) || \
 1254:Drivers/CMSIS/Include/cmsis_gcc.h ****      (defined (__ARM_ARCH_7EM__     ) && (__ARM_ARCH_7EM__     == 1)) || \
@@ -1843,6 +2038,9 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
 1291:Drivers/CMSIS/Include/cmsis_gcc.h **** 
 1292:Drivers/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
 1293:Drivers/CMSIS/Include/cmsis_gcc.h **** /**
+ARM GAS  /tmp/ccEYOayA.s 			page 35
+
+
 1294:Drivers/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Base Priority (non-secure)
 1295:Drivers/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the non-secure Base Priority register when in secure state.
 1296:Drivers/CMSIS/Include/cmsis_gcc.h ****   \return               Base Priority register value
@@ -1858,33 +2056,30 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
 1306:Drivers/CMSIS/Include/cmsis_gcc.h **** 
 1307:Drivers/CMSIS/Include/cmsis_gcc.h **** 
 1308:Drivers/CMSIS/Include/cmsis_gcc.h **** /**
-ARM GAS  /tmp/ccNGTdW6.s 			page 32
-
-
 1309:Drivers/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Base Priority
 1310:Drivers/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Base Priority register.
 1311:Drivers/CMSIS/Include/cmsis_gcc.h ****   \param [in]    basePri  Base Priority value to set
 1312:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
 1313:Drivers/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_BASEPRI(uint32_t basePri)
- 342              		.loc 2 1313 27 view .LVU83
- 343              	.LBB41:
+ 454              		.loc 2 1313 27 view .LVU110
+ 455              	.LBB42:
 1314:Drivers/CMSIS/Include/cmsis_gcc.h **** {
 1315:Drivers/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR basepri, %0" : : "r" (basePri) : "memory");
- 344              		.loc 2 1315 3 view .LVU84
- 345              		.syntax unified
- 346              	@ 1315 "Drivers/CMSIS/Include/cmsis_gcc.h" 1
- 347 00ac 83F31188 		MSR basepri, r3
- 348              	@ 0 "" 2
- 349              	.LVL21:
- 350              		.loc 2 1315 3 is_stmt 0 view .LVU85
- 351              		.thumb
- 352              		.syntax unified
- 353              	.LBE41:
- 354              	.LBE40:
- 101:Core/Src/bootloader.c **** 	__set_FAULTMASK(0);
- 355              		.loc 1 101 2 is_stmt 1 view .LVU86
- 356              	.LBB42:
- 357              	.LBI42:
+ 456              		.loc 2 1315 3 view .LVU111
+ 457              		.syntax unified
+ 458              	@ 1315 "Drivers/CMSIS/Include/cmsis_gcc.h" 1
+ 459 00ac 83F31188 		MSR basepri, r3
+ 460              	@ 0 "" 2
+ 461              	.LVL29:
+ 462              		.loc 2 1315 3 is_stmt 0 view .LVU112
+ 463              		.thumb
+ 464              		.syntax unified
+ 465              	.LBE42:
+ 466              	.LBE41:
+ 146:Core/Src/bootloader.c **** 	__set_FAULTMASK(0);
+ 467              		.loc 1 146 2 is_stmt 1 view .LVU113
+ 468              	.LBB43:
+ 469              	.LBI43:
 1316:Drivers/CMSIS/Include/cmsis_gcc.h **** }
 1317:Drivers/CMSIS/Include/cmsis_gcc.h **** 
 1318:Drivers/CMSIS/Include/cmsis_gcc.h **** 
@@ -1903,6 +2098,9 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
 1331:Drivers/CMSIS/Include/cmsis_gcc.h **** 
 1332:Drivers/CMSIS/Include/cmsis_gcc.h **** /**
 1333:Drivers/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Base Priority with condition
+ARM GAS  /tmp/ccEYOayA.s 			page 36
+
+
 1334:Drivers/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Base Priority register only if BASEPRI masking is disable
 1335:Drivers/CMSIS/Include/cmsis_gcc.h ****            or the new value increases the BASEPRI priority level.
 1336:Drivers/CMSIS/Include/cmsis_gcc.h ****   \param [in]    basePri  Base Priority value to set
@@ -1918,9 +2116,6 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
 1346:Drivers/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the Fault Mask register.
 1347:Drivers/CMSIS/Include/cmsis_gcc.h ****   \return               Fault Mask register value
 1348:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
-ARM GAS  /tmp/ccNGTdW6.s 			page 33
-
-
 1349:Drivers/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_FAULTMASK(void)
 1350:Drivers/CMSIS/Include/cmsis_gcc.h **** {
 1351:Drivers/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
@@ -1952,650 +2147,992 @@ ARM GAS  /tmp/ccNGTdW6.s 			page 1
 1377:Drivers/CMSIS/Include/cmsis_gcc.h ****   \param [in]    faultMask  Fault Mask value to set
 1378:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
 1379:Drivers/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_FAULTMASK(uint32_t faultMask)
- 358              		.loc 2 1379 27 view .LVU87
- 359              	.LBB43:
+ 470              		.loc 2 1379 27 view .LVU114
+ 471              	.LBB44:
 1380:Drivers/CMSIS/Include/cmsis_gcc.h **** {
 1381:Drivers/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR faultmask, %0" : : "r" (faultMask) : "memory");
- 360              		.loc 2 1381 3 view .LVU88
- 361              		.syntax unified
- 362              	@ 1381 "Drivers/CMSIS/Include/cmsis_gcc.h" 1
- 363 00b0 83F31388 		MSR faultmask, r3
- 364              	@ 0 "" 2
- 365              	.LVL22:
- 366              		.loc 2 1381 3 is_stmt 0 view .LVU89
- 367              		.thumb
- 368              		.syntax unified
- 369              	.LBE43:
- 370              	.LBE42:
- 102:Core/Src/bootloader.c **** 	__enable_irq();
- 371              		.loc 1 102 2 is_stmt 1 view .LVU90
- 372              	.LBB44:
- 373              	.LBI44:
+ 472              		.loc 2 1381 3 view .LVU115
+ 473              		.syntax unified
+ 474              	@ 1381 "Drivers/CMSIS/Include/cmsis_gcc.h" 1
+ 475 00b0 83F31388 		MSR faultmask, r3
+ 476              	@ 0 "" 2
+ 477              	.LVL30:
+ 478              		.loc 2 1381 3 is_stmt 0 view .LVU116
+ARM GAS  /tmp/ccEYOayA.s 			page 37
+
+
+ 479              		.thumb
+ 480              		.syntax unified
+ 481              	.LBE44:
+ 482              	.LBE43:
+ 147:Core/Src/bootloader.c **** 	__enable_irq();
+ 483              		.loc 1 147 2 is_stmt 1 view .LVU117
+ 484              	.LBB45:
+ 485              	.LBI45:
  949:Drivers/CMSIS/Include/cmsis_gcc.h **** {
- 374              		.loc 2 949 27 view .LVU91
- 375              	.LBB45:
+ 486              		.loc 2 949 27 view .LVU118
+ 487              	.LBB46:
  951:Drivers/CMSIS/Include/cmsis_gcc.h **** }
- 376              		.loc 2 951 3 view .LVU92
- 377              		.syntax unified
- 378              	@ 951 "Drivers/CMSIS/Include/cmsis_gcc.h" 1
-ARM GAS  /tmp/ccNGTdW6.s 			page 34
-
-
- 379 00b4 62B6     		cpsie i
- 380              	@ 0 "" 2
- 381              		.thumb
- 382              		.syntax unified
- 383              	.LBE45:
- 384              	.LBE44:
- 103:Core/Src/bootloader.c **** 
- 104:Core/Src/bootloader.c **** 
- 105:Core/Src/bootloader.c **** 	jump_to_reset(reset_addr);
- 385              		.loc 1 105 2 view .LVU93
- 386 00b6 2046     		mov	r0, r4
- 387 00b8 FFF7FEFF 		bl	jump_to_reset
- 388              	.LVL23:
- 389              	.L12:
- 390              		.align	2
- 391              	.L11:
- 392 00bc 00E100E0 		.word	-536813312
- 393 00c0 00ED00E0 		.word	-536810240
- 394 00c4 003C0240 		.word	1073888256
- 395              		.cfi_endproc
- 396              	.LFE137:
- 398              		.section	.rodata.bcb_reset.str1.4,"aMS",%progbits,1
- 399              		.align	2
- 400              	.LC1:
- 401 0000 76616C75 		.ascii	"value: %d\000"
- 401      653A2025 
- 401      6400
- 402              		.section	.text.bcb_reset,"ax",%progbits
- 403              		.align	1
- 404              		.global	bcb_reset
- 405              		.syntax unified
- 406              		.thumb
- 407              		.thumb_func
- 409              	bcb_reset:
- 410              	.LFB138:
- 106:Core/Src/bootloader.c **** }
- 107:Core/Src/bootloader.c **** 
- 108:Core/Src/bootloader.c **** /*
- 109:Core/Src/bootloader.c ****  *	This function clears the sector 2 memory region and creates a new BCB struct.
- 110:Core/Src/bootloader.c ****  *	Then copies this struct into first couple words of the memory region.
- 111:Core/Src/bootloader.c ****  *
- 112:Core/Src/bootloader.c ****  *	Function should only really be used if there are errors with the BCB or accidently overwrite the
- 113:Core/Src/bootloader.c ****  *	Makefile that uploads that uses the ARM toolset
- 114:Core/Src/bootloader.c ****  */
- 115:Core/Src/bootloader.c **** 
- 116:Core/Src/bootloader.c **** 
- 117:Core/Src/bootloader.c **** void bcb_reset(void){
- 411              		.loc 1 117 21 view -0
- 412              		.cfi_startproc
- 413              		@ args = 0, pretend = 0, frame = 8
- 414              		@ frame_needed = 0, uses_anonymous_args = 0
- 415 0000 30B5     		push	{r4, r5, lr}
- 416              	.LCFI3:
- 417              		.cfi_def_cfa_offset 12
- 418              		.cfi_offset 4, -12
- 419              		.cfi_offset 5, -8
- 420              		.cfi_offset 14, -4
-ARM GAS  /tmp/ccNGTdW6.s 			page 35
-
-
- 421 0002 83B0     		sub	sp, sp, #12
- 422              	.LCFI4:
- 423              		.cfi_def_cfa_offset 24
- 118:Core/Src/bootloader.c **** 
- 119:Core/Src/bootloader.c **** 	bcb_t bcb = {0};
- 424              		.loc 1 119 2 view .LVU95
- 425              		.loc 1 119 8 is_stmt 0 view .LVU96
- 426 0004 0024     		movs	r4, #0
- 427 0006 8DF80440 		strb	r4, [sp, #4]
- 120:Core/Src/bootloader.c **** 	bcb.active_slot = SLOT_A;
- 428              		.loc 1 120 2 is_stmt 1 view .LVU97
- 429              		.loc 1 120 18 is_stmt 0 view .LVU98
- 430 000a 0123     		movs	r3, #1
- 431 000c 8DF80430 		strb	r3, [sp, #4]
- 121:Core/Src/bootloader.c **** 	int num_word = (sizeof(bcb_t) + 3)/4;
- 432              		.loc 1 121 2 is_stmt 1 view .LVU99
- 433              	.LVL24:
- 122:Core/Src/bootloader.c **** 
- 123:Core/Src/bootloader.c **** 	HAL_FLASH_Unlock();
- 434              		.loc 1 123 2 view .LVU100
- 435 0010 FFF7FEFF 		bl	HAL_FLASH_Unlock
- 436              	.LVL25:
- 124:Core/Src/bootloader.c **** 
- 125:Core/Src/bootloader.c **** 	FLASH_Erase_Sector(FLASH_SECTOR_2, FLASH_VOLTAGE_RANGE_3);
- 437              		.loc 1 125 2 view .LVU101
- 438 0014 0221     		movs	r1, #2
- 439 0016 0846     		mov	r0, r1
- 440 0018 FFF7FEFF 		bl	FLASH_Erase_Sector
- 441              	.LVL26:
- 126:Core/Src/bootloader.c **** 		for(int i = 0; i < num_word; i ++){
- 442              		.loc 1 126 3 view .LVU102
- 443              	.LBB46:
- 444              		.loc 1 126 7 view .LVU103
- 445              	.L14:
- 446              		.loc 1 126 20 discriminator 1 view .LVU104
- 447 001c 002C     		cmp	r4, #0
- 448 001e 03DD     		ble	.L15
- 449              	.LBE46:
- 127:Core/Src/bootloader.c **** 
- 128:Core/Src/bootloader.c **** 			HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, BCB_SEC + (i * 4) , *(((uint32_t *)&bcb) + i));
- 129:Core/Src/bootloader.c **** 			printf("value: %d", *(((uint32_t *)&bcb) + i));
- 130:Core/Src/bootloader.c **** 		}
- 131:Core/Src/bootloader.c **** 	HAL_FLASH_Lock();
- 450              		.loc 1 131 2 view .LVU105
- 451 0020 FFF7FEFF 		bl	HAL_FLASH_Lock
- 452              	.LVL27:
- 132:Core/Src/bootloader.c **** }
- 453              		.loc 1 132 1 is_stmt 0 view .LVU106
- 454 0024 03B0     		add	sp, sp, #12
- 455              	.LCFI5:
- 456              		.cfi_remember_state
- 457              		.cfi_def_cfa_offset 12
- 458              		@ sp needed
- 459 0026 30BD     		pop	{r4, r5, pc}
- 460              	.LVL28:
- 461              	.L15:
- 462              	.LCFI6:
-ARM GAS  /tmp/ccNGTdW6.s 			page 36
-
-
- 463              		.cfi_restore_state
- 464              	.LBB48:
- 465              	.LBB47:
- 128:Core/Src/bootloader.c **** 			printf("value: %d", *(((uint32_t *)&bcb) + i));
- 466              		.loc 1 128 4 is_stmt 1 view .LVU107
- 128:Core/Src/bootloader.c **** 			printf("value: %d", *(((uint32_t *)&bcb) + i));
- 467              		.loc 1 128 59 is_stmt 0 view .LVU108
- 468 0028 A100     		lsls	r1, r4, #2
- 128:Core/Src/bootloader.c **** 			printf("value: %d", *(((uint32_t *)&bcb) + i));
- 469              		.loc 1 128 87 view .LVU109
- 470 002a 01AD     		add	r5, sp, #4
- 128:Core/Src/bootloader.c **** 			printf("value: %d", *(((uint32_t *)&bcb) + i));
- 471              		.loc 1 128 4 view .LVU110
- 472 002c 55F82420 		ldr	r2, [r5, r4, lsl #2]
- 473 0030 0023     		movs	r3, #0
- 474 0032 01F10061 		add	r1, r1, #134217728
- 475 0036 01F50041 		add	r1, r1, #32768
- 476 003a 0220     		movs	r0, #2
- 477 003c FFF7FEFF 		bl	HAL_FLASH_Program
- 478              	.LVL29:
- 129:Core/Src/bootloader.c **** 		}
- 479              		.loc 1 129 4 is_stmt 1 view .LVU111
- 480 0040 55F82410 		ldr	r1, [r5, r4, lsl #2]
- 481 0044 0248     		ldr	r0, .L17
- 482 0046 FFF7FEFF 		bl	printf
- 483              	.LVL30:
- 484              	.LBE47:
- 126:Core/Src/bootloader.c **** 
- 485              		.loc 1 126 34 discriminator 3 view .LVU112
- 486 004a 0134     		adds	r4, r4, #1
- 487              	.LVL31:
- 126:Core/Src/bootloader.c **** 
- 488              		.loc 1 126 34 is_stmt 0 discriminator 3 view .LVU113
- 489 004c E6E7     		b	.L14
- 490              	.L18:
- 491 004e 00BF     		.align	2
- 492              	.L17:
- 493 0050 00000000 		.word	.LC1
- 494              	.LBE48:
- 495              		.cfi_endproc
- 496              	.LFE138:
- 498              		.section	.rodata.bcb_slotswitch.str1.4,"aMS",%progbits,1
- 499              		.align	2
- 500              	.LC2:
- 501 0000 696E7369 		.ascii	"inside bcb_slotswitch: %d\012\015\000"
- 501      64652062 
- 501      63625F73 
- 501      6C6F7473 
- 501      77697463 
- 502              		.align	2
- 503              	.LC3:
- 504 001c 77726974 		.ascii	"write sucessful in bcb\012\015\000"
- 504      65207375 
- 504      63657373 
- 504      66756C20 
- 504      696E2062 
- 505              		.section	.text.bcb_slotswitch,"ax",%progbits
-ARM GAS  /tmp/ccNGTdW6.s 			page 37
-
-
- 506              		.align	1
- 507              		.global	bcb_slotswitch
- 508              		.syntax unified
- 509              		.thumb
- 510              		.thumb_func
- 512              	bcb_slotswitch:
- 513              	.LVL32:
- 514              	.LFB139:
- 133:Core/Src/bootloader.c **** 
- 134:Core/Src/bootloader.c **** void bcb_slotswitch(uint8_t active_slot){
- 515              		.loc 1 134 41 is_stmt 1 view -0
- 516              		.cfi_startproc
- 517              		@ args = 0, pretend = 0, frame = 8
- 518              		@ frame_needed = 0, uses_anonymous_args = 0
- 519              		.loc 1 134 41 is_stmt 0 view .LVU115
- 520 0000 10B5     		push	{r4, lr}
- 521              	.LCFI7:
- 522              		.cfi_def_cfa_offset 8
- 523              		.cfi_offset 4, -8
- 524              		.cfi_offset 14, -4
- 525 0002 82B0     		sub	sp, sp, #8
- 526              	.LCFI8:
- 527              		.cfi_def_cfa_offset 16
- 135:Core/Src/bootloader.c **** 
- 136:Core/Src/bootloader.c **** 	bcb_t bcb = {0};
- 528              		.loc 1 136 2 is_stmt 1 view .LVU116
- 529              		.loc 1 136 8 is_stmt 0 view .LVU117
- 530 0004 0024     		movs	r4, #0
- 531 0006 8DF80440 		strb	r4, [sp, #4]
- 137:Core/Src/bootloader.c **** 	bcb.active_slot = (active_slot) ? SLOT_A : SLOT_B;
- 532              		.loc 1 137 2 is_stmt 1 view .LVU118
- 533              		.loc 1 137 43 is_stmt 0 view .LVU119
- 534 000a 011B     		subs	r1, r0, r4
- 535 000c 18BF     		it	ne
- 536 000e 0121     		movne	r1, #1
- 537              		.loc 1 137 18 view .LVU120
- 538 0010 8DF80410 		strb	r1, [sp, #4]
- 138:Core/Src/bootloader.c **** 	printf("inside bcb_slotswitch: %d\n\r", bcb.active_slot);
- 539              		.loc 1 138 2 is_stmt 1 view .LVU121
- 540 0014 0F48     		ldr	r0, .L23
- 541              	.LVL33:
- 542              		.loc 1 138 2 is_stmt 0 view .LVU122
- 543 0016 FFF7FEFF 		bl	printf
- 544              	.LVL34:
- 139:Core/Src/bootloader.c **** 	int num_word = (sizeof(bcb_t) + 3)/4;
- 545              		.loc 1 139 2 is_stmt 1 view .LVU123
- 140:Core/Src/bootloader.c **** 
- 141:Core/Src/bootloader.c **** 	HAL_FLASH_Unlock();
- 546              		.loc 1 141 2 view .LVU124
- 547 001a FFF7FEFF 		bl	HAL_FLASH_Unlock
- 548              	.LVL35:
- 142:Core/Src/bootloader.c **** 
- 143:Core/Src/bootloader.c **** 	FLASH_Erase_Sector(FLASH_SECTOR_2, FLASH_VOLTAGE_RANGE_3);
- 549              		.loc 1 143 2 view .LVU125
- 550 001e 0221     		movs	r1, #2
- 551 0020 0846     		mov	r0, r1
- 552 0022 FFF7FEFF 		bl	FLASH_Erase_Sector
-ARM GAS  /tmp/ccNGTdW6.s 			page 38
-
-
- 553              	.LVL36:
- 144:Core/Src/bootloader.c **** 
- 145:Core/Src/bootloader.c **** 
- 146:Core/Src/bootloader.c **** 	for(int i = 0; i < num_word; i ++){
- 554              		.loc 1 146 2 view .LVU126
- 555              	.LBB49:
- 556              		.loc 1 146 6 view .LVU127
- 557              	.L20:
- 558              		.loc 1 146 19 discriminator 1 view .LVU128
- 559 0026 002C     		cmp	r4, #0
- 560 0028 06DD     		ble	.L21
- 561              	.LBE49:
- 147:Core/Src/bootloader.c **** 		HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, BCB_SEC + (i * 4) , *(((uint32_t *)&bcb) + i));
+ 488              		.loc 2 951 3 view .LVU119
+ 489              		.syntax unified
+ 490              	@ 951 "Drivers/CMSIS/Include/cmsis_gcc.h" 1
+ 491 00b4 62B6     		cpsie i
+ 492              	@ 0 "" 2
+ 493              		.thumb
+ 494              		.syntax unified
+ 495              	.LBE46:
+ 496              	.LBE45:
  148:Core/Src/bootloader.c **** 
- 149:Core/Src/bootloader.c **** 	}
- 150:Core/Src/bootloader.c **** 	printf("write sucessful in bcb\n\r");
- 562              		.loc 1 150 2 view .LVU129
- 563 002a 0B48     		ldr	r0, .L23+4
- 564 002c FFF7FEFF 		bl	printf
- 565              	.LVL37:
- 151:Core/Src/bootloader.c **** 	HAL_FLASH_Lock();
- 566              		.loc 1 151 2 view .LVU130
- 567 0030 FFF7FEFF 		bl	HAL_FLASH_Lock
- 568              	.LVL38:
- 152:Core/Src/bootloader.c **** }
- 569              		.loc 1 152 1 is_stmt 0 view .LVU131
- 570 0034 02B0     		add	sp, sp, #8
- 571              	.LCFI9:
- 572              		.cfi_remember_state
- 573              		.cfi_def_cfa_offset 8
- 574              		@ sp needed
- 575 0036 10BD     		pop	{r4, pc}
- 576              	.LVL39:
- 577              	.L21:
- 578              	.LCFI10:
- 579              		.cfi_restore_state
- 580              	.LBB50:
- 147:Core/Src/bootloader.c **** 		HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, BCB_SEC + (i * 4) , *(((uint32_t *)&bcb) + i));
- 581              		.loc 1 147 3 is_stmt 1 view .LVU132
- 147:Core/Src/bootloader.c **** 		HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, BCB_SEC + (i * 4) , *(((uint32_t *)&bcb) + i));
- 582              		.loc 1 147 58 is_stmt 0 view .LVU133
- 583 0038 A100     		lsls	r1, r4, #2
- 147:Core/Src/bootloader.c **** 		HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, BCB_SEC + (i * 4) , *(((uint32_t *)&bcb) + i));
- 584              		.loc 1 147 3 view .LVU134
- 585 003a 01AB     		add	r3, sp, #4
- 586 003c 53F82420 		ldr	r2, [r3, r4, lsl #2]
- 587 0040 0023     		movs	r3, #0
- 588 0042 01F10061 		add	r1, r1, #134217728
- 589 0046 01F50041 		add	r1, r1, #32768
- 590 004a 0220     		movs	r0, #2
- 591 004c FFF7FEFF 		bl	HAL_FLASH_Program
- 592              	.LVL40:
- 146:Core/Src/bootloader.c **** 		HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, BCB_SEC + (i * 4) , *(((uint32_t *)&bcb) + i));
- 593              		.loc 1 146 33 is_stmt 1 discriminator 3 view .LVU135
- 594 0050 0134     		adds	r4, r4, #1
- 595              	.LVL41:
- 146:Core/Src/bootloader.c **** 		HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, BCB_SEC + (i * 4) , *(((uint32_t *)&bcb) + i));
-ARM GAS  /tmp/ccNGTdW6.s 			page 39
+ 149:Core/Src/bootloader.c **** 
+ 150:Core/Src/bootloader.c **** 	jump_to_reset(reset_addr);
+ 497              		.loc 1 150 2 view .LVU120
+ 498 00b6 2046     		mov	r0, r4
+ 499 00b8 FFF7FEFF 		bl	jump_to_reset
+ 500              	.LVL31:
+ 501              	.L18:
+ 502              		.align	2
+ 503              	.L17:
+ 504 00bc 00E100E0 		.word	-536813312
+ 505 00c0 00ED00E0 		.word	-536810240
+ 506 00c4 003C0240 		.word	1073888256
+ 507              		.cfi_endproc
+ 508              	.LFE138:
+ 510              		.section	.rodata.bcb_reset.str1.4,"aMS",%progbits,1
+ 511              		.align	2
+ 512              	.LC2:
+ 513 0000 6263625F 		.ascii	"bcb_reset: erase failed, BCB not written\015\000"
+ 513      72657365 
+ 513      743A2065 
+ 513      72617365 
+ 513      20666169 
+ 514 002a 0000     		.align	2
+ 515              	.LC3:
+ 516 002c 76616C75 		.ascii	"value: %lu\015\012\000"
+ 516      653A2025 
+ 516      6C750D0A 
+ 516      00
+ 517              		.section	.text.bcb_reset,"ax",%progbits
+ 518              		.align	1
+ 519              		.global	bcb_reset
+ 520              		.syntax unified
+ 521              		.thumb
+ 522              		.thumb_func
+ 524              	bcb_reset:
+ARM GAS  /tmp/ccEYOayA.s 			page 38
 
 
- 596              		.loc 1 146 33 is_stmt 0 discriminator 3 view .LVU136
- 597 0052 E8E7     		b	.L20
- 598              	.L24:
- 599              		.align	2
- 600              	.L23:
- 601 0054 00000000 		.word	.LC2
- 602 0058 1C000000 		.word	.LC3
- 603              	.LBE50:
- 604              		.cfi_endproc
- 605              	.LFE139:
- 607              		.section	.text.write_to_flash,"ax",%progbits
- 608              		.align	1
- 609              		.global	write_to_flash
- 610              		.syntax unified
- 611              		.thumb
- 612              		.thumb_func
- 614              	write_to_flash:
- 615              	.LVL42:
- 616              	.LFB140:
- 153:Core/Src/bootloader.c **** 
- 154:Core/Src/bootloader.c **** FlashStatus write_to_flash(fw_chunk_t* fw_chunk, uint32_t address){
- 617              		.loc 1 154 67 is_stmt 1 view -0
- 618              		.cfi_startproc
- 619              		@ args = 0, pretend = 0, frame = 8
- 620              		@ frame_needed = 0, uses_anonymous_args = 0
- 155:Core/Src/bootloader.c **** 	uint16_t length = fw_chunk->length;
- 621              		.loc 1 155 2 view .LVU138
- 622              		.loc 1 155 11 is_stmt 0 view .LVU139
- 623 0000 0288     		ldrh	r2, [r0]	@ unaligned
- 624              	.LVL43:
- 156:Core/Src/bootloader.c **** 
- 157:Core/Src/bootloader.c **** 	if(length == 0) return FLASH_ERR;
- 625              		.loc 1 157 2 is_stmt 1 view .LVU140
- 626              		.loc 1 157 4 is_stmt 0 view .LVU141
- 627 0002 0AB9     		cbnz	r2, .L37
- 628              		.loc 1 157 25 discriminator 1 view .LVU142
- 629 0004 0120     		movs	r0, #1
- 630              	.LVL44:
- 158:Core/Src/bootloader.c **** 
- 159:Core/Src/bootloader.c **** 	const uint8_t *src = fw_chunk->fw_img;
+ 525              	.LFB139:
+ 151:Core/Src/bootloader.c **** }
+ 152:Core/Src/bootloader.c **** 
+ 153:Core/Src/bootloader.c **** /*
+ 154:Core/Src/bootloader.c ****  *	This function clears the sector 2 memory region and creates a new BCB struct.
+ 155:Core/Src/bootloader.c ****  *	Then copies this struct into first couple words of the memory region.
+ 156:Core/Src/bootloader.c ****  *
+ 157:Core/Src/bootloader.c ****  *	Function should only really be used if there are errors with the BCB or accidently overwrite the
+ 158:Core/Src/bootloader.c ****  *	Makefile that uploads that uses the ARM toolset
+ 159:Core/Src/bootloader.c ****  */
  160:Core/Src/bootloader.c **** 
- 161:Core/Src/bootloader.c **** 	uint32_t n = length / 4;
- 162:Core/Src/bootloader.c **** 	uint32_t offset = n * 4;
- 163:Core/Src/bootloader.c **** 	uint32_t tail = length % 4;
- 164:Core/Src/bootloader.c **** 
- 165:Core/Src/bootloader.c **** 	HAL_FLASH_Unlock();
- 166:Core/Src/bootloader.c **** 	for(uint32_t i = 0 ; i < n; i++){
- 167:Core/Src/bootloader.c **** 		uint32_t val;
- 168:Core/Src/bootloader.c **** 		memcpy(&val, &src[i*4], sizeof(uint32_t));
- 169:Core/Src/bootloader.c **** 		uint32_t dst = address + (i * 4);
- 170:Core/Src/bootloader.c **** 
- 171:Core/Src/bootloader.c **** 		if(HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, dst , val) != HAL_OK){
- 172:Core/Src/bootloader.c **** 			HAL_FLASH_Lock();
- 173:Core/Src/bootloader.c **** 			return FLASH_ERR;
- 174:Core/Src/bootloader.c **** 		}
- 175:Core/Src/bootloader.c **** 	}
- 176:Core/Src/bootloader.c **** 
-ARM GAS  /tmp/ccNGTdW6.s 			page 40
-
-
- 177:Core/Src/bootloader.c **** 	if(tail){
- 178:Core/Src/bootloader.c **** 		uint32_t padding = 0xffffffff;
- 179:Core/Src/bootloader.c **** 		memcpy(&padding, &src[offset], tail);
- 180:Core/Src/bootloader.c **** 		if(HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, address + offset, padding) != HAL_OK){
- 181:Core/Src/bootloader.c **** 			HAL_FLASH_Lock();
- 182:Core/Src/bootloader.c **** 			return FLASH_ERR;
- 183:Core/Src/bootloader.c **** 		}
- 184:Core/Src/bootloader.c **** 	}
- 185:Core/Src/bootloader.c **** 
- 186:Core/Src/bootloader.c **** 	HAL_FLASH_Lock();
- 187:Core/Src/bootloader.c **** 
- 188:Core/Src/bootloader.c **** 	return FLASH_OK;
- 189:Core/Src/bootloader.c **** }
- 631              		.loc 1 189 1 view .LVU143
- 632 0006 7047     		bx	lr
- 633              	.LVL45:
- 634              	.L37:
- 154:Core/Src/bootloader.c **** 	uint16_t length = fw_chunk->length;
- 635              		.loc 1 154 67 view .LVU144
- 636 0008 2DE9F043 		push	{r4, r5, r6, r7, r8, r9, lr}
- 637              	.LCFI11:
- 638              		.cfi_def_cfa_offset 28
- 639              		.cfi_offset 4, -28
- 640              		.cfi_offset 5, -24
- 641              		.cfi_offset 6, -20
- 642              		.cfi_offset 7, -16
- 643              		.cfi_offset 8, -12
- 644              		.cfi_offset 9, -8
- 645              		.cfi_offset 14, -4
- 646 000c 83B0     		sub	sp, sp, #12
- 647              	.LCFI12:
- 648              		.cfi_def_cfa_offset 40
- 649 000e 0F46     		mov	r7, r1
- 159:Core/Src/bootloader.c **** 
- 650              		.loc 1 159 2 is_stmt 1 view .LVU145
- 159:Core/Src/bootloader.c **** 
- 651              		.loc 1 159 17 is_stmt 0 view .LVU146
- 652 0010 C51C     		adds	r5, r0, #3
- 653              	.LVL46:
- 161:Core/Src/bootloader.c **** 	uint32_t offset = n * 4;
- 654              		.loc 1 161 2 is_stmt 1 view .LVU147
- 161:Core/Src/bootloader.c **** 	uint32_t offset = n * 4;
- 655              		.loc 1 161 22 is_stmt 0 view .LVU148
- 656 0012 9608     		lsrs	r6, r2, #2
- 657              	.LVL47:
- 162:Core/Src/bootloader.c **** 	uint32_t tail = length % 4;
- 658              		.loc 1 162 2 is_stmt 1 view .LVU149
- 162:Core/Src/bootloader.c **** 	uint32_t tail = length % 4;
- 659              		.loc 1 162 11 is_stmt 0 view .LVU150
- 660 0014 4FEA8609 		lsl	r9, r6, #2
- 661              	.LVL48:
+ 161:Core/Src/bootloader.c **** 
+ 162:Core/Src/bootloader.c **** void bcb_reset(void){
+ 526              		.loc 1 162 21 view -0
+ 527              		.cfi_startproc
+ 528              		@ args = 0, pretend = 0, frame = 8
+ 529              		@ frame_needed = 0, uses_anonymous_args = 0
+ 530 0000 30B5     		push	{r4, r5, lr}
+ 531              	.LCFI7:
+ 532              		.cfi_def_cfa_offset 12
+ 533              		.cfi_offset 4, -12
+ 534              		.cfi_offset 5, -8
+ 535              		.cfi_offset 14, -4
+ 536 0002 83B0     		sub	sp, sp, #12
+ 537              	.LCFI8:
+ 538              		.cfi_def_cfa_offset 24
  163:Core/Src/bootloader.c **** 
- 662              		.loc 1 163 2 is_stmt 1 view .LVU151
- 163:Core/Src/bootloader.c **** 
- 663              		.loc 1 163 11 is_stmt 0 view .LVU152
- 664 0018 02F00308 		and	r8, r2, #3
- 665              	.LVL49:
-ARM GAS  /tmp/ccNGTdW6.s 			page 41
+ 164:Core/Src/bootloader.c **** 	bcb_t bcb = {0};
+ 539              		.loc 1 164 2 view .LVU122
+ 540              		.loc 1 164 8 is_stmt 0 view .LVU123
+ 541 0004 0023     		movs	r3, #0
+ 542 0006 8DF80430 		strb	r3, [sp, #4]
+ 165:Core/Src/bootloader.c **** 	bcb.active_slot = SLOT_A;
+ 543              		.loc 1 165 2 is_stmt 1 view .LVU124
+ 544              		.loc 1 165 18 is_stmt 0 view .LVU125
+ 545 000a 0121     		movs	r1, #1
+ 546 000c 8DF80410 		strb	r1, [sp, #4]
+ 166:Core/Src/bootloader.c **** 	int num_word = (sizeof(bcb_t) + 3)/4;
+ 547              		.loc 1 166 2 is_stmt 1 view .LVU126
+ 548              	.LVL32:
+ 167:Core/Src/bootloader.c **** 
+ 168:Core/Src/bootloader.c **** 	if (flash_erase_sectors(FLASH_SECTOR_2, 1) != HAL_OK) {
+ 549              		.loc 1 168 2 view .LVU127
+ 550              		.loc 1 168 6 is_stmt 0 view .LVU128
+ 551 0010 0220     		movs	r0, #2
+ 552 0012 FFF7FEFF 		bl	flash_erase_sectors
+ 553              	.LVL33:
+ 554              		.loc 1 168 5 discriminator 1 view .LVU129
+ 555 0016 20B1     		cbz	r0, .L20
+ 556              	.LBB47:
+ 169:Core/Src/bootloader.c **** 		printf("bcb_reset: erase failed, BCB not written\r\n");
+ 557              		.loc 1 169 3 is_stmt 1 view .LVU130
+ 558 0018 0F48     		ldr	r0, .L25
+ 559 001a FFF7FEFF 		bl	puts
+ 560              	.LVL34:
+ 170:Core/Src/bootloader.c **** 		return;
+ 561              		.loc 1 170 3 view .LVU131
+ARM GAS  /tmp/ccEYOayA.s 			page 39
 
 
- 165:Core/Src/bootloader.c **** 	for(uint32_t i = 0 ; i < n; i++){
- 666              		.loc 1 165 2 is_stmt 1 view .LVU153
- 667 001c FFF7FEFF 		bl	HAL_FLASH_Unlock
- 668              	.LVL50:
- 166:Core/Src/bootloader.c **** 		uint32_t val;
- 669              		.loc 1 166 2 view .LVU154
- 670              	.LBB51:
- 166:Core/Src/bootloader.c **** 		uint32_t val;
- 671              		.loc 1 166 6 view .LVU155
- 166:Core/Src/bootloader.c **** 		uint32_t val;
- 672              		.loc 1 166 15 is_stmt 0 view .LVU156
- 673 0020 0024     		movs	r4, #0
- 674              	.LVL51:
- 675              	.L27:
- 166:Core/Src/bootloader.c **** 		uint32_t val;
- 676              		.loc 1 166 25 is_stmt 1 discriminator 1 view .LVU157
- 677 0022 B442     		cmp	r4, r6
- 678 0024 10D2     		bcs	.L38
- 679              	.LBB52:
- 167:Core/Src/bootloader.c **** 		memcpy(&val, &src[i*4], sizeof(uint32_t));
- 680              		.loc 1 167 3 view .LVU158
- 168:Core/Src/bootloader.c **** 		uint32_t dst = address + (i * 4);
- 681              		.loc 1 168 3 view .LVU159
- 682              	.LVL52:
- 169:Core/Src/bootloader.c **** 
- 683              		.loc 1 169 3 view .LVU160
- 171:Core/Src/bootloader.c **** 			HAL_FLASH_Lock();
- 684              		.loc 1 171 3 view .LVU161
- 171:Core/Src/bootloader.c **** 			HAL_FLASH_Lock();
- 685              		.loc 1 171 6 is_stmt 0 view .LVU162
- 686 0026 55F82420 		ldr	r2, [r5, r4, lsl #2]	@ unaligned
- 687              	.LVL53:
- 171:Core/Src/bootloader.c **** 			HAL_FLASH_Lock();
- 688              		.loc 1 171 6 view .LVU163
- 689 002a 0023     		movs	r3, #0
- 690 002c 07EB8401 		add	r1, r7, r4, lsl #2
- 691              	.LVL54:
- 171:Core/Src/bootloader.c **** 			HAL_FLASH_Lock();
- 692              		.loc 1 171 6 view .LVU164
- 693 0030 0220     		movs	r0, #2
- 694 0032 FFF7FEFF 		bl	HAL_FLASH_Program
- 695              	.LVL55:
- 171:Core/Src/bootloader.c **** 			HAL_FLASH_Lock();
- 696              		.loc 1 171 5 discriminator 1 view .LVU165
- 697 0036 08B9     		cbnz	r0, .L39
- 698              	.LBE52:
- 166:Core/Src/bootloader.c **** 		uint32_t val;
- 699              		.loc 1 166 31 is_stmt 1 discriminator 2 view .LVU166
- 700 0038 0134     		adds	r4, r4, #1
- 701              	.LVL56:
- 166:Core/Src/bootloader.c **** 		uint32_t val;
- 702              		.loc 1 166 31 is_stmt 0 discriminator 2 view .LVU167
- 703 003a F2E7     		b	.L27
- 704              	.LVL57:
- 705              	.L39:
- 706              	.LBB53:
- 172:Core/Src/bootloader.c **** 			return FLASH_ERR;
-ARM GAS  /tmp/ccNGTdW6.s 			page 42
+ 562              	.L19:
+ 563              	.LBE47:
+ 171:Core/Src/bootloader.c **** 	}
+ 172:Core/Src/bootloader.c **** 
+ 173:Core/Src/bootloader.c **** 	HAL_FLASH_Unlock();
+ 174:Core/Src/bootloader.c **** 		for(int i = 0; i < num_word; i ++){
+ 175:Core/Src/bootloader.c **** 
+ 176:Core/Src/bootloader.c **** 			HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, BCB_SEC + (i * 4) , *(((uint32_t *)&bcb) + i));
+ 177:Core/Src/bootloader.c **** 			printf("value: %lu\r\n", (unsigned long)*(((uint32_t *)&bcb) + i));
+ 178:Core/Src/bootloader.c **** 		}
+ 179:Core/Src/bootloader.c **** 	HAL_FLASH_Lock();
+ 180:Core/Src/bootloader.c **** }
+ 564              		.loc 1 180 1 is_stmt 0 view .LVU132
+ 565 001e 03B0     		add	sp, sp, #12
+ 566              	.LCFI9:
+ 567              		.cfi_remember_state
+ 568              		.cfi_def_cfa_offset 12
+ 569              		@ sp needed
+ 570 0020 30BD     		pop	{r4, r5, pc}
+ 571              	.L20:
+ 572              	.LCFI10:
+ 573              		.cfi_restore_state
+ 173:Core/Src/bootloader.c **** 		for(int i = 0; i < num_word; i ++){
+ 574              		.loc 1 173 2 is_stmt 1 view .LVU133
+ 575 0022 FFF7FEFF 		bl	HAL_FLASH_Unlock
+ 576              	.LVL35:
+ 174:Core/Src/bootloader.c **** 
+ 577              		.loc 1 174 3 view .LVU134
+ 578              	.LBB48:
+ 174:Core/Src/bootloader.c **** 
+ 579              		.loc 1 174 7 view .LVU135
+ 174:Core/Src/bootloader.c **** 
+ 580              		.loc 1 174 11 is_stmt 0 view .LVU136
+ 581 0026 0024     		movs	r4, #0
+ 582              	.LVL36:
+ 583              	.L22:
+ 174:Core/Src/bootloader.c **** 
+ 584              		.loc 1 174 20 is_stmt 1 discriminator 1 view .LVU137
+ 585 0028 002C     		cmp	r4, #0
+ 586 002a 02DD     		ble	.L23
+ 587              	.LBE48:
+ 179:Core/Src/bootloader.c **** }
+ 588              		.loc 1 179 2 view .LVU138
+ 589 002c FFF7FEFF 		bl	HAL_FLASH_Lock
+ 590              	.LVL37:
+ 591 0030 F5E7     		b	.L19
+ 592              	.L23:
+ 593              	.LBB50:
+ 594              	.LBB49:
+ 176:Core/Src/bootloader.c **** 			printf("value: %lu\r\n", (unsigned long)*(((uint32_t *)&bcb) + i));
+ 595              		.loc 1 176 4 view .LVU139
+ 176:Core/Src/bootloader.c **** 			printf("value: %lu\r\n", (unsigned long)*(((uint32_t *)&bcb) + i));
+ 596              		.loc 1 176 59 is_stmt 0 view .LVU140
+ 597 0032 A100     		lsls	r1, r4, #2
+ 176:Core/Src/bootloader.c **** 			printf("value: %lu\r\n", (unsigned long)*(((uint32_t *)&bcb) + i));
+ 598              		.loc 1 176 87 view .LVU141
+ 599 0034 01AD     		add	r5, sp, #4
+ARM GAS  /tmp/ccEYOayA.s 			page 40
 
 
- 707              		.loc 1 172 4 is_stmt 1 view .LVU168
- 708 003c FFF7FEFF 		bl	HAL_FLASH_Lock
- 709              	.LVL58:
- 173:Core/Src/bootloader.c **** 		}
- 710              		.loc 1 173 4 view .LVU169
- 173:Core/Src/bootloader.c **** 		}
- 711              		.loc 1 173 11 is_stmt 0 view .LVU170
- 712 0040 0120     		movs	r0, #1
- 713              	.LVL59:
- 714              	.L26:
- 173:Core/Src/bootloader.c **** 		}
- 715              		.loc 1 173 11 view .LVU171
- 716              	.LBE53:
- 717              	.LBE51:
- 718              		.loc 1 189 1 view .LVU172
- 719 0042 03B0     		add	sp, sp, #12
- 720              	.LCFI13:
- 721              		.cfi_remember_state
- 722              		.cfi_def_cfa_offset 28
- 723              		@ sp needed
- 724 0044 BDE8F083 		pop	{r4, r5, r6, r7, r8, r9, pc}
- 725              	.LVL60:
- 726              	.L38:
- 727              	.LCFI14:
- 728              		.cfi_restore_state
- 177:Core/Src/bootloader.c **** 		uint32_t padding = 0xffffffff;
- 729              		.loc 1 177 2 is_stmt 1 view .LVU173
- 177:Core/Src/bootloader.c **** 		uint32_t padding = 0xffffffff;
- 730              		.loc 1 177 4 is_stmt 0 view .LVU174
- 731 0048 B8F1000F 		cmp	r8, #0
- 732 004c 10D0     		beq	.L30
- 733              	.LBB54:
- 178:Core/Src/bootloader.c **** 		memcpy(&padding, &src[offset], tail);
- 734              		.loc 1 178 3 is_stmt 1 view .LVU175
- 178:Core/Src/bootloader.c **** 		memcpy(&padding, &src[offset], tail);
- 735              		.loc 1 178 12 is_stmt 0 view .LVU176
- 736 004e 4FF0FF33 		mov	r3, #-1
- 737 0052 0193     		str	r3, [sp, #4]
- 179:Core/Src/bootloader.c **** 		if(HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, address + offset, padding) != HAL_OK){
- 738              		.loc 1 179 3 is_stmt 1 view .LVU177
- 739 0054 4246     		mov	r2, r8
- 740 0056 05EB0901 		add	r1, r5, r9
- 741 005a 01A8     		add	r0, sp, #4
- 742 005c FFF7FEFF 		bl	memcpy
- 743              	.LVL61:
- 180:Core/Src/bootloader.c **** 			HAL_FLASH_Lock();
- 744              		.loc 1 180 3 view .LVU178
- 180:Core/Src/bootloader.c **** 			HAL_FLASH_Lock();
- 745              		.loc 1 180 6 is_stmt 0 view .LVU179
- 746 0060 019A     		ldr	r2, [sp, #4]
- 747 0062 0023     		movs	r3, #0
- 748 0064 09EB0701 		add	r1, r9, r7
- 749 0068 0220     		movs	r0, #2
- 750 006a FFF7FEFF 		bl	HAL_FLASH_Program
- 751              	.LVL62:
- 180:Core/Src/bootloader.c **** 			HAL_FLASH_Lock();
- 752              		.loc 1 180 5 discriminator 1 view .LVU180
-ARM GAS  /tmp/ccNGTdW6.s 			page 43
+ 176:Core/Src/bootloader.c **** 			printf("value: %lu\r\n", (unsigned long)*(((uint32_t *)&bcb) + i));
+ 600              		.loc 1 176 4 view .LVU142
+ 601 0036 55F82420 		ldr	r2, [r5, r4, lsl #2]
+ 602 003a 0023     		movs	r3, #0
+ 603 003c 01F10061 		add	r1, r1, #134217728
+ 604 0040 01F50041 		add	r1, r1, #32768
+ 605 0044 0220     		movs	r0, #2
+ 606 0046 FFF7FEFF 		bl	HAL_FLASH_Program
+ 607              	.LVL38:
+ 177:Core/Src/bootloader.c **** 		}
+ 608              		.loc 1 177 4 is_stmt 1 view .LVU143
+ 609 004a 55F82410 		ldr	r1, [r5, r4, lsl #2]
+ 610 004e 0348     		ldr	r0, .L25+4
+ 611 0050 FFF7FEFF 		bl	printf
+ 612              	.LVL39:
+ 613              	.LBE49:
+ 174:Core/Src/bootloader.c **** 
+ 614              		.loc 1 174 34 discriminator 3 view .LVU144
+ 615 0054 0134     		adds	r4, r4, #1
+ 616              	.LVL40:
+ 174:Core/Src/bootloader.c **** 
+ 617              		.loc 1 174 34 is_stmt 0 discriminator 3 view .LVU145
+ 618 0056 E7E7     		b	.L22
+ 619              	.L26:
+ 620              		.align	2
+ 621              	.L25:
+ 622 0058 00000000 		.word	.LC2
+ 623 005c 2C000000 		.word	.LC3
+ 624              	.LBE50:
+ 625              		.cfi_endproc
+ 626              	.LFE139:
+ 628              		.section	.rodata.bcb_slotswitch.str1.4,"aMS",%progbits,1
+ 629              		.align	2
+ 630              	.LC4:
+ 631 0000 696E7369 		.ascii	"inside bcb_slotswitch: %d\012\015\000"
+ 631      64652062 
+ 631      63625F73 
+ 631      6C6F7473 
+ 631      77697463 
+ 632              		.align	2
+ 633              	.LC5:
+ 634 001c 6263625F 		.ascii	"bcb_slotswitch: erase failed, BCB unchanged\015\000"
+ 634      736C6F74 
+ 634      73776974 
+ 634      63683A20 
+ 634      65726173 
+ 635 0049 000000   		.align	2
+ 636              	.LC6:
+ 637 004c 62636220 		.ascii	"bcb write failed at word %d err=0x%08lX\015\012\000"
+ 637      77726974 
+ 637      65206661 
+ 637      696C6564 
+ 637      20617420 
+ 638 0076 0000     		.align	2
+ 639              	.LC7:
+ 640 0078 77726974 		.ascii	"write sucessful in bcb\012\015\000"
+ 640      65207375 
+ARM GAS  /tmp/ccEYOayA.s 			page 41
 
 
- 753 006e 18B9     		cbnz	r0, .L40
- 754              	.L30:
- 180:Core/Src/bootloader.c **** 			HAL_FLASH_Lock();
- 755              		.loc 1 180 5 discriminator 1 view .LVU181
- 756              	.LBE54:
- 186:Core/Src/bootloader.c **** 
- 757              		.loc 1 186 2 is_stmt 1 view .LVU182
- 758 0070 FFF7FEFF 		bl	HAL_FLASH_Lock
- 759              	.LVL63:
- 188:Core/Src/bootloader.c **** }
- 760              		.loc 1 188 2 view .LVU183
- 188:Core/Src/bootloader.c **** }
- 761              		.loc 1 188 9 is_stmt 0 view .LVU184
- 762 0074 0020     		movs	r0, #0
- 763 0076 E4E7     		b	.L26
- 764              	.L40:
- 765              	.LBB55:
- 181:Core/Src/bootloader.c **** 			return FLASH_ERR;
- 766              		.loc 1 181 4 is_stmt 1 view .LVU185
- 767 0078 FFF7FEFF 		bl	HAL_FLASH_Lock
- 768              	.LVL64:
- 182:Core/Src/bootloader.c **** 		}
- 769              		.loc 1 182 4 view .LVU186
- 182:Core/Src/bootloader.c **** 		}
- 770              		.loc 1 182 11 is_stmt 0 view .LVU187
- 771 007c 0120     		movs	r0, #1
- 772 007e E0E7     		b	.L26
- 773              	.LBE55:
- 774              		.cfi_endproc
- 775              	.LFE140:
- 777              		.text
- 778              	.Letext0:
- 779              		.file 3 "/usr/lib/gcc/arm-none-eabi/13.2.1/include/stddef.h"
- 780              		.file 4 "/usr/lib/gcc/arm-none-eabi/13.2.1/include/stdint.h"
- 781              		.file 5 "Core/Inc/bootloader.h"
- 782              		.file 6 "Drivers/CMSIS/Include/core_cm4.h"
- 783              		.file 7 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f401xe.h"
- 784              		.file 8 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h"
- 785              		.file 9 "/usr/include/newlib/string.h"
- 786              		.file 10 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash.h"
- 787              		.file 11 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h"
- 788              		.file 12 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h"
- 789              		.file 13 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ex.h"
- 790              		.file 14 "<built-in>"
-ARM GAS  /tmp/ccNGTdW6.s 			page 44
+ 640      63657373 
+ 640      66756C20 
+ 640      696E2062 
+ 641              		.section	.text.bcb_slotswitch,"ax",%progbits
+ 642              		.align	1
+ 643              		.global	bcb_slotswitch
+ 644              		.syntax unified
+ 645              		.thumb
+ 646              		.thumb_func
+ 648              	bcb_slotswitch:
+ 649              	.LVL41:
+ 650              	.LFB140:
+ 181:Core/Src/bootloader.c **** 
+ 182:Core/Src/bootloader.c **** void bcb_slotswitch(uint8_t active_slot){
+ 651              		.loc 1 182 41 is_stmt 1 view -0
+ 652              		.cfi_startproc
+ 653              		@ args = 0, pretend = 0, frame = 8
+ 654              		@ frame_needed = 0, uses_anonymous_args = 0
+ 655              		.loc 1 182 41 is_stmt 0 view .LVU147
+ 656 0000 10B5     		push	{r4, lr}
+ 657              	.LCFI11:
+ 658              		.cfi_def_cfa_offset 8
+ 659              		.cfi_offset 4, -8
+ 660              		.cfi_offset 14, -4
+ 661 0002 82B0     		sub	sp, sp, #8
+ 662              	.LCFI12:
+ 663              		.cfi_def_cfa_offset 16
+ 183:Core/Src/bootloader.c **** 
+ 184:Core/Src/bootloader.c **** 	bcb_t bcb = {0};
+ 664              		.loc 1 184 2 is_stmt 1 view .LVU148
+ 665              		.loc 1 184 8 is_stmt 0 view .LVU149
+ 666 0004 0023     		movs	r3, #0
+ 667 0006 8DF80430 		strb	r3, [sp, #4]
+ 185:Core/Src/bootloader.c **** 	bcb.active_slot = (active_slot) ? SLOT_A : SLOT_B;
+ 668              		.loc 1 185 2 is_stmt 1 view .LVU150
+ 669              		.loc 1 185 43 is_stmt 0 view .LVU151
+ 670 000a C11A     		subs	r1, r0, r3
+ 671 000c 18BF     		it	ne
+ 672 000e 0121     		movne	r1, #1
+ 673              		.loc 1 185 18 view .LVU152
+ 674 0010 8DF80410 		strb	r1, [sp, #4]
+ 186:Core/Src/bootloader.c **** 	printf("inside bcb_slotswitch: %d\n\r", bcb.active_slot);
+ 675              		.loc 1 186 2 is_stmt 1 view .LVU153
+ 676 0014 1848     		ldr	r0, .L36
+ 677              	.LVL42:
+ 678              		.loc 1 186 2 is_stmt 0 view .LVU154
+ 679 0016 FFF7FEFF 		bl	printf
+ 680              	.LVL43:
+ 187:Core/Src/bootloader.c **** 	int num_word = (sizeof(bcb_t) + 3)/4;
+ 681              		.loc 1 187 2 is_stmt 1 view .LVU155
+ 188:Core/Src/bootloader.c **** 
+ 189:Core/Src/bootloader.c **** 	if (flash_erase_sectors(FLASH_SECTOR_2, 1) != HAL_OK) {
+ 682              		.loc 1 189 2 view .LVU156
+ 683              		.loc 1 189 6 is_stmt 0 view .LVU157
+ 684 001a 0121     		movs	r1, #1
+ 685 001c 0220     		movs	r0, #2
+ 686 001e FFF7FEFF 		bl	flash_erase_sectors
+ARM GAS  /tmp/ccEYOayA.s 			page 42
+
+
+ 687              	.LVL44:
+ 688              		.loc 1 189 5 discriminator 1 view .LVU158
+ 689 0022 20B1     		cbz	r0, .L28
+ 190:Core/Src/bootloader.c **** 		printf("bcb_slotswitch: erase failed, BCB unchanged\r\n");
+ 690              		.loc 1 190 3 is_stmt 1 view .LVU159
+ 691 0024 1548     		ldr	r0, .L36+4
+ 692 0026 FFF7FEFF 		bl	puts
+ 693              	.LVL45:
+ 191:Core/Src/bootloader.c **** 		return;
+ 694              		.loc 1 191 3 view .LVU160
+ 695              	.L27:
+ 192:Core/Src/bootloader.c **** 	}
+ 193:Core/Src/bootloader.c **** 
+ 194:Core/Src/bootloader.c **** 	HAL_FLASH_Unlock();
+ 195:Core/Src/bootloader.c **** 
+ 196:Core/Src/bootloader.c **** 	for(int i = 0; i < num_word; i ++){
+ 197:Core/Src/bootloader.c **** 		if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, BCB_SEC + (i * 4),
+ 198:Core/Src/bootloader.c **** 		                      *(((uint32_t *)&bcb) + i)) != HAL_OK) {
+ 199:Core/Src/bootloader.c **** 			HAL_FLASH_Lock();
+ 200:Core/Src/bootloader.c **** 			printf("bcb write failed at word %d err=0x%08lX\r\n",
+ 201:Core/Src/bootloader.c **** 			       i, (unsigned long)HAL_FLASH_GetError());
+ 202:Core/Src/bootloader.c **** 			return;
+ 203:Core/Src/bootloader.c **** 		}
+ 204:Core/Src/bootloader.c **** 	}
+ 205:Core/Src/bootloader.c **** 	HAL_FLASH_Lock();
+ 206:Core/Src/bootloader.c **** 	printf("write sucessful in bcb\n\r");
+ 207:Core/Src/bootloader.c **** }
+ 696              		.loc 1 207 1 is_stmt 0 view .LVU161
+ 697 002a 02B0     		add	sp, sp, #8
+ 698              	.LCFI13:
+ 699              		.cfi_remember_state
+ 700              		.cfi_def_cfa_offset 8
+ 701              		@ sp needed
+ 702 002c 10BD     		pop	{r4, pc}
+ 703              	.L28:
+ 704              	.LCFI14:
+ 705              		.cfi_restore_state
+ 194:Core/Src/bootloader.c **** 
+ 706              		.loc 1 194 2 is_stmt 1 view .LVU162
+ 707 002e FFF7FEFF 		bl	HAL_FLASH_Unlock
+ 708              	.LVL46:
+ 196:Core/Src/bootloader.c **** 		if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, BCB_SEC + (i * 4),
+ 709              		.loc 1 196 2 view .LVU163
+ 710              	.LBB51:
+ 196:Core/Src/bootloader.c **** 		if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, BCB_SEC + (i * 4),
+ 711              		.loc 1 196 6 view .LVU164
+ 196:Core/Src/bootloader.c **** 		if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, BCB_SEC + (i * 4),
+ 712              		.loc 1 196 10 is_stmt 0 view .LVU165
+ 713 0032 0024     		movs	r4, #0
+ 714              	.LVL47:
+ 715              	.L30:
+ 196:Core/Src/bootloader.c **** 		if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, BCB_SEC + (i * 4),
+ 716              		.loc 1 196 19 is_stmt 1 discriminator 1 view .LVU166
+ 717 0034 002C     		cmp	r4, #0
+ 718 0036 05DD     		ble	.L32
+ 719              	.LBE51:
+ 205:Core/Src/bootloader.c **** 	printf("write sucessful in bcb\n\r");
+ARM GAS  /tmp/ccEYOayA.s 			page 43
+
+
+ 720              		.loc 1 205 2 view .LVU167
+ 721 0038 FFF7FEFF 		bl	HAL_FLASH_Lock
+ 722              	.LVL48:
+ 206:Core/Src/bootloader.c **** }
+ 723              		.loc 1 206 2 view .LVU168
+ 724 003c 1048     		ldr	r0, .L36+8
+ 725 003e FFF7FEFF 		bl	printf
+ 726              	.LVL49:
+ 727 0042 F2E7     		b	.L27
+ 728              	.L32:
+ 729              	.LBB52:
+ 197:Core/Src/bootloader.c **** 		                      *(((uint32_t *)&bcb) + i)) != HAL_OK) {
+ 730              		.loc 1 197 3 view .LVU169
+ 197:Core/Src/bootloader.c **** 		                      *(((uint32_t *)&bcb) + i)) != HAL_OK) {
+ 731              		.loc 1 197 62 is_stmt 0 view .LVU170
+ 732 0044 A100     		lsls	r1, r4, #2
+ 197:Core/Src/bootloader.c **** 		                      *(((uint32_t *)&bcb) + i)) != HAL_OK) {
+ 733              		.loc 1 197 7 view .LVU171
+ 734 0046 01AB     		add	r3, sp, #4
+ 735 0048 53F82420 		ldr	r2, [r3, r4, lsl #2]
+ 736 004c 0023     		movs	r3, #0
+ 737 004e 01F10061 		add	r1, r1, #134217728
+ 738 0052 01F50041 		add	r1, r1, #32768
+ 739 0056 0220     		movs	r0, #2
+ 740 0058 FFF7FEFF 		bl	HAL_FLASH_Program
+ 741              	.LVL50:
+ 197:Core/Src/bootloader.c **** 		                      *(((uint32_t *)&bcb) + i)) != HAL_OK) {
+ 742              		.loc 1 197 6 discriminator 1 view .LVU172
+ 743 005c 08B9     		cbnz	r0, .L35
+ 196:Core/Src/bootloader.c **** 		if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, BCB_SEC + (i * 4),
+ 744              		.loc 1 196 33 is_stmt 1 discriminator 2 view .LVU173
+ 745 005e 0134     		adds	r4, r4, #1
+ 746              	.LVL51:
+ 196:Core/Src/bootloader.c **** 		if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, BCB_SEC + (i * 4),
+ 747              		.loc 1 196 33 is_stmt 0 discriminator 2 view .LVU174
+ 748 0060 E8E7     		b	.L30
+ 749              	.L35:
+ 199:Core/Src/bootloader.c **** 			printf("bcb write failed at word %d err=0x%08lX\r\n",
+ 750              		.loc 1 199 4 is_stmt 1 view .LVU175
+ 751 0062 FFF7FEFF 		bl	HAL_FLASH_Lock
+ 752              	.LVL52:
+ 200:Core/Src/bootloader.c **** 			       i, (unsigned long)HAL_FLASH_GetError());
+ 753              		.loc 1 200 4 view .LVU176
+ 201:Core/Src/bootloader.c **** 			return;
+ 754              		.loc 1 201 29 is_stmt 0 view .LVU177
+ 755 0066 FFF7FEFF 		bl	HAL_FLASH_GetError
+ 756              	.LVL53:
+ 757 006a 0246     		mov	r2, r0
+ 200:Core/Src/bootloader.c **** 			       i, (unsigned long)HAL_FLASH_GetError());
+ 758              		.loc 1 200 4 view .LVU178
+ 759 006c 2146     		mov	r1, r4
+ 760 006e 0548     		ldr	r0, .L36+12
+ 761 0070 FFF7FEFF 		bl	printf
+ 762              	.LVL54:
+ 202:Core/Src/bootloader.c **** 		}
+ 763              		.loc 1 202 4 is_stmt 1 view .LVU179
+ 764 0074 D9E7     		b	.L27
+ARM GAS  /tmp/ccEYOayA.s 			page 44
+
+
+ 765              	.L37:
+ 766 0076 00BF     		.align	2
+ 767              	.L36:
+ 768 0078 00000000 		.word	.LC4
+ 769 007c 1C000000 		.word	.LC5
+ 770 0080 78000000 		.word	.LC7
+ 771 0084 4C000000 		.word	.LC6
+ 772              	.LBE52:
+ 773              		.cfi_endproc
+ 774              	.LFE140:
+ 776              		.section	.rodata.write_to_flash.str1.4,"aMS",%progbits,1
+ 777              		.align	2
+ 778              	.LC8:
+ 779 0000 4661696C 		.ascii	"Failed writing to memory at 0x%08lX err=0x%08lX\015"
+ 779      65642077 
+ 779      72697469 
+ 779      6E672074 
+ 779      6F206D65 
+ 780 0030 0A00     		.ascii	"\012\000"
+ 781 0032 0000     		.align	2
+ 782              	.LC9:
+ 783 0034 4661696C 		.ascii	"Failed writing to memory tail at 0x%08lX err=0x%08l"
+ 783      65642077 
+ 783      72697469 
+ 783      6E672074 
+ 783      6F206D65 
+ 784 0067 580D0A00 		.ascii	"X\015\012\000"
+ 785              		.section	.text.write_to_flash,"ax",%progbits
+ 786              		.align	1
+ 787              		.global	write_to_flash
+ 788              		.syntax unified
+ 789              		.thumb
+ 790              		.thumb_func
+ 792              	write_to_flash:
+ 793              	.LVL55:
+ 794              	.LFB141:
+ 208:Core/Src/bootloader.c **** 
+ 209:Core/Src/bootloader.c **** FlashStatus write_to_flash(fw_chunk_t* fw_chunk, uint32_t address){
+ 795              		.loc 1 209 67 view -0
+ 796              		.cfi_startproc
+ 797              		@ args = 0, pretend = 0, frame = 8
+ 798              		@ frame_needed = 0, uses_anonymous_args = 0
+ 210:Core/Src/bootloader.c **** 	uint16_t length = fw_chunk->length;
+ 799              		.loc 1 210 2 view .LVU181
+ 800              		.loc 1 210 11 is_stmt 0 view .LVU182
+ 801 0000 0288     		ldrh	r2, [r0]	@ unaligned
+ 802              	.LVL56:
+ 211:Core/Src/bootloader.c **** 
+ 212:Core/Src/bootloader.c **** 	if(length == 0) return FLASH_ERR;
+ 803              		.loc 1 212 2 is_stmt 1 view .LVU183
+ 804              		.loc 1 212 4 is_stmt 0 view .LVU184
+ 805 0002 0AB9     		cbnz	r2, .L50
+ 806              		.loc 1 212 25 discriminator 1 view .LVU185
+ 807 0004 0120     		movs	r0, #1
+ 808              	.LVL57:
+ 213:Core/Src/bootloader.c **** 
+ 214:Core/Src/bootloader.c **** 	const uint8_t *src = fw_chunk->fw_img;
+ARM GAS  /tmp/ccEYOayA.s 			page 45
+
+
+ 215:Core/Src/bootloader.c **** 
+ 216:Core/Src/bootloader.c **** 	uint32_t n = length / 4;
+ 217:Core/Src/bootloader.c **** 	uint32_t offset = n * 4;
+ 218:Core/Src/bootloader.c **** 	uint32_t tail = length % 4;
+ 219:Core/Src/bootloader.c **** 
+ 220:Core/Src/bootloader.c **** 	HAL_FLASH_Unlock();
+ 221:Core/Src/bootloader.c **** 	for(uint32_t i = 0 ; i < n; i++){
+ 222:Core/Src/bootloader.c **** 		uint32_t val;
+ 223:Core/Src/bootloader.c **** 		memcpy(&val, &src[i*4], sizeof(uint32_t));
+ 224:Core/Src/bootloader.c **** 		uint32_t dst = address + (i * 4);
+ 225:Core/Src/bootloader.c **** 
+ 226:Core/Src/bootloader.c **** 		if(HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, dst , val) != HAL_OK){
+ 227:Core/Src/bootloader.c **** 			HAL_FLASH_Lock();
+ 228:Core/Src/bootloader.c **** 			printf("Failed writing to memory at 0x%08lX err=0x%08lX\r\n",
+ 229:Core/Src/bootloader.c **** 			       (unsigned long)dst, (unsigned long)HAL_FLASH_GetError());
+ 230:Core/Src/bootloader.c **** 			return FLASH_ERR;
+ 231:Core/Src/bootloader.c **** 		}
+ 232:Core/Src/bootloader.c **** 	}
+ 233:Core/Src/bootloader.c **** 
+ 234:Core/Src/bootloader.c **** 	if(tail){
+ 235:Core/Src/bootloader.c **** 		uint32_t padding = 0xffffffff;
+ 236:Core/Src/bootloader.c **** 		memcpy(&padding, &src[offset], tail);
+ 237:Core/Src/bootloader.c **** 		if(HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, address + offset, padding) != HAL_OK){
+ 238:Core/Src/bootloader.c **** 			HAL_FLASH_Lock();
+ 239:Core/Src/bootloader.c **** 			printf("Failed writing to memory tail at 0x%08lX err=0x%08lX\r\n",
+ 240:Core/Src/bootloader.c **** 			       (unsigned long)(address + offset),
+ 241:Core/Src/bootloader.c **** 			       (unsigned long)HAL_FLASH_GetError());
+ 242:Core/Src/bootloader.c **** 			return FLASH_ERR;
+ 243:Core/Src/bootloader.c **** 		}
+ 244:Core/Src/bootloader.c **** 	}
+ 245:Core/Src/bootloader.c **** 
+ 246:Core/Src/bootloader.c **** 	HAL_FLASH_Lock();
+ 247:Core/Src/bootloader.c **** 
+ 248:Core/Src/bootloader.c **** 	return FLASH_OK;
+ 249:Core/Src/bootloader.c **** }
+ 809              		.loc 1 249 1 view .LVU186
+ 810 0006 7047     		bx	lr
+ 811              	.LVL58:
+ 812              	.L50:
+ 209:Core/Src/bootloader.c **** 	uint16_t length = fw_chunk->length;
+ 813              		.loc 1 209 67 view .LVU187
+ 814 0008 2DE9F047 		push	{r4, r5, r6, r7, r8, r9, r10, lr}
+ 815              	.LCFI15:
+ 816              		.cfi_def_cfa_offset 32
+ 817              		.cfi_offset 4, -32
+ 818              		.cfi_offset 5, -28
+ 819              		.cfi_offset 6, -24
+ 820              		.cfi_offset 7, -20
+ 821              		.cfi_offset 8, -16
+ 822              		.cfi_offset 9, -12
+ 823              		.cfi_offset 10, -8
+ 824              		.cfi_offset 14, -4
+ 825 000c 82B0     		sub	sp, sp, #8
+ 826              	.LCFI16:
+ 827              		.cfi_def_cfa_offset 40
+ 828 000e 0F46     		mov	r7, r1
+ 214:Core/Src/bootloader.c **** 
+ARM GAS  /tmp/ccEYOayA.s 			page 46
+
+
+ 829              		.loc 1 214 2 is_stmt 1 view .LVU188
+ 214:Core/Src/bootloader.c **** 
+ 830              		.loc 1 214 17 is_stmt 0 view .LVU189
+ 831 0010 C51D     		adds	r5, r0, #7
+ 832              	.LVL59:
+ 216:Core/Src/bootloader.c **** 	uint32_t offset = n * 4;
+ 833              		.loc 1 216 2 is_stmt 1 view .LVU190
+ 216:Core/Src/bootloader.c **** 	uint32_t offset = n * 4;
+ 834              		.loc 1 216 22 is_stmt 0 view .LVU191
+ 835 0012 4FEA9208 		lsr	r8, r2, #2
+ 836              	.LVL60:
+ 217:Core/Src/bootloader.c **** 	uint32_t tail = length % 4;
+ 837              		.loc 1 217 2 is_stmt 1 view .LVU192
+ 217:Core/Src/bootloader.c **** 	uint32_t tail = length % 4;
+ 838              		.loc 1 217 11 is_stmt 0 view .LVU193
+ 839 0016 4FEA8809 		lsl	r9, r8, #2
+ 840              	.LVL61:
+ 218:Core/Src/bootloader.c **** 
+ 841              		.loc 1 218 2 is_stmt 1 view .LVU194
+ 218:Core/Src/bootloader.c **** 
+ 842              		.loc 1 218 11 is_stmt 0 view .LVU195
+ 843 001a 02F0030A 		and	r10, r2, #3
+ 844              	.LVL62:
+ 220:Core/Src/bootloader.c **** 	for(uint32_t i = 0 ; i < n; i++){
+ 845              		.loc 1 220 2 is_stmt 1 view .LVU196
+ 846 001e FFF7FEFF 		bl	HAL_FLASH_Unlock
+ 847              	.LVL63:
+ 221:Core/Src/bootloader.c **** 		uint32_t val;
+ 848              		.loc 1 221 2 view .LVU197
+ 849              	.LBB53:
+ 221:Core/Src/bootloader.c **** 		uint32_t val;
+ 850              		.loc 1 221 6 view .LVU198
+ 221:Core/Src/bootloader.c **** 		uint32_t val;
+ 851              		.loc 1 221 15 is_stmt 0 view .LVU199
+ 852 0022 0024     		movs	r4, #0
+ 853              	.LVL64:
+ 854              	.L40:
+ 221:Core/Src/bootloader.c **** 		uint32_t val;
+ 855              		.loc 1 221 25 is_stmt 1 discriminator 1 view .LVU200
+ 856 0024 4445     		cmp	r4, r8
+ 857 0026 18D2     		bcs	.L51
+ 858              	.LBB54:
+ 222:Core/Src/bootloader.c **** 		memcpy(&val, &src[i*4], sizeof(uint32_t));
+ 859              		.loc 1 222 3 view .LVU201
+ 223:Core/Src/bootloader.c **** 		uint32_t dst = address + (i * 4);
+ 860              		.loc 1 223 3 view .LVU202
+ 861              	.LVL65:
+ 224:Core/Src/bootloader.c **** 
+ 862              		.loc 1 224 3 view .LVU203
+ 224:Core/Src/bootloader.c **** 
+ 863              		.loc 1 224 12 is_stmt 0 view .LVU204
+ 864 0028 07EB8406 		add	r6, r7, r4, lsl #2
+ 865              	.LVL66:
+ 226:Core/Src/bootloader.c **** 			HAL_FLASH_Lock();
+ 866              		.loc 1 226 3 is_stmt 1 view .LVU205
+ 226:Core/Src/bootloader.c **** 			HAL_FLASH_Lock();
+ 867              		.loc 1 226 6 is_stmt 0 view .LVU206
+ARM GAS  /tmp/ccEYOayA.s 			page 47
+
+
+ 868 002c 55F82420 		ldr	r2, [r5, r4, lsl #2]	@ unaligned
+ 869              	.LVL67:
+ 226:Core/Src/bootloader.c **** 			HAL_FLASH_Lock();
+ 870              		.loc 1 226 6 view .LVU207
+ 871 0030 0023     		movs	r3, #0
+ 872 0032 3146     		mov	r1, r6
+ 873 0034 0220     		movs	r0, #2
+ 874 0036 FFF7FEFF 		bl	HAL_FLASH_Program
+ 875              	.LVL68:
+ 226:Core/Src/bootloader.c **** 			HAL_FLASH_Lock();
+ 876              		.loc 1 226 5 discriminator 1 view .LVU208
+ 877 003a 08B9     		cbnz	r0, .L52
+ 878              	.LBE54:
+ 221:Core/Src/bootloader.c **** 		uint32_t val;
+ 879              		.loc 1 221 31 is_stmt 1 discriminator 2 view .LVU209
+ 880 003c 0134     		adds	r4, r4, #1
+ 881              	.LVL69:
+ 221:Core/Src/bootloader.c **** 		uint32_t val;
+ 882              		.loc 1 221 31 is_stmt 0 discriminator 2 view .LVU210
+ 883 003e F1E7     		b	.L40
+ 884              	.L52:
+ 885              	.LBB56:
+ 886              	.LBB55:
+ 227:Core/Src/bootloader.c **** 			printf("Failed writing to memory at 0x%08lX err=0x%08lX\r\n",
+ 887              		.loc 1 227 4 is_stmt 1 view .LVU211
+ 888 0040 FFF7FEFF 		bl	HAL_FLASH_Lock
+ 889              	.LVL70:
+ 228:Core/Src/bootloader.c **** 			       (unsigned long)dst, (unsigned long)HAL_FLASH_GetError());
+ 890              		.loc 1 228 4 view .LVU212
+ 229:Core/Src/bootloader.c **** 			return FLASH_ERR;
+ 891              		.loc 1 229 46 is_stmt 0 view .LVU213
+ 892 0044 FFF7FEFF 		bl	HAL_FLASH_GetError
+ 893              	.LVL71:
+ 894 0048 0246     		mov	r2, r0
+ 228:Core/Src/bootloader.c **** 			       (unsigned long)dst, (unsigned long)HAL_FLASH_GetError());
+ 895              		.loc 1 228 4 view .LVU214
+ 896 004a 3146     		mov	r1, r6
+ 897 004c 1448     		ldr	r0, .L54
+ 898 004e FFF7FEFF 		bl	printf
+ 899              	.LVL72:
+ 230:Core/Src/bootloader.c **** 		}
+ 900              		.loc 1 230 4 is_stmt 1 view .LVU215
+ 230:Core/Src/bootloader.c **** 		}
+ 901              		.loc 1 230 11 is_stmt 0 view .LVU216
+ 902 0052 0120     		movs	r0, #1
+ 903              	.LVL73:
+ 904              	.L39:
+ 230:Core/Src/bootloader.c **** 		}
+ 905              		.loc 1 230 11 view .LVU217
+ 906              	.LBE55:
+ 907              	.LBE56:
+ 908              	.LBE53:
+ 909              		.loc 1 249 1 view .LVU218
+ 910 0054 02B0     		add	sp, sp, #8
+ 911              	.LCFI17:
+ 912              		.cfi_remember_state
+ 913              		.cfi_def_cfa_offset 32
+ARM GAS  /tmp/ccEYOayA.s 			page 48
+
+
+ 914              		@ sp needed
+ 915 0056 BDE8F087 		pop	{r4, r5, r6, r7, r8, r9, r10, pc}
+ 916              	.LVL74:
+ 917              	.L51:
+ 918              	.LCFI18:
+ 919              		.cfi_restore_state
+ 234:Core/Src/bootloader.c **** 		uint32_t padding = 0xffffffff;
+ 920              		.loc 1 234 2 is_stmt 1 view .LVU219
+ 234:Core/Src/bootloader.c **** 		uint32_t padding = 0xffffffff;
+ 921              		.loc 1 234 4 is_stmt 0 view .LVU220
+ 922 005a BAF1000F 		cmp	r10, #0
+ 923 005e 10D0     		beq	.L43
+ 924              	.LBB57:
+ 235:Core/Src/bootloader.c **** 		memcpy(&padding, &src[offset], tail);
+ 925              		.loc 1 235 3 is_stmt 1 view .LVU221
+ 235:Core/Src/bootloader.c **** 		memcpy(&padding, &src[offset], tail);
+ 926              		.loc 1 235 12 is_stmt 0 view .LVU222
+ 927 0060 4FF0FF33 		mov	r3, #-1
+ 928 0064 0193     		str	r3, [sp, #4]
+ 236:Core/Src/bootloader.c **** 		if(HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, address + offset, padding) != HAL_OK){
+ 929              		.loc 1 236 3 is_stmt 1 view .LVU223
+ 930 0066 5246     		mov	r2, r10
+ 931 0068 05EB0901 		add	r1, r5, r9
+ 932 006c 01A8     		add	r0, sp, #4
+ 933 006e FFF7FEFF 		bl	memcpy
+ 934              	.LVL75:
+ 237:Core/Src/bootloader.c **** 			HAL_FLASH_Lock();
+ 935              		.loc 1 237 3 view .LVU224
+ 237:Core/Src/bootloader.c **** 			HAL_FLASH_Lock();
+ 936              		.loc 1 237 6 is_stmt 0 view .LVU225
+ 937 0072 B944     		add	r9, r9, r7
+ 938              	.LVL76:
+ 237:Core/Src/bootloader.c **** 			HAL_FLASH_Lock();
+ 939              		.loc 1 237 6 view .LVU226
+ 940 0074 019A     		ldr	r2, [sp, #4]
+ 941 0076 0023     		movs	r3, #0
+ 942 0078 4946     		mov	r1, r9
+ 943 007a 0220     		movs	r0, #2
+ 944 007c FFF7FEFF 		bl	HAL_FLASH_Program
+ 945              	.LVL77:
+ 237:Core/Src/bootloader.c **** 			HAL_FLASH_Lock();
+ 946              		.loc 1 237 5 discriminator 1 view .LVU227
+ 947 0080 18B9     		cbnz	r0, .L53
+ 948              	.L43:
+ 237:Core/Src/bootloader.c **** 			HAL_FLASH_Lock();
+ 949              		.loc 1 237 5 discriminator 1 view .LVU228
+ 950              	.LBE57:
+ 246:Core/Src/bootloader.c **** 
+ 951              		.loc 1 246 2 is_stmt 1 view .LVU229
+ 952 0082 FFF7FEFF 		bl	HAL_FLASH_Lock
+ 953              	.LVL78:
+ 248:Core/Src/bootloader.c **** }
+ 954              		.loc 1 248 2 view .LVU230
+ 248:Core/Src/bootloader.c **** }
+ 955              		.loc 1 248 9 is_stmt 0 view .LVU231
+ 956 0086 0020     		movs	r0, #0
+ 957 0088 E4E7     		b	.L39
+ARM GAS  /tmp/ccEYOayA.s 			page 49
+
+
+ 958              	.L53:
+ 959              	.LBB59:
+ 960              	.LBB58:
+ 238:Core/Src/bootloader.c **** 			printf("Failed writing to memory tail at 0x%08lX err=0x%08lX\r\n",
+ 961              		.loc 1 238 4 is_stmt 1 view .LVU232
+ 962 008a FFF7FEFF 		bl	HAL_FLASH_Lock
+ 963              	.LVL79:
+ 239:Core/Src/bootloader.c **** 			       (unsigned long)(address + offset),
+ 964              		.loc 1 239 4 view .LVU233
+ 241:Core/Src/bootloader.c **** 			return FLASH_ERR;
+ 965              		.loc 1 241 26 is_stmt 0 view .LVU234
+ 966 008e FFF7FEFF 		bl	HAL_FLASH_GetError
+ 967              	.LVL80:
+ 968 0092 0246     		mov	r2, r0
+ 239:Core/Src/bootloader.c **** 			       (unsigned long)(address + offset),
+ 969              		.loc 1 239 4 view .LVU235
+ 970 0094 4946     		mov	r1, r9
+ 971 0096 0348     		ldr	r0, .L54+4
+ 972 0098 FFF7FEFF 		bl	printf
+ 973              	.LVL81:
+ 242:Core/Src/bootloader.c **** 		}
+ 974              		.loc 1 242 4 is_stmt 1 view .LVU236
+ 242:Core/Src/bootloader.c **** 		}
+ 975              		.loc 1 242 11 is_stmt 0 view .LVU237
+ 976 009c 0120     		movs	r0, #1
+ 977 009e D9E7     		b	.L39
+ 978              	.L55:
+ 979              		.align	2
+ 980              	.L54:
+ 981 00a0 00000000 		.word	.LC8
+ 982 00a4 34000000 		.word	.LC9
+ 983              	.LBE58:
+ 984              	.LBE59:
+ 985              		.cfi_endproc
+ 986              	.LFE141:
+ 988              		.section	.text.compute_crc,"ax",%progbits
+ 989              		.align	1
+ 990              		.global	compute_crc
+ 991              		.syntax unified
+ 992              		.thumb
+ 993              		.thumb_func
+ 995              	compute_crc:
+ 996              	.LVL82:
+ 997              	.LFB142:
+ 250:Core/Src/bootloader.c **** 
+ 251:Core/Src/bootloader.c **** uint32_t compute_crc(const uint8_t *data, uint32_t len){
+ 998              		.loc 1 251 56 is_stmt 1 view -0
+ 999              		.cfi_startproc
+ 1000              		@ args = 0, pretend = 0, frame = 0
+ 1001              		@ frame_needed = 0, uses_anonymous_args = 0
+ 252:Core/Src/bootloader.c ****     uint32_t crc = 0xffffffffU;
+ 1002              		.loc 1 252 5 view .LVU239
+ 253:Core/Src/bootloader.c ****     while (len--) {
+ 1003              		.loc 1 253 5 view .LVU240
+ 252:Core/Src/bootloader.c ****     uint32_t crc = 0xffffffffU;
+ 1004              		.loc 1 252 14 is_stmt 0 view .LVU241
+ 1005 0000 4FF0FF32 		mov	r2, #-1
+ARM GAS  /tmp/ccEYOayA.s 			page 50
+
+
+ 1006              	.LVL83:
+ 1007              	.L62:
+ 1008              		.loc 1 253 12 is_stmt 1 view .LVU242
+ 1009 0004 0B46     		mov	r3, r1
+ 1010              		.loc 1 253 15 is_stmt 0 view .LVU243
+ 1011 0006 0139     		subs	r1, r1, #1
+ 1012              	.LVL84:
+ 1013              		.loc 1 253 12 view .LVU244
+ 1014 0008 03B3     		cbz	r3, .L66
+ 254:Core/Src/bootloader.c ****         crc ^= (uint32_t)(*data++);
+ 1015              		.loc 1 254 9 is_stmt 1 view .LVU245
+ 1016              	.LVL85:
+ 1017              		.loc 1 254 27 is_stmt 0 view .LVU246
+ 1018 000a 10F8013B 		ldrb	r3, [r0], #1	@ zero_extendqisi2
+ 1019              	.LVL86:
+ 1020              		.loc 1 254 13 view .LVU247
+ 1021 000e 5A40     		eors	r2, r2, r3
+ 1022              	.LVL87:
+ 255:Core/Src/bootloader.c ****         for (int i = 0; i < 8; i++) {
+ 1023              		.loc 1 255 9 is_stmt 1 view .LVU248
+ 1024              	.LBB60:
+ 1025              		.loc 1 255 14 view .LVU249
+ 1026              		.loc 1 255 18 is_stmt 0 view .LVU250
+ 1027 0010 4FF0000C 		mov	ip, #0
+ 1028              	.LVL88:
+ 1029              		.loc 1 255 27 is_stmt 1 discriminator 1 view .LVU251
+ 1030 0014 BCF1070F 		cmp	ip, #7
+ 1031 0018 F4DC     		bgt	.L62
+ 1032              	.LBE60:
+ 251:Core/Src/bootloader.c ****     uint32_t crc = 0xffffffffU;
+ 1033              		.loc 1 251 56 is_stmt 0 view .LVU252
+ 1034 001a 00B5     		push	{lr}
+ 1035              	.LCFI19:
+ 1036              		.cfi_def_cfa_offset 4
+ 1037              		.cfi_offset 14, -4
+ 1038              	.L59:
+ 1039              	.LBB62:
+ 1040              	.LBB61:
+ 256:Core/Src/bootloader.c ****             uint32_t mask = -(crc & 1U);
+ 1041              		.loc 1 256 13 is_stmt 1 view .LVU253
+ 1042              		.loc 1 256 22 is_stmt 0 view .LVU254
+ 1043 001c 42F3000E 		sbfx	lr, r2, #0, #1
+ 1044              	.LVL89:
+ 257:Core/Src/bootloader.c ****             crc = (crc >> 1) ^ (0xEDB88320U & mask);
+ 1045              		.loc 1 257 13 is_stmt 1 view .LVU255
+ 1046              		.loc 1 257 45 is_stmt 0 view .LVU256
+ 1047 0020 0B4B     		ldr	r3, .L68
+ 1048 0022 0EEA0303 		and	r3, lr, r3
+ 1049              		.loc 1 257 17 view .LVU257
+ 1050 0026 83EA5202 		eor	r2, r3, r2, lsr #1
+ 1051              	.LVL90:
+ 1052              		.loc 1 257 17 view .LVU258
+ 1053              	.LBE61:
+ 255:Core/Src/bootloader.c ****             uint32_t mask = -(crc & 1U);
+ 1054              		.loc 1 255 33 is_stmt 1 discriminator 3 view .LVU259
+ 1055 002a 0CF1010C 		add	ip, ip, #1
+ 1056              	.LVL91:
+ARM GAS  /tmp/ccEYOayA.s 			page 51
+
+
+ 1057              	.L58:
+ 255:Core/Src/bootloader.c ****             uint32_t mask = -(crc & 1U);
+ 1058              		.loc 1 255 27 discriminator 1 view .LVU260
+ 1059 002e BCF1070F 		cmp	ip, #7
+ 1060 0032 F3DD     		ble	.L59
+ 255:Core/Src/bootloader.c ****             uint32_t mask = -(crc & 1U);
+ 1061              		.loc 1 255 27 is_stmt 0 discriminator 1 view .LVU261
+ 1062              	.LBE62:
+ 253:Core/Src/bootloader.c ****         crc ^= (uint32_t)(*data++);
+ 1063              		.loc 1 253 12 is_stmt 1 view .LVU262
+ 1064 0034 0B46     		mov	r3, r1
+ 253:Core/Src/bootloader.c ****         crc ^= (uint32_t)(*data++);
+ 1065              		.loc 1 253 15 is_stmt 0 view .LVU263
+ 1066 0036 0139     		subs	r1, r1, #1
+ 1067              	.LVL92:
+ 253:Core/Src/bootloader.c ****         crc ^= (uint32_t)(*data++);
+ 1068              		.loc 1 253 12 view .LVU264
+ 1069 0038 2BB1     		cbz	r3, .L67
+ 254:Core/Src/bootloader.c ****         for (int i = 0; i < 8; i++) {
+ 1070              		.loc 1 254 9 is_stmt 1 view .LVU265
+ 1071              	.LVL93:
+ 254:Core/Src/bootloader.c ****         for (int i = 0; i < 8; i++) {
+ 1072              		.loc 1 254 27 is_stmt 0 view .LVU266
+ 1073 003a 10F8013B 		ldrb	r3, [r0], #1	@ zero_extendqisi2
+ 1074              	.LVL94:
+ 254:Core/Src/bootloader.c ****         for (int i = 0; i < 8; i++) {
+ 1075              		.loc 1 254 13 view .LVU267
+ 1076 003e 5A40     		eors	r2, r2, r3
+ 1077              	.LVL95:
+ 255:Core/Src/bootloader.c ****             uint32_t mask = -(crc & 1U);
+ 1078              		.loc 1 255 9 is_stmt 1 view .LVU268
+ 1079              	.LBB63:
+ 255:Core/Src/bootloader.c ****             uint32_t mask = -(crc & 1U);
+ 1080              		.loc 1 255 14 view .LVU269
+ 255:Core/Src/bootloader.c ****             uint32_t mask = -(crc & 1U);
+ 1081              		.loc 1 255 18 is_stmt 0 view .LVU270
+ 1082 0040 4FF0000C 		mov	ip, #0
+ 255:Core/Src/bootloader.c ****             uint32_t mask = -(crc & 1U);
+ 1083              		.loc 1 255 9 view .LVU271
+ 1084 0044 F3E7     		b	.L58
+ 1085              	.LVL96:
+ 1086              	.L67:
+ 255:Core/Src/bootloader.c ****             uint32_t mask = -(crc & 1U);
+ 1087              		.loc 1 255 9 view .LVU272
+ 1088              	.LBE63:
+ 258:Core/Src/bootloader.c ****         }
+ 259:Core/Src/bootloader.c ****     }
+ 260:Core/Src/bootloader.c ****     return crc ^ 0xffffffffU;
+ 1089              		.loc 1 260 5 is_stmt 1 view .LVU273
+ 261:Core/Src/bootloader.c **** }
+ 1090              		.loc 1 261 1 is_stmt 0 view .LVU274
+ 1091 0046 D043     		mvns	r0, r2
+ 1092              	.LVL97:
+ 1093              		.loc 1 261 1 view .LVU275
+ 1094 0048 5DF804FB 		ldr	pc, [sp], #4
+ 1095              	.LVL98:
+ 1096              	.L66:
+ARM GAS  /tmp/ccEYOayA.s 			page 52
+
+
+ 1097              	.LCFI20:
+ 1098              		.cfi_def_cfa_offset 0
+ 1099              		.cfi_restore 14
+ 260:Core/Src/bootloader.c **** }
+ 1100              		.loc 1 260 5 is_stmt 1 view .LVU276
+ 1101              		.loc 1 261 1 is_stmt 0 view .LVU277
+ 1102 004c D043     		mvns	r0, r2
+ 1103              	.LVL99:
+ 1104              		.loc 1 261 1 view .LVU278
+ 1105 004e 7047     		bx	lr
+ 1106              	.L69:
+ 1107              		.align	2
+ 1108              	.L68:
+ 1109 0050 2083B8ED 		.word	-306674912
+ 1110              		.cfi_endproc
+ 1111              	.LFE142:
+ 1113              		.text
+ 1114              	.Letext0:
+ 1115              		.file 3 "/usr/lib/gcc/arm-none-eabi/13.2.1/include/stddef.h"
+ 1116              		.file 4 "/usr/lib/gcc/arm-none-eabi/13.2.1/include/stdint.h"
+ 1117              		.file 5 "Core/Inc/bootloader.h"
+ 1118              		.file 6 "Drivers/CMSIS/Include/core_cm4.h"
+ 1119              		.file 7 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f401xe.h"
+ 1120              		.file 8 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h"
+ 1121              		.file 9 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ex.h"
+ 1122              		.file 10 "/usr/include/newlib/string.h"
+ 1123              		.file 11 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash.h"
+ 1124              		.file 12 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h"
+ 1125              		.file 13 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h"
+ 1126              		.file 14 "<built-in>"
+ARM GAS  /tmp/ccEYOayA.s 			page 53
 
 
 DEFINED SYMBOLS
                             *ABS*:00000000 bootloader.c
-     /tmp/ccNGTdW6.s:21     .text.jump_to_reset:00000000 $t
-     /tmp/ccNGTdW6.s:26     .text.jump_to_reset:00000000 jump_to_reset
-     /tmp/ccNGTdW6.s:51     .rodata.IMG_valid.str1.4:00000000 $d
-     /tmp/ccNGTdW6.s:55     .text.IMG_valid:00000000 $t
-     /tmp/ccNGTdW6.s:61     .text.IMG_valid:00000000 IMG_valid
-     /tmp/ccNGTdW6.s:99     .text.IMG_valid:0000001c $d
-     /tmp/ccNGTdW6.s:104    .text.jmp_to_IMG:00000000 $t
-     /tmp/ccNGTdW6.s:110    .text.jmp_to_IMG:00000000 jmp_to_IMG
-     /tmp/ccNGTdW6.s:392    .text.jmp_to_IMG:000000bc $d
-     /tmp/ccNGTdW6.s:399    .rodata.bcb_reset.str1.4:00000000 $d
-     /tmp/ccNGTdW6.s:403    .text.bcb_reset:00000000 $t
-     /tmp/ccNGTdW6.s:409    .text.bcb_reset:00000000 bcb_reset
-     /tmp/ccNGTdW6.s:493    .text.bcb_reset:00000050 $d
-     /tmp/ccNGTdW6.s:499    .rodata.bcb_slotswitch.str1.4:00000000 $d
-     /tmp/ccNGTdW6.s:506    .text.bcb_slotswitch:00000000 $t
-     /tmp/ccNGTdW6.s:512    .text.bcb_slotswitch:00000000 bcb_slotswitch
-     /tmp/ccNGTdW6.s:601    .text.bcb_slotswitch:00000054 $d
-     /tmp/ccNGTdW6.s:608    .text.write_to_flash:00000000 $t
-     /tmp/ccNGTdW6.s:614    .text.write_to_flash:00000000 write_to_flash
+     /tmp/ccEYOayA.s:21     .text.jump_to_reset:00000000 $t
+     /tmp/ccEYOayA.s:26     .text.jump_to_reset:00000000 jump_to_reset
+     /tmp/ccEYOayA.s:51     .rodata.flash_erase_sectors.str1.4:00000000 $d
+     /tmp/ccEYOayA.s:55     .text.flash_erase_sectors:00000000 $t
+     /tmp/ccEYOayA.s:61     .text.flash_erase_sectors:00000000 flash_erase_sectors
+     /tmp/ccEYOayA.s:156    .text.flash_erase_sectors:00000054 $d
+     /tmp/ccEYOayA.s:163    .rodata.IMG_valid.str1.4:00000000 $d
+     /tmp/ccEYOayA.s:167    .text.IMG_valid:00000000 $t
+     /tmp/ccEYOayA.s:173    .text.IMG_valid:00000000 IMG_valid
+     /tmp/ccEYOayA.s:211    .text.IMG_valid:0000001c $d
+     /tmp/ccEYOayA.s:216    .text.jmp_to_IMG:00000000 $t
+     /tmp/ccEYOayA.s:222    .text.jmp_to_IMG:00000000 jmp_to_IMG
+     /tmp/ccEYOayA.s:504    .text.jmp_to_IMG:000000bc $d
+     /tmp/ccEYOayA.s:511    .rodata.bcb_reset.str1.4:00000000 $d
+     /tmp/ccEYOayA.s:518    .text.bcb_reset:00000000 $t
+     /tmp/ccEYOayA.s:524    .text.bcb_reset:00000000 bcb_reset
+     /tmp/ccEYOayA.s:622    .text.bcb_reset:00000058 $d
+     /tmp/ccEYOayA.s:629    .rodata.bcb_slotswitch.str1.4:00000000 $d
+     /tmp/ccEYOayA.s:642    .text.bcb_slotswitch:00000000 $t
+     /tmp/ccEYOayA.s:648    .text.bcb_slotswitch:00000000 bcb_slotswitch
+     /tmp/ccEYOayA.s:768    .text.bcb_slotswitch:00000078 $d
+     /tmp/ccEYOayA.s:777    .rodata.write_to_flash.str1.4:00000000 $d
+     /tmp/ccEYOayA.s:786    .text.write_to_flash:00000000 $t
+     /tmp/ccEYOayA.s:792    .text.write_to_flash:00000000 write_to_flash
+     /tmp/ccEYOayA.s:981    .text.write_to_flash:000000a0 $d
+     /tmp/ccEYOayA.s:989    .text.compute_crc:00000000 $t
+     /tmp/ccEYOayA.s:995    .text.compute_crc:00000000 compute_crc
+     /tmp/ccEYOayA.s:1109   .text.compute_crc:00000050 $d
 
 UNDEFINED SYMBOLS
+HAL_FLASH_Unlock
+HAL_FLASHEx_Erase
+HAL_FLASH_Lock
+HAL_FLASH_GetError
 printf
 HAL_DeInit
 HAL_RCC_DeInit
-HAL_FLASH_Unlock
-FLASH_Erase_Sector
-HAL_FLASH_Lock
+puts
 HAL_FLASH_Program
 memcpy

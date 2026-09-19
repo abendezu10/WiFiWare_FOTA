@@ -114,8 +114,10 @@ Discarded input sections
  .data          0x00000000        0x0 build/bootloader.o
  .bss           0x00000000        0x0 build/bootloader.o
  .rodata.bcb_reset.str1.4
-                0x00000000        0xa build/bootloader.o
+                0x00000000       0x39 build/bootloader.o
  .text.bcb_reset
+                0x00000000       0x60 build/bootloader.o
+ .text.compute_crc
                 0x00000000       0x54 build/bootloader.o
  .text          0x00000000        0x0 build/st7789_bootloader.o
  .data          0x00000000        0x0 build/st7789_bootloader.o
@@ -325,15 +327,11 @@ Discarded input sections
                 0x00000000       0x28 build/stm32f4xx_hal_flash.o
  .text.HAL_FLASH_OB_Lock
                 0x00000000       0x14 build/stm32f4xx_hal_flash.o
- .text.HAL_FLASH_GetError
-                0x00000000        0xc build/stm32f4xx_hal_flash.o
  .text.HAL_FLASH_OB_Launch
                 0x00000000       0x1c build/stm32f4xx_hal_flash.o
  .text          0x00000000        0x0 build/stm32f4xx_hal_flash_ex.o
  .data          0x00000000        0x0 build/stm32f4xx_hal_flash_ex.o
  .bss           0x00000000        0x0 build/stm32f4xx_hal_flash_ex.o
- .text.FLASH_MassErase
-                0x00000000       0x24 build/stm32f4xx_hal_flash_ex.o
  .text.FLASH_OB_BOR_LevelConfig
                 0x00000000       0x18 build/stm32f4xx_hal_flash_ex.o
  .text.FLASH_OB_GetUser
@@ -370,10 +368,6 @@ Discarded input sections
                 0x00000000       0x14 build/stm32f4xx_hal_flash_ex.o
  .text.HAL_FLASHEx_Erase_IT
                 0x00000000       0x54 build/stm32f4xx_hal_flash_ex.o
- .text.FLASH_FlushCaches
-                0x00000000       0x60 build/stm32f4xx_hal_flash_ex.o
- .text.HAL_FLASHEx_Erase
-                0x00000000       0x94 build/stm32f4xx_hal_flash_ex.o
  .text          0x00000000        0x0 build/stm32f4xx_hal_flash_ramfunc.o
  .data          0x00000000        0x0 build/stm32f4xx_hal_flash_ramfunc.o
  .bss           0x00000000        0x0 build/stm32f4xx_hal_flash_ramfunc.o
@@ -717,11 +711,6 @@ Discarded input sections
  .bss           0x00000000        0x0 build/crc.o
  .text.HAL_CRC_MspDeInit
                 0x00000000       0x20 build/crc.o
- .text          0x00000000        0x0 build/spi.o
- .data          0x00000000        0x0 build/spi.o
- .bss           0x00000000        0x0 build/spi.o
- .text.HAL_SPI_MspDeInit
-                0x00000000       0x2c build/spi.o
  .text          0x00000000        0x0 build/stm32f4xx_hal_crc.o
  .data          0x00000000        0x0 build/stm32f4xx_hal_crc.o
  .bss           0x00000000        0x0 build/stm32f4xx_hal_crc.o
@@ -737,6 +726,11 @@ Discarded input sections
                 0x00000000       0x48 build/stm32f4xx_hal_crc.o
  .text.HAL_CRC_GetState
                 0x00000000        0x4 build/stm32f4xx_hal_crc.o
+ .text          0x00000000        0x0 build/spi.o
+ .data          0x00000000        0x0 build/spi.o
+ .bss           0x00000000        0x0 build/spi.o
+ .text.HAL_SPI_MspDeInit
+                0x00000000       0x2c build/spi.o
  .text          0x00000000        0x0 build/stm32f4xx_hal_spi.o
  .data          0x00000000        0x0 build/stm32f4xx_hal_spi.o
  .bss           0x00000000        0x0 build/stm32f4xx_hal_spi.o
@@ -1046,8 +1040,8 @@ LOAD build/syscalls.o
 LOAD build/gpio.o
 LOAD build/usart.o
 LOAD build/crc.o
-LOAD build/spi.o
 LOAD build/stm32f4xx_hal_crc.o
+LOAD build/spi.o
 LOAD build/stm32f4xx_hal_spi.o
 LOAD build/startup_stm32f401xe.o
 LOAD /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a
@@ -1075,7 +1069,7 @@ LOAD /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/crtn.o
                 0x08000000                g_pfnVectors
                 0x08000194                        . = ALIGN (0x4)
 
-.text           0x080001a0     0x4604
+.text           0x080001a0     0x47f0
                 0x080001a0                        . = ALIGN (0x4)
  *(.text)
  .text          0x080001a0       0x88 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/crtbegin.o
@@ -1185,449 +1179,467 @@ LOAD /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/crtn.o
  .text.SystemClock_Config
                 0x08001fe4       0x8c build/main.o
                 0x08001fe4                SystemClock_Config
- .text.main     0x08002070      0x2b8 build/main.o
+ .text.main     0x08002070      0x2d0 build/main.o
                 0x08002070                main
  .text.jump_to_reset
-                0x08002328        0x6 build/bootloader.o
- *fill*         0x0800232e        0x2 
+                0x08002340        0x6 build/bootloader.o
+ *fill*         0x08002346        0x2 
+ .text.flash_erase_sectors
+                0x08002348       0x5c build/bootloader.o
+                0x08002348                flash_erase_sectors
  .text.IMG_valid
-                0x08002330       0x20 build/bootloader.o
-                0x08002330                IMG_valid
+                0x080023a4       0x20 build/bootloader.o
+                0x080023a4                IMG_valid
  .text.jmp_to_IMG
-                0x08002350       0xc8 build/bootloader.o
-                0x08002350                jmp_to_IMG
+                0x080023c4       0xc8 build/bootloader.o
+                0x080023c4                jmp_to_IMG
  .text.bcb_slotswitch
-                0x08002418       0x5c build/bootloader.o
-                0x08002418                bcb_slotswitch
+                0x0800248c       0x88 build/bootloader.o
+                0x0800248c                bcb_slotswitch
  .text.write_to_flash
-                0x08002474       0x80 build/bootloader.o
-                0x08002474                write_to_flash
+                0x08002514       0xa8 build/bootloader.o
+                0x08002514                write_to_flash
  .text.clamp_percent
-                0x080024f4        0xa build/st7789_bootloader.o
- *fill*         0x080024fe        0x2 
+                0x080025bc        0xa build/st7789_bootloader.o
+ *fill*         0x080025c6        0x2 
  .text.clear_dots_area
-                0x08002500       0x24 build/st7789_bootloader.o
+                0x080025c8       0x24 build/st7789_bootloader.o
  .text.draw_progress_bar_frame
-                0x08002524       0x1e build/st7789_bootloader.o
- *fill*         0x08002542        0x2 
+                0x080025ec       0x1e build/st7789_bootloader.o
+ *fill*         0x0800260a        0x2 
  .text.draw_progress_bar_fill
-                0x08002544       0x3c build/st7789_bootloader.o
+                0x0800260c       0x3c build/st7789_bootloader.o
  .text.UI_Bootloader_ShowStart
-                0x08002580       0x6c build/st7789_bootloader.o
-                0x08002580                UI_Bootloader_ShowStart
+                0x08002648       0x6c build/st7789_bootloader.o
+                0x08002648                UI_Bootloader_ShowStart
  .text.UI_Bootloader_ShowDone
-                0x080025ec       0x54 build/st7789_bootloader.o
-                0x080025ec                UI_Bootloader_ShowDone
+                0x080026b4       0x54 build/st7789_bootloader.o
+                0x080026b4                UI_Bootloader_ShowDone
  .text.UI_Bootloader_ShowFailed
-                0x08002640       0x54 build/st7789_bootloader.o
-                0x08002640                UI_Bootloader_ShowFailed
+                0x08002708       0x54 build/st7789_bootloader.o
+                0x08002708                UI_Bootloader_ShowFailed
  .text.ST7789_WriteCommand
-                0x08002694       0x44 build/st7789.o
+                0x0800275c       0x44 build/st7789.o
  .text.ST7789_WriteSmallData
-                0x080026d8       0x44 build/st7789.o
+                0x080027a0       0x44 build/st7789.o
  .text.ST7789_WriteData
-                0x0800271c       0x54 build/st7789.o
+                0x080027e4       0x54 build/st7789.o
  .text.ST7789_SetAddressWindow
-                0x08002770       0x88 build/st7789.o
+                0x08002838       0x88 build/st7789.o
  .text.ST7789_SetRotation
-                0x080027f8       0x36 build/st7789.o
-                0x080027f8                ST7789_SetRotation
- *fill*         0x0800282e        0x2 
+                0x080028c0       0x36 build/st7789.o
+                0x080028c0                ST7789_SetRotation
+ *fill*         0x080028f6        0x2 
  .text.ST7789_Fill_Color
-                0x08002830       0x5c build/st7789.o
-                0x08002830                ST7789_Fill_Color
+                0x080028f8       0x5c build/st7789.o
+                0x080028f8                ST7789_Fill_Color
  .text.ST7789_Init
-                0x0800288c      0x130 build/st7789.o
-                0x0800288c                ST7789_Init
+                0x08002954      0x130 build/st7789.o
+                0x08002954                ST7789_Init
  .text.ST7789_DrawPixel
-                0x080029bc       0x4c build/st7789.o
-                0x080029bc                ST7789_DrawPixel
+                0x08002a84       0x4c build/st7789.o
+                0x08002a84                ST7789_DrawPixel
  .text.ST7789_Fill
-                0x08002a08       0x74 build/st7789.o
-                0x08002a08                ST7789_Fill
+                0x08002ad0       0x74 build/st7789.o
+                0x08002ad0                ST7789_Fill
  .text.ST7789_DrawLine
-                0x08002a7c       0xae build/st7789.o
-                0x08002a7c                ST7789_DrawLine
- *fill*         0x08002b2a        0x2 
+                0x08002b44       0xae build/st7789.o
+                0x08002b44                ST7789_DrawLine
+ *fill*         0x08002bf2        0x2 
  .text.ST7789_DrawRectangle
-                0x08002b2c       0x74 build/st7789.o
-                0x08002b2c                ST7789_DrawRectangle
+                0x08002bf4       0x74 build/st7789.o
+                0x08002bf4                ST7789_DrawRectangle
  .text.ST7789_WriteChar
-                0x08002ba0       0xb4 build/st7789.o
-                0x08002ba0                ST7789_WriteChar
+                0x08002c68       0xb4 build/st7789.o
+                0x08002c68                ST7789_WriteChar
  .text.ST7789_WriteString
-                0x08002c54       0x84 build/st7789.o
-                0x08002c54                ST7789_WriteString
+                0x08002d1c       0x84 build/st7789.o
+                0x08002d1c                ST7789_WriteString
  .text.ST7789_DrawFilledRectangle
-                0x08002cd8       0x7c build/st7789.o
-                0x08002cd8                ST7789_DrawFilledRectangle
+                0x08002da0       0x7c build/st7789.o
+                0x08002da0                ST7789_DrawFilledRectangle
  .text.NMI_Handler
-                0x08002d54        0x2 build/stm32f4xx_it.o
-                0x08002d54                NMI_Handler
+                0x08002e1c        0x2 build/stm32f4xx_it.o
+                0x08002e1c                NMI_Handler
  .text.HardFault_Handler
-                0x08002d56        0x2 build/stm32f4xx_it.o
-                0x08002d56                HardFault_Handler
+                0x08002e1e        0x2 build/stm32f4xx_it.o
+                0x08002e1e                HardFault_Handler
  .text.MemManage_Handler
-                0x08002d58        0x2 build/stm32f4xx_it.o
-                0x08002d58                MemManage_Handler
+                0x08002e20        0x2 build/stm32f4xx_it.o
+                0x08002e20                MemManage_Handler
  .text.BusFault_Handler
-                0x08002d5a        0x2 build/stm32f4xx_it.o
-                0x08002d5a                BusFault_Handler
+                0x08002e22        0x2 build/stm32f4xx_it.o
+                0x08002e22                BusFault_Handler
  .text.UsageFault_Handler
-                0x08002d5c        0x2 build/stm32f4xx_it.o
-                0x08002d5c                UsageFault_Handler
+                0x08002e24        0x2 build/stm32f4xx_it.o
+                0x08002e24                UsageFault_Handler
  .text.SVC_Handler
-                0x08002d5e        0x2 build/stm32f4xx_it.o
-                0x08002d5e                SVC_Handler
+                0x08002e26        0x2 build/stm32f4xx_it.o
+                0x08002e26                SVC_Handler
  .text.DebugMon_Handler
-                0x08002d60        0x2 build/stm32f4xx_it.o
-                0x08002d60                DebugMon_Handler
+                0x08002e28        0x2 build/stm32f4xx_it.o
+                0x08002e28                DebugMon_Handler
  .text.PendSV_Handler
-                0x08002d62        0x2 build/stm32f4xx_it.o
-                0x08002d62                PendSV_Handler
+                0x08002e2a        0x2 build/stm32f4xx_it.o
+                0x08002e2a                PendSV_Handler
  .text.SysTick_Handler
-                0x08002d64        0x8 build/stm32f4xx_it.o
-                0x08002d64                SysTick_Handler
+                0x08002e2c        0x8 build/stm32f4xx_it.o
+                0x08002e2c                SysTick_Handler
  .text.HAL_MspInit
-                0x08002d6c       0x38 build/stm32f4xx_hal_msp.o
-                0x08002d6c                HAL_MspInit
+                0x08002e34       0x38 build/stm32f4xx_hal_msp.o
+                0x08002e34                HAL_MspInit
  .text.UART_EndRxTransfer
-                0x08002da4       0x5c build/stm32f4xx_hal_uart.o
+                0x08002e6c       0x5c build/stm32f4xx_hal_uart.o
  .text.UART_SetConfig
-                0x08002e00      0x110 build/stm32f4xx_hal_uart.o
+                0x08002ec8      0x110 build/stm32f4xx_hal_uart.o
  .text.UART_WaitOnFlagUntilTimeout
-                0x08002f10       0x86 build/stm32f4xx_hal_uart.o
+                0x08002fd8       0x86 build/stm32f4xx_hal_uart.o
  .text.HAL_UART_Init
-                0x08002f96       0x60 build/stm32f4xx_hal_uart.o
-                0x08002f96                HAL_UART_Init
+                0x0800305e       0x60 build/stm32f4xx_hal_uart.o
+                0x0800305e                HAL_UART_Init
  .text.HAL_UART_Transmit
-                0x08002ff6       0xcc build/stm32f4xx_hal_uart.o
-                0x08002ff6                HAL_UART_Transmit
+                0x080030be       0xcc build/stm32f4xx_hal_uart.o
+                0x080030be                HAL_UART_Transmit
  .text.HAL_UART_Receive
-                0x080030c2       0xd2 build/stm32f4xx_hal_uart.o
-                0x080030c2                HAL_UART_Receive
+                0x0800318a       0xd2 build/stm32f4xx_hal_uart.o
+                0x0800318a                HAL_UART_Receive
  .text.HAL_RCC_OscConfig
-                0x08003194      0x3f8 build/stm32f4xx_hal_rcc.o
-                0x08003194                HAL_RCC_OscConfig
+                0x0800325c      0x3f8 build/stm32f4xx_hal_rcc.o
+                0x0800325c                HAL_RCC_OscConfig
  .text.HAL_RCC_GetSysClockFreq
-                0x0800358c       0xa8 build/stm32f4xx_hal_rcc.o
-                0x0800358c                HAL_RCC_GetSysClockFreq
+                0x08003654       0xa8 build/stm32f4xx_hal_rcc.o
+                0x08003654                HAL_RCC_GetSysClockFreq
  .text.HAL_RCC_ClockConfig
-                0x08003634      0x160 build/stm32f4xx_hal_rcc.o
-                0x08003634                HAL_RCC_ClockConfig
+                0x080036fc      0x160 build/stm32f4xx_hal_rcc.o
+                0x080036fc                HAL_RCC_ClockConfig
  .text.HAL_RCC_GetHCLKFreq
-                0x08003794        0xc build/stm32f4xx_hal_rcc.o
-                0x08003794                HAL_RCC_GetHCLKFreq
+                0x0800385c        0xc build/stm32f4xx_hal_rcc.o
+                0x0800385c                HAL_RCC_GetHCLKFreq
  .text.HAL_RCC_GetPCLK1Freq
-                0x080037a0       0x20 build/stm32f4xx_hal_rcc.o
-                0x080037a0                HAL_RCC_GetPCLK1Freq
+                0x08003868       0x20 build/stm32f4xx_hal_rcc.o
+                0x08003868                HAL_RCC_GetPCLK1Freq
  .text.HAL_RCC_GetPCLK2Freq
-                0x080037c0       0x20 build/stm32f4xx_hal_rcc.o
-                0x080037c0                HAL_RCC_GetPCLK2Freq
+                0x08003888       0x20 build/stm32f4xx_hal_rcc.o
+                0x08003888                HAL_RCC_GetPCLK2Freq
  .text.HAL_RCC_DeInit
-                0x080037e0      0x13c build/stm32f4xx_hal_rcc_ex.o
-                0x080037e0                HAL_RCC_DeInit
+                0x080038a8      0x13c build/stm32f4xx_hal_rcc_ex.o
+                0x080038a8                HAL_RCC_DeInit
  .text.FLASH_Program_DoubleWord
-                0x0800391c       0x30 build/stm32f4xx_hal_flash.o
+                0x080039e4       0x30 build/stm32f4xx_hal_flash.o
  .text.FLASH_Program_Word
-                0x0800394c       0x24 build/stm32f4xx_hal_flash.o
+                0x08003a14       0x24 build/stm32f4xx_hal_flash.o
  .text.FLASH_Program_HalfWord
-                0x08003970       0x24 build/stm32f4xx_hal_flash.o
+                0x08003a38       0x24 build/stm32f4xx_hal_flash.o
  .text.FLASH_Program_Byte
-                0x08003994       0x20 build/stm32f4xx_hal_flash.o
+                0x08003a5c       0x20 build/stm32f4xx_hal_flash.o
  .text.FLASH_SetErrorCode
-                0x080039b4       0xa8 build/stm32f4xx_hal_flash.o
+                0x08003a7c       0xa8 build/stm32f4xx_hal_flash.o
  .text.HAL_FLASH_Unlock
-                0x08003a5c       0x30 build/stm32f4xx_hal_flash.o
-                0x08003a5c                HAL_FLASH_Unlock
+                0x08003b24       0x30 build/stm32f4xx_hal_flash.o
+                0x08003b24                HAL_FLASH_Unlock
  .text.HAL_FLASH_Lock
-                0x08003a8c       0x14 build/stm32f4xx_hal_flash.o
-                0x08003a8c                HAL_FLASH_Lock
+                0x08003b54       0x14 build/stm32f4xx_hal_flash.o
+                0x08003b54                HAL_FLASH_Lock
+ .text.HAL_FLASH_GetError
+                0x08003b68        0xc build/stm32f4xx_hal_flash.o
+                0x08003b68                HAL_FLASH_GetError
  .text.FLASH_WaitForLastOperation
-                0x08003aa0       0x60 build/stm32f4xx_hal_flash.o
-                0x08003aa0                FLASH_WaitForLastOperation
+                0x08003b74       0x60 build/stm32f4xx_hal_flash.o
+                0x08003b74                FLASH_WaitForLastOperation
  .text.HAL_FLASH_Program
-                0x08003b00       0x7c build/stm32f4xx_hal_flash.o
-                0x08003b00                HAL_FLASH_Program
+                0x08003bd4       0x7c build/stm32f4xx_hal_flash.o
+                0x08003bd4                HAL_FLASH_Program
+ .text.FLASH_MassErase
+                0x08003c50       0x24 build/stm32f4xx_hal_flash_ex.o
  .text.FLASH_Erase_Sector
-                0x08003b7c       0x4c build/stm32f4xx_hal_flash_ex.o
-                0x08003b7c                FLASH_Erase_Sector
+                0x08003c74       0x4c build/stm32f4xx_hal_flash_ex.o
+                0x08003c74                FLASH_Erase_Sector
+ .text.FLASH_FlushCaches
+                0x08003cc0       0x60 build/stm32f4xx_hal_flash_ex.o
+                0x08003cc0                FLASH_FlushCaches
+ .text.HAL_FLASHEx_Erase
+                0x08003d20       0x94 build/stm32f4xx_hal_flash_ex.o
+                0x08003d20                HAL_FLASHEx_Erase
  .text.HAL_GPIO_Init
-                0x08003bc8      0x1c8 build/stm32f4xx_hal_gpio.o
-                0x08003bc8                HAL_GPIO_Init
+                0x08003db4      0x1c8 build/stm32f4xx_hal_gpio.o
+                0x08003db4                HAL_GPIO_Init
  .text.HAL_GPIO_ReadPin
-                0x08003d90        0xe build/stm32f4xx_hal_gpio.o
-                0x08003d90                HAL_GPIO_ReadPin
+                0x08003f7c        0xe build/stm32f4xx_hal_gpio.o
+                0x08003f7c                HAL_GPIO_ReadPin
  .text.HAL_GPIO_WritePin
-                0x08003d9e        0xc build/stm32f4xx_hal_gpio.o
-                0x08003d9e                HAL_GPIO_WritePin
- *fill*         0x08003daa        0x2 
+                0x08003f8a        0xc build/stm32f4xx_hal_gpio.o
+                0x08003f8a                HAL_GPIO_WritePin
+ *fill*         0x08003f96        0x2 
  .text.__NVIC_SetPriority
-                0x08003dac       0x28 build/stm32f4xx_hal_cortex.o
+                0x08003f98       0x28 build/stm32f4xx_hal_cortex.o
  .text.NVIC_EncodePriority
-                0x08003dd4       0x3e build/stm32f4xx_hal_cortex.o
- *fill*         0x08003e12        0x2 
+                0x08003fc0       0x3e build/stm32f4xx_hal_cortex.o
+ *fill*         0x08003ffe        0x2 
  .text.HAL_NVIC_SetPriorityGrouping
-                0x08003e14       0x24 build/stm32f4xx_hal_cortex.o
-                0x08003e14                HAL_NVIC_SetPriorityGrouping
+                0x08004000       0x24 build/stm32f4xx_hal_cortex.o
+                0x08004000                HAL_NVIC_SetPriorityGrouping
  .text.HAL_NVIC_SetPriority
-                0x08003e38       0x20 build/stm32f4xx_hal_cortex.o
-                0x08003e38                HAL_NVIC_SetPriority
+                0x08004024       0x20 build/stm32f4xx_hal_cortex.o
+                0x08004024                HAL_NVIC_SetPriority
  .text.HAL_SYSTICK_Config
-                0x08003e58       0x28 build/stm32f4xx_hal_cortex.o
-                0x08003e58                HAL_SYSTICK_Config
+                0x08004044       0x28 build/stm32f4xx_hal_cortex.o
+                0x08004044                HAL_SYSTICK_Config
  .text.HAL_MspDeInit
-                0x08003e80        0x2 build/stm32f4xx_hal.o
-                0x08003e80                HAL_MspDeInit
- *fill*         0x08003e82        0x2 
+                0x0800406c        0x2 build/stm32f4xx_hal.o
+                0x0800406c                HAL_MspDeInit
+ *fill*         0x0800406e        0x2 
  .text.HAL_DeInit
-                0x08003e84       0x40 build/stm32f4xx_hal.o
-                0x08003e84                HAL_DeInit
+                0x08004070       0x40 build/stm32f4xx_hal.o
+                0x08004070                HAL_DeInit
  .text.HAL_InitTick
-                0x08003ec4       0x4c build/stm32f4xx_hal.o
-                0x08003ec4                HAL_InitTick
+                0x080040b0       0x4c build/stm32f4xx_hal.o
+                0x080040b0                HAL_InitTick
  .text.HAL_Init
-                0x08003f10       0x34 build/stm32f4xx_hal.o
-                0x08003f10                HAL_Init
+                0x080040fc       0x34 build/stm32f4xx_hal.o
+                0x080040fc                HAL_Init
  .text.HAL_IncTick
-                0x08003f44       0x18 build/stm32f4xx_hal.o
-                0x08003f44                HAL_IncTick
+                0x08004130       0x18 build/stm32f4xx_hal.o
+                0x08004130                HAL_IncTick
  .text.HAL_GetTick
-                0x08003f5c        0xc build/stm32f4xx_hal.o
-                0x08003f5c                HAL_GetTick
+                0x08004148        0xc build/stm32f4xx_hal.o
+                0x08004148                HAL_GetTick
  .text.HAL_Delay
-                0x08003f68       0x28 build/stm32f4xx_hal.o
-                0x08003f68                HAL_Delay
+                0x08004154       0x28 build/stm32f4xx_hal.o
+                0x08004154                HAL_Delay
  .text.SystemInit
-                0x08003f90       0x14 build/system_stm32f4xx.o
-                0x08003f90                SystemInit
- .text._sbrk    0x08003fa4       0x48 build/sysmem.o
-                0x08003fa4                _sbrk
- .text._read    0x08003fec       0x20 build/syscalls.o
-                0x08003fec                _read
- .text._write   0x0800400c       0x1c build/syscalls.o
-                0x0800400c                _write
- .text._close   0x08004028        0x6 build/syscalls.o
-                0x08004028                _close
- .text._fstat   0x0800402e        0xa build/syscalls.o
-                0x0800402e                _fstat
- .text._isatty  0x08004038        0x4 build/syscalls.o
-                0x08004038                _isatty
- .text._lseek   0x0800403c        0x4 build/syscalls.o
-                0x0800403c                _lseek
+                0x0800417c       0x14 build/system_stm32f4xx.o
+                0x0800417c                SystemInit
+ .text._sbrk    0x08004190       0x48 build/sysmem.o
+                0x08004190                _sbrk
+ .text._read    0x080041d8       0x20 build/syscalls.o
+                0x080041d8                _read
+ .text._write   0x080041f8       0x1c build/syscalls.o
+                0x080041f8                _write
+ .text._close   0x08004214        0x6 build/syscalls.o
+                0x08004214                _close
+ .text._fstat   0x0800421a        0xa build/syscalls.o
+                0x0800421a                _fstat
+ .text._isatty  0x08004224        0x4 build/syscalls.o
+                0x08004224                _isatty
+ .text._lseek   0x08004228        0x4 build/syscalls.o
+                0x08004228                _lseek
  .text.MX_GPIO_Init
-                0x08004040       0xd8 build/gpio.o
-                0x08004040                MX_GPIO_Init
+                0x0800422c       0xd8 build/gpio.o
+                0x0800422c                MX_GPIO_Init
  .text.MX_USART1_UART_Init
-                0x08004118       0x34 build/usart.o
-                0x08004118                MX_USART1_UART_Init
+                0x08004304       0x34 build/usart.o
+                0x08004304                MX_USART1_UART_Init
  .text.MX_USART2_UART_Init
-                0x0800414c       0x34 build/usart.o
-                0x0800414c                MX_USART2_UART_Init
+                0x08004338       0x34 build/usart.o
+                0x08004338                MX_USART2_UART_Init
  .text.HAL_UART_MspInit
-                0x08004180       0xc4 build/usart.o
-                0x08004180                HAL_UART_MspInit
+                0x0800436c       0xc4 build/usart.o
+                0x0800436c                HAL_UART_MspInit
  .text.MX_CRC_Init
-                0x08004244       0x20 build/crc.o
-                0x08004244                MX_CRC_Init
+                0x08004430       0x20 build/crc.o
+                0x08004430                MX_CRC_Init
  .text.HAL_CRC_MspInit
-                0x08004264       0x30 build/crc.o
-                0x08004264                HAL_CRC_MspInit
- .text.MX_SPI1_Init
-                0x08004294       0x48 build/spi.o
-                0x08004294                MX_SPI1_Init
- .text.HAL_SPI_MspInit
-                0x080042dc       0x70 build/spi.o
-                0x080042dc                HAL_SPI_MspInit
+                0x08004450       0x30 build/crc.o
+                0x08004450                HAL_CRC_MspInit
  .text.HAL_CRC_Init
-                0x0800434c       0x1e build/stm32f4xx_hal_crc.o
-                0x0800434c                HAL_CRC_Init
- *fill*         0x0800436a        0x2 
+                0x08004480       0x1e build/stm32f4xx_hal_crc.o
+                0x08004480                HAL_CRC_Init
+ *fill*         0x0800449e        0x2 
+ .text.MX_SPI1_Init
+                0x080044a0       0x48 build/spi.o
+                0x080044a0                MX_SPI1_Init
+ .text.HAL_SPI_MspInit
+                0x080044e8       0x70 build/spi.o
+                0x080044e8                HAL_SPI_MspInit
  .text.SPI_WaitFlagStateUntilTimeout
-                0x0800436c       0xc8 build/stm32f4xx_hal_spi.o
+                0x08004558       0xc8 build/stm32f4xx_hal_spi.o
  .text.SPI_EndRxTxTransaction
-                0x08004434       0x80 build/stm32f4xx_hal_spi.o
+                0x08004620       0x80 build/stm32f4xx_hal_spi.o
  .text.HAL_SPI_Init
-                0x080044b4       0xbe build/stm32f4xx_hal_spi.o
-                0x080044b4                HAL_SPI_Init
+                0x080046a0       0xbe build/stm32f4xx_hal_spi.o
+                0x080046a0                HAL_SPI_Init
  .text.HAL_SPI_Transmit
-                0x08004572      0x1c4 build/stm32f4xx_hal_spi.o
-                0x08004572                HAL_SPI_Transmit
- *fill*         0x08004736        0x2 
+                0x0800475e      0x1c4 build/stm32f4xx_hal_spi.o
+                0x0800475e                HAL_SPI_Transmit
+ *fill*         0x08004922        0x2 
  .text.Reset_Handler
-                0x08004738       0x50 build/startup_stm32f401xe.o
-                0x08004738                Reset_Handler
+                0x08004924       0x50 build/startup_stm32f401xe.o
+                0x08004924                Reset_Handler
  .text.Default_Handler
-                0x08004788        0x2 build/startup_stm32f401xe.o
-                0x08004788                RTC_Alarm_IRQHandler
-                0x08004788                EXTI2_IRQHandler
-                0x08004788                SPI4_IRQHandler
-                0x08004788                TIM1_CC_IRQHandler
-                0x08004788                DMA2_Stream5_IRQHandler
-                0x08004788                DMA1_Stream5_IRQHandler
-                0x08004788                PVD_IRQHandler
-                0x08004788                SDIO_IRQHandler
-                0x08004788                TAMP_STAMP_IRQHandler
-                0x08004788                EXTI3_IRQHandler
-                0x08004788                TIM1_UP_TIM10_IRQHandler
-                0x08004788                I2C3_ER_IRQHandler
-                0x08004788                EXTI0_IRQHandler
-                0x08004788                I2C2_EV_IRQHandler
-                0x08004788                DMA1_Stream2_IRQHandler
-                0x08004788                FPU_IRQHandler
-                0x08004788                DMA2_Stream2_IRQHandler
-                0x08004788                SPI1_IRQHandler
-                0x08004788                TIM1_BRK_TIM9_IRQHandler
-                0x08004788                DMA2_Stream3_IRQHandler
-                0x08004788                USART6_IRQHandler
-                0x08004788                DMA2_Stream0_IRQHandler
-                0x08004788                TIM4_IRQHandler
-                0x08004788                I2C1_EV_IRQHandler
-                0x08004788                DMA1_Stream6_IRQHandler
-                0x08004788                DMA1_Stream1_IRQHandler
-                0x08004788                TIM3_IRQHandler
-                0x08004788                RCC_IRQHandler
-                0x08004788                Default_Handler
-                0x08004788                EXTI15_10_IRQHandler
-                0x08004788                ADC_IRQHandler
-                0x08004788                DMA1_Stream7_IRQHandler
-                0x08004788                TIM5_IRQHandler
-                0x08004788                DMA2_Stream7_IRQHandler
-                0x08004788                I2C3_EV_IRQHandler
-                0x08004788                EXTI9_5_IRQHandler
-                0x08004788                RTC_WKUP_IRQHandler
-                0x08004788                SPI2_IRQHandler
-                0x08004788                DMA1_Stream0_IRQHandler
-                0x08004788                EXTI4_IRQHandler
-                0x08004788                WWDG_IRQHandler
-                0x08004788                TIM2_IRQHandler
-                0x08004788                OTG_FS_WKUP_IRQHandler
-                0x08004788                TIM1_TRG_COM_TIM11_IRQHandler
-                0x08004788                EXTI1_IRQHandler
-                0x08004788                USART2_IRQHandler
-                0x08004788                I2C2_ER_IRQHandler
-                0x08004788                DMA2_Stream1_IRQHandler
-                0x08004788                FLASH_IRQHandler
-                0x08004788                DMA2_Stream4_IRQHandler
-                0x08004788                USART1_IRQHandler
-                0x08004788                OTG_FS_IRQHandler
-                0x08004788                SPI3_IRQHandler
-                0x08004788                DMA1_Stream4_IRQHandler
-                0x08004788                I2C1_ER_IRQHandler
-                0x08004788                DMA2_Stream6_IRQHandler
-                0x08004788                DMA1_Stream3_IRQHandler
+                0x08004974        0x2 build/startup_stm32f401xe.o
+                0x08004974                RTC_Alarm_IRQHandler
+                0x08004974                EXTI2_IRQHandler
+                0x08004974                SPI4_IRQHandler
+                0x08004974                TIM1_CC_IRQHandler
+                0x08004974                DMA2_Stream5_IRQHandler
+                0x08004974                DMA1_Stream5_IRQHandler
+                0x08004974                PVD_IRQHandler
+                0x08004974                SDIO_IRQHandler
+                0x08004974                TAMP_STAMP_IRQHandler
+                0x08004974                EXTI3_IRQHandler
+                0x08004974                TIM1_UP_TIM10_IRQHandler
+                0x08004974                I2C3_ER_IRQHandler
+                0x08004974                EXTI0_IRQHandler
+                0x08004974                I2C2_EV_IRQHandler
+                0x08004974                DMA1_Stream2_IRQHandler
+                0x08004974                FPU_IRQHandler
+                0x08004974                DMA2_Stream2_IRQHandler
+                0x08004974                SPI1_IRQHandler
+                0x08004974                TIM1_BRK_TIM9_IRQHandler
+                0x08004974                DMA2_Stream3_IRQHandler
+                0x08004974                USART6_IRQHandler
+                0x08004974                DMA2_Stream0_IRQHandler
+                0x08004974                TIM4_IRQHandler
+                0x08004974                I2C1_EV_IRQHandler
+                0x08004974                DMA1_Stream6_IRQHandler
+                0x08004974                DMA1_Stream1_IRQHandler
+                0x08004974                TIM3_IRQHandler
+                0x08004974                RCC_IRQHandler
+                0x08004974                Default_Handler
+                0x08004974                EXTI15_10_IRQHandler
+                0x08004974                ADC_IRQHandler
+                0x08004974                DMA1_Stream7_IRQHandler
+                0x08004974                TIM5_IRQHandler
+                0x08004974                DMA2_Stream7_IRQHandler
+                0x08004974                I2C3_EV_IRQHandler
+                0x08004974                EXTI9_5_IRQHandler
+                0x08004974                RTC_WKUP_IRQHandler
+                0x08004974                SPI2_IRQHandler
+                0x08004974                DMA1_Stream0_IRQHandler
+                0x08004974                EXTI4_IRQHandler
+                0x08004974                WWDG_IRQHandler
+                0x08004974                TIM2_IRQHandler
+                0x08004974                OTG_FS_WKUP_IRQHandler
+                0x08004974                TIM1_TRG_COM_TIM11_IRQHandler
+                0x08004974                EXTI1_IRQHandler
+                0x08004974                USART2_IRQHandler
+                0x08004974                I2C2_ER_IRQHandler
+                0x08004974                DMA2_Stream1_IRQHandler
+                0x08004974                FLASH_IRQHandler
+                0x08004974                DMA2_Stream4_IRQHandler
+                0x08004974                USART1_IRQHandler
+                0x08004974                OTG_FS_IRQHandler
+                0x08004974                SPI3_IRQHandler
+                0x08004974                DMA1_Stream4_IRQHandler
+                0x08004974                I2C1_ER_IRQHandler
+                0x08004974                DMA2_Stream6_IRQHandler
+                0x08004974                DMA1_Stream3_IRQHandler
  *(.glue_7)
- .glue_7        0x0800478a        0x0 linker stubs
+ .glue_7        0x08004976        0x0 linker stubs
  *(.glue_7t)
- .glue_7t       0x0800478a        0x0 linker stubs
+ .glue_7t       0x08004976        0x0 linker stubs
  *(.eh_frame)
- *fill*         0x0800478a        0x2 
- .eh_frame      0x0800478c        0x0 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/crtbegin.o
+ *fill*         0x08004976        0x2 
+ .eh_frame      0x08004978        0x0 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/crtbegin.o
  *(.init)
- .init          0x0800478c        0x4 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/crti.o
-                0x0800478c                _init
- .init          0x08004790        0x8 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/crtn.o
+ .init          0x08004978        0x4 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/crti.o
+                0x08004978                _init
+ .init          0x0800497c        0x8 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/crtn.o
  *(.fini)
- .fini          0x08004798        0x4 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/crti.o
-                0x08004798                _fini
- .fini          0x0800479c        0x8 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/crtn.o
-                0x080047a4                        . = ALIGN (0x4)
-                0x080047a4                        _etext = .
+ .fini          0x08004984        0x4 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/crti.o
+                0x08004984                _fini
+ .fini          0x08004988        0x8 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/crtn.o
+                0x08004990                        . = ALIGN (0x4)
+                0x08004990                        _etext = .
 
-.vfp11_veneer   0x080047a4        0x0
- .vfp11_veneer  0x080047a4        0x0 linker stubs
+.vfp11_veneer   0x08004990        0x0
+ .vfp11_veneer  0x08004990        0x0 linker stubs
 
-.v4_bx          0x080047a4        0x0
- .v4_bx         0x080047a4        0x0 linker stubs
+.v4_bx          0x08004990        0x0
+ .v4_bx         0x08004990        0x0 linker stubs
 
-.iplt           0x080047a4        0x0
- .iplt          0x080047a4        0x0 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/crtbegin.o
+.iplt           0x08004990        0x0
+ .iplt          0x08004990        0x0 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/crtbegin.o
 
-.rodata         0x080047a4     0x2430
-                0x080047a4                        . = ALIGN (0x4)
+.rodata         0x08004990     0x25ac
+                0x08004990                        . = ALIGN (0x4)
  *(.rodata)
- .rodata        0x080047a4        0x5 build/st7789.o
+ .rodata        0x08004990        0x5 build/st7789.o
  *(.rodata*)
- *fill*         0x080047a9        0x3 
+ *fill*         0x08004995        0x3 
  .rodata.main.str1.4
-                0x080047ac      0x365 build/main.o
-                                0x275 (size before relaxing)
+                0x08004998      0x4e1 build/main.o
+                                0x2fd (size before relaxing)
+ .rodata.flash_erase_sectors.str1.4
+                0x08004e79       0x29 build/bootloader.o
  .rodata.IMG_valid.str1.4
-                0x08004b11        0xa build/bootloader.o
+                0x08004e79        0xa build/bootloader.o
  .rodata.bcb_slotswitch.str1.4
-                0x08004b11       0x35 build/bootloader.o
+                0x08004e79       0x91 build/bootloader.o
+ .rodata.write_to_flash.str1.4
+                0x08004e79       0x6b build/bootloader.o
  .rodata.UI_Bootloader_ShowStart.str1.4
-                0x08004b11       0x22 build/st7789_bootloader.o
+                0x08004e79       0x22 build/st7789_bootloader.o
  .rodata.UI_Bootloader_ShowDone.str1.4
-                0x08004b11       0x1c build/st7789_bootloader.o
+                0x08004e79       0x1c build/st7789_bootloader.o
  .rodata.UI_Bootloader_ShowFailed.str1.4
-                0x08004b11        0xe build/st7789_bootloader.o
+                0x08004e79        0xe build/st7789_bootloader.o
  .rodata.ST7789_Init.str1.4
-                0x08004b11       0x1f build/st7789.o
- *fill*         0x08004b11        0x3 
+                0x08004e79       0x1f build/st7789.o
+ *fill*         0x08004e79        0x3 
  .rodata.Font16x26
-                0x08004b14     0x134c build/fonts.o
+                0x08004e7c     0x134c build/fonts.o
  .rodata.Font11x18
-                0x08005e60      0xd5c build/fonts.o
+                0x080061c8      0xd5c build/fonts.o
  .rodata.APBPrescTable
-                0x08006bbc        0x8 build/system_stm32f4xx.o
-                0x08006bbc                APBPrescTable
+                0x08006f24        0x8 build/system_stm32f4xx.o
+                0x08006f24                APBPrescTable
  .rodata.AHBPrescTable
-                0x08006bc4       0x10 build/system_stm32f4xx.o
-                0x08006bc4                AHBPrescTable
+                0x08006f2c       0x10 build/system_stm32f4xx.o
+                0x08006f2c                AHBPrescTable
  .rodata.str1.4
-                0x08006bd4       0x13 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-nano-vfprintf.o)
+                0x08006f3c       0x13 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-nano-vfprintf.o)
  .rodata.str1.4
-                0x08006bd4       0x25 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-nano-vfprintf_i.o)
-                0x08006bfc                        . = ALIGN (0x4)
+                0x08006f3c       0x25 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-nano-vfprintf_i.o)
+                0x08006f64                        . = ALIGN (0x4)
 
-.ARM.extab      0x08006bd4        0x0
-                0x08006bd4                        . = ALIGN (0x4)
+.ARM.extab      0x08006f3c        0x0
+                0x08006f3c                        . = ALIGN (0x4)
  *(.ARM.extab* .gnu.linkonce.armextab.*)
-                0x08006bd4                        . = ALIGN (0x4)
+                0x08006f3c                        . = ALIGN (0x4)
 
-.ARM            0x08006bd4        0x8
-                0x08006bd4                        . = ALIGN (0x4)
-                0x08006bd4                        __exidx_start = .
+.ARM            0x08006f3c        0x8
+                0x08006f3c                        . = ALIGN (0x4)
+                0x08006f3c                        __exidx_start = .
  *(.ARM.exidx*)
- .ARM.exidx     0x08006bd4        0x8 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memcpy.o)
- .ARM.exidx     0x08006bdc        0x0 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memchr.o)
+ .ARM.exidx     0x08006f3c        0x8 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memcpy.o)
+ .ARM.exidx     0x08006f44        0x0 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memchr.o)
                                   0x8 (size before relaxing)
- .ARM.exidx     0x08006bdc        0x0 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_udivmoddi4.o)
+ .ARM.exidx     0x08006f44        0x0 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_udivmoddi4.o)
                                   0x8 (size before relaxing)
-                0x08006bdc                        __exidx_end = .
-                0x08006bdc                        . = ALIGN (0x4)
+                0x08006f44                        __exidx_end = .
+                0x08006f44                        . = ALIGN (0x4)
 
-.preinit_array  0x08006bdc        0x0
-                0x08006bdc                        . = ALIGN (0x4)
-                0x08006bdc                        PROVIDE (__preinit_array_start = .)
+.preinit_array  0x08006f44        0x0
+                0x08006f44                        . = ALIGN (0x4)
+                0x08006f44                        PROVIDE (__preinit_array_start = .)
  *(.preinit_array*)
-                0x08006bdc                        PROVIDE (__preinit_array_end = .)
-                0x08006bdc                        . = ALIGN (0x4)
+                0x08006f44                        PROVIDE (__preinit_array_end = .)
+                0x08006f44                        . = ALIGN (0x4)
 
-.init_array     0x08006bdc        0x4
-                0x08006bdc                        . = ALIGN (0x4)
-                0x08006bdc                        PROVIDE (__init_array_start = .)
+.init_array     0x08006f44        0x4
+                0x08006f44                        . = ALIGN (0x4)
+                0x08006f44                        PROVIDE (__init_array_start = .)
  *(SORT_BY_NAME(.init_array.*))
  *(.init_array*)
- .init_array    0x08006bdc        0x4 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/crtbegin.o
-                0x08006be0                        PROVIDE (__init_array_end = .)
-                0x08006be0                        . = ALIGN (0x4)
+ .init_array    0x08006f44        0x4 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/crtbegin.o
+                0x08006f48                        PROVIDE (__init_array_end = .)
+                0x08006f48                        . = ALIGN (0x4)
 
-.fini_array     0x08006be0        0x4
-                0x08006be0                        . = ALIGN (0x4)
-                0x08006be0                        PROVIDE (__fini_array_start = .)
+.fini_array     0x08006f48        0x4
+                0x08006f48                        . = ALIGN (0x4)
+                0x08006f48                        PROVIDE (__fini_array_start = .)
  *(SORT_BY_NAME(.fini_array.*))
  *(.fini_array*)
- .fini_array    0x08006be0        0x4 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/crtbegin.o
-                0x08006be4                        PROVIDE (__fini_array_end = .)
-                0x08006be4                        . = ALIGN (0x4)
-                0x08006be4                        _sidata = LOADADDR (.data)
+ .fini_array    0x08006f48        0x4 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/crtbegin.o
+                0x08006f4c                        PROVIDE (__fini_array_end = .)
+                0x08006f4c                        . = ALIGN (0x4)
+                0x08006f4c                        _sidata = LOADADDR (.data)
 
-.rel.dyn        0x08006be4        0x0
- .rel.iplt      0x08006be4        0x0 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/crtbegin.o
+.rel.dyn        0x08006f4c        0x0
+ .rel.iplt      0x08006f4c        0x0 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/crtbegin.o
 
-.data           0x20000000       0x98 load address 0x08006be4
+.data           0x20000000       0x98 load address 0x08006f4c
                 0x20000000                        . = ALIGN (0x4)
                 0x20000000                        _sdata = .
  *(.data)
@@ -1661,17 +1673,17 @@ LOAD /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/crtn.o
                 0x20000098                        _edata = .
 
 .tm_clone_table
-                0x20000098        0x0 load address 0x08006c7c
+                0x20000098        0x0 load address 0x08006fe4
  .tm_clone_table
                 0x20000098        0x0 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/crtbegin.o
  .tm_clone_table
                 0x20000098        0x0 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/crtend.o
 
-.igot.plt       0x20000098        0x0 load address 0x08006c7c
+.igot.plt       0x20000098        0x0 load address 0x08006fe4
  .igot.plt      0x20000098        0x0 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/crtbegin.o
                 0x20000098                        . = ALIGN (0x4)
 
-.bss            0x20000098      0x260 load address 0x08006c7c
+.bss            0x20000098      0x260 load address 0x08006fe4
                 0x20000098                        _sbss = .
                 0x20000098                        __bss_start__ = _sbss
  *(.bss)
@@ -1706,7 +1718,7 @@ LOAD /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/crtn.o
                 0x200002f8                        __bss_end__ = _ebss
 
 ._user_heap_stack
-                0x200002f8      0x600 load address 0x08006c7c
+                0x200002f8      0x600 load address 0x08006fe4
                 0x200002f8                        . = ALIGN (0x8)
                 [!provide]                        PROVIDE (end = .)
                 0x200002f8                        PROVIDE (_end = .)
@@ -1775,9 +1787,9 @@ LOAD /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a
  .ARM.attributes
                 0x00000466       0x34 build/crc.o
  .ARM.attributes
-                0x0000049a       0x34 build/spi.o
+                0x0000049a       0x34 build/stm32f4xx_hal_crc.o
  .ARM.attributes
-                0x000004ce       0x34 build/stm32f4xx_hal_crc.o
+                0x000004ce       0x34 build/spi.o
  .ARM.attributes
                 0x00000502       0x34 build/stm32f4xx_hal_spi.o
  .ARM.attributes
@@ -1885,8 +1897,8 @@ LOAD /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a
  .comment       0x00000026       0x27 build/gpio.o
  .comment       0x00000026       0x27 build/usart.o
  .comment       0x00000026       0x27 build/crc.o
- .comment       0x00000026       0x27 build/spi.o
  .comment       0x00000026       0x27 build/stm32f4xx_hal_crc.o
+ .comment       0x00000026       0x27 build/spi.o
  .comment       0x00000026       0x27 build/stm32f4xx_hal_spi.o
  .comment       0x00000026       0x27 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-impure.o)
  .comment       0x00000026       0x27 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-init.o)
@@ -1923,497 +1935,497 @@ LOAD /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a
  .comment       0x00000026       0x27 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_udivmoddi4.o)
  .comment       0x00000026       0x27 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/crtend.o
 
-.debug_info     0x00000000    0x25838
- .debug_info    0x00000000     0x1ca3 build/main.o
- .debug_info    0x00001ca3      0xd89 build/bootloader.o
- .debug_info    0x00002a2c      0x60a build/st7789_bootloader.o
- .debug_info    0x00003036     0x2ba1 build/st7789.o
- .debug_info    0x00005bd7      0x1f0 build/fonts.o
- .debug_info    0x00005dc7      0x157 build/stm32f4xx_it.o
- .debug_info    0x00005f1e      0x311 build/stm32f4xx_hal_msp.o
- .debug_info    0x0000622f     0x437d build/stm32f4xx_hal_uart.o
- .debug_info    0x0000a5ac      0xc1c build/stm32f4xx_hal_rcc.o
- .debug_info    0x0000b1c8      0x72a build/stm32f4xx_hal_rcc_ex.o
- .debug_info    0x0000b8f2      0x7a3 build/stm32f4xx_hal_flash.o
- .debug_info    0x0000c095      0xa96 build/stm32f4xx_hal_flash_ex.o
- .debug_info    0x0000cb2b      0x84e build/stm32f4xx_hal_gpio.o
- .debug_info    0x0000d379     0x1126 build/stm32f4xx_hal_cortex.o
- .debug_info    0x0000e49f      0xa7e build/stm32f4xx_hal.o
- .debug_info    0x0000ef1d      0x5cd build/system_stm32f4xx.o
- .debug_info    0x0000f4ea      0x174 build/sysmem.o
- .debug_info    0x0000f65e      0x848 build/syscalls.o
- .debug_info    0x0000fea6      0x599 build/gpio.o
- .debug_info    0x0001043f      0xbe5 build/usart.o
- .debug_info    0x00011024      0x50a build/crc.o
- .debug_info    0x0001152e      0xb5c build/spi.o
- .debug_info    0x0001208a      0x3fd build/stm32f4xx_hal_crc.o
- .debug_info    0x00012487     0x1f54 build/stm32f4xx_hal_spi.o
- .debug_info    0x000143db       0x30 build/startup_stm32f401xe.o
- .debug_info    0x0001440b      0x70b /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-impure.o)
- .debug_info    0x00014b16      0x10b /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-init.o)
- .debug_info    0x00014c21      0x8f8 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-puts.o)
- .debug_info    0x00015519      0xe8c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-findfp.o)
- .debug_info    0x000163a5      0x135 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memset.o)
- .debug_info    0x000164da      0xa33 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fflush.o)
- .debug_info    0x00016f0d      0x6f1 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-errno.o)
- .debug_info    0x000175fe      0x9b6 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-mallocr.o)
- .debug_info    0x00017fb4      0x87f /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-freer.o)
- .debug_info    0x00018833      0x7c8 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fwalk.o)
- .debug_info    0x00018ffb      0x7b1 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-wsetup.o)
- .debug_info    0x000197ac      0x8fc /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-setvbuf.o)
- .debug_info    0x0001a0a8       0x33 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memcpy.o)
- .debug_info    0x0001a0db      0x796 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-malloc.o)
- .debug_info    0x0001a871      0x71c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-mlock.o)
- .debug_info    0x0001af8d      0xbe6 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-makebuf.o)
- .debug_info    0x0001bb73      0x837 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-printf.o)
- .debug_info    0x0001c3aa      0x752 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-isattyr.o)
- .debug_info    0x0001cafc     0x108a /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-nano-vfprintf.o)
- .debug_info    0x0001db86      0x863 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-wbuf.o)
- .debug_info    0x0001e3e9      0x778 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-sbrkr.o)
- .debug_info    0x0001eb61      0xa80 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-stdio.o)
- .debug_info    0x0001f5e1      0xaf1 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fvwrite.o)
- .debug_info    0x000200d2      0x752 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-closer.o)
- .debug_info    0x00020824      0x148 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memmove.o)
- .debug_info    0x0002096c       0x25 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memchr.o)
- .debug_info    0x00020991      0x7b5 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-readr.o)
- .debug_info    0x00021146      0x89f /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-reent.o)
- .debug_info    0x000219e5      0x8cd /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-reallocr.o)
- .debug_info    0x000222b2      0xdd7 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-nano-vfprintf_i.o)
- .debug_info    0x00023089      0x977 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fstatr.o)
- .debug_info    0x00023a00      0x79e /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-lseekr.o)
- .debug_info    0x0002419e      0x7bb /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-writer.o)
- .debug_info    0x00024959      0x78a /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-msizer.o)
- .debug_info    0x000250e3       0x24 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_aeabi_uldivmod.o)
- .debug_info    0x00025107      0x6f5 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_udivmoddi4.o)
- .debug_info    0x000257fc       0x3c /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_dvmd_tls.o)
+.debug_info     0x00000000    0x25b80
+ .debug_info    0x00000000     0x1cd1 build/main.o
+ .debug_info    0x00001cd1     0x10a3 build/bootloader.o
+ .debug_info    0x00002d74      0x60a build/st7789_bootloader.o
+ .debug_info    0x0000337e     0x2ba1 build/st7789.o
+ .debug_info    0x00005f1f      0x1f0 build/fonts.o
+ .debug_info    0x0000610f      0x157 build/stm32f4xx_it.o
+ .debug_info    0x00006266      0x311 build/stm32f4xx_hal_msp.o
+ .debug_info    0x00006577     0x437d build/stm32f4xx_hal_uart.o
+ .debug_info    0x0000a8f4      0xc1c build/stm32f4xx_hal_rcc.o
+ .debug_info    0x0000b510      0x72a build/stm32f4xx_hal_rcc_ex.o
+ .debug_info    0x0000bc3a      0x7a3 build/stm32f4xx_hal_flash.o
+ .debug_info    0x0000c3dd      0xa96 build/stm32f4xx_hal_flash_ex.o
+ .debug_info    0x0000ce73      0x84e build/stm32f4xx_hal_gpio.o
+ .debug_info    0x0000d6c1     0x1126 build/stm32f4xx_hal_cortex.o
+ .debug_info    0x0000e7e7      0xa7e build/stm32f4xx_hal.o
+ .debug_info    0x0000f265      0x5cd build/system_stm32f4xx.o
+ .debug_info    0x0000f832      0x174 build/sysmem.o
+ .debug_info    0x0000f9a6      0x848 build/syscalls.o
+ .debug_info    0x000101ee      0x599 build/gpio.o
+ .debug_info    0x00010787      0xbe5 build/usart.o
+ .debug_info    0x0001136c      0x50a build/crc.o
+ .debug_info    0x00011876      0x3fd build/stm32f4xx_hal_crc.o
+ .debug_info    0x00011c73      0xb5c build/spi.o
+ .debug_info    0x000127cf     0x1f54 build/stm32f4xx_hal_spi.o
+ .debug_info    0x00014723       0x30 build/startup_stm32f401xe.o
+ .debug_info    0x00014753      0x70b /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-impure.o)
+ .debug_info    0x00014e5e      0x10b /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-init.o)
+ .debug_info    0x00014f69      0x8f8 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-puts.o)
+ .debug_info    0x00015861      0xe8c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-findfp.o)
+ .debug_info    0x000166ed      0x135 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memset.o)
+ .debug_info    0x00016822      0xa33 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fflush.o)
+ .debug_info    0x00017255      0x6f1 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-errno.o)
+ .debug_info    0x00017946      0x9b6 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-mallocr.o)
+ .debug_info    0x000182fc      0x87f /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-freer.o)
+ .debug_info    0x00018b7b      0x7c8 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fwalk.o)
+ .debug_info    0x00019343      0x7b1 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-wsetup.o)
+ .debug_info    0x00019af4      0x8fc /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-setvbuf.o)
+ .debug_info    0x0001a3f0       0x33 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memcpy.o)
+ .debug_info    0x0001a423      0x796 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-malloc.o)
+ .debug_info    0x0001abb9      0x71c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-mlock.o)
+ .debug_info    0x0001b2d5      0xbe6 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-makebuf.o)
+ .debug_info    0x0001bebb      0x837 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-printf.o)
+ .debug_info    0x0001c6f2      0x752 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-isattyr.o)
+ .debug_info    0x0001ce44     0x108a /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-nano-vfprintf.o)
+ .debug_info    0x0001dece      0x863 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-wbuf.o)
+ .debug_info    0x0001e731      0x778 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-sbrkr.o)
+ .debug_info    0x0001eea9      0xa80 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-stdio.o)
+ .debug_info    0x0001f929      0xaf1 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fvwrite.o)
+ .debug_info    0x0002041a      0x752 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-closer.o)
+ .debug_info    0x00020b6c      0x148 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memmove.o)
+ .debug_info    0x00020cb4       0x25 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memchr.o)
+ .debug_info    0x00020cd9      0x7b5 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-readr.o)
+ .debug_info    0x0002148e      0x89f /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-reent.o)
+ .debug_info    0x00021d2d      0x8cd /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-reallocr.o)
+ .debug_info    0x000225fa      0xdd7 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-nano-vfprintf_i.o)
+ .debug_info    0x000233d1      0x977 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fstatr.o)
+ .debug_info    0x00023d48      0x79e /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-lseekr.o)
+ .debug_info    0x000244e6      0x7bb /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-writer.o)
+ .debug_info    0x00024ca1      0x78a /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-msizer.o)
+ .debug_info    0x0002542b       0x24 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_aeabi_uldivmod.o)
+ .debug_info    0x0002544f      0x6f5 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_udivmoddi4.o)
+ .debug_info    0x00025b44       0x3c /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_dvmd_tls.o)
 
-.debug_abbrev   0x00000000     0x74e9
- .debug_abbrev  0x00000000      0x3b5 build/main.o
- .debug_abbrev  0x000003b5      0x382 build/bootloader.o
- .debug_abbrev  0x00000737      0x1db build/st7789_bootloader.o
- .debug_abbrev  0x00000912      0x2e3 build/st7789.o
- .debug_abbrev  0x00000bf5       0xc9 build/fonts.o
- .debug_abbrev  0x00000cbe       0x80 build/stm32f4xx_it.o
- .debug_abbrev  0x00000d3e       0xd3 build/stm32f4xx_hal_msp.o
- .debug_abbrev  0x00000e11      0x377 build/stm32f4xx_hal_uart.o
- .debug_abbrev  0x00001188      0x2de build/stm32f4xx_hal_rcc.o
- .debug_abbrev  0x00001466      0x1dc build/stm32f4xx_hal_rcc_ex.o
- .debug_abbrev  0x00001642      0x2d1 build/stm32f4xx_hal_flash.o
- .debug_abbrev  0x00001913      0x2ab build/stm32f4xx_hal_flash_ex.o
- .debug_abbrev  0x00001bbe      0x22b build/stm32f4xx_hal_gpio.o
- .debug_abbrev  0x00001de9      0x3ca build/stm32f4xx_hal_cortex.o
- .debug_abbrev  0x000021b3      0x275 build/stm32f4xx_hal.o
- .debug_abbrev  0x00002428      0x11b build/system_stm32f4xx.o
- .debug_abbrev  0x00002543       0xeb build/sysmem.o
- .debug_abbrev  0x0000262e      0x1e3 build/syscalls.o
- .debug_abbrev  0x00002811      0x160 build/gpio.o
- .debug_abbrev  0x00002971      0x20f build/usart.o
- .debug_abbrev  0x00002b80      0x1de build/crc.o
- .debug_abbrev  0x00002d5e      0x20f build/spi.o
- .debug_abbrev  0x00002f6d      0x1ba build/stm32f4xx_hal_crc.o
- .debug_abbrev  0x00003127      0x2be build/stm32f4xx_hal_spi.o
- .debug_abbrev  0x000033e5       0x1d build/startup_stm32f401xe.o
- .debug_abbrev  0x00003402      0x149 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-impure.o)
- .debug_abbrev  0x0000354b       0xc9 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-init.o)
- .debug_abbrev  0x00003614      0x29c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-puts.o)
- .debug_abbrev  0x000038b0      0x408 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-findfp.o)
- .debug_abbrev  0x00003cb8       0xb7 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memset.o)
- .debug_abbrev  0x00003d6f      0x2e4 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fflush.o)
- .debug_abbrev  0x00004053      0x15e /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-errno.o)
- .debug_abbrev  0x000041b1      0x24a /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-mallocr.o)
- .debug_abbrev  0x000043fb      0x249 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-freer.o)
- .debug_abbrev  0x00004644      0x19b /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fwalk.o)
- .debug_abbrev  0x000047df      0x1e2 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-wsetup.o)
- .debug_abbrev  0x000049c1      0x250 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-setvbuf.o)
- .debug_abbrev  0x00004c11       0x28 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memcpy.o)
- .debug_abbrev  0x00004c39      0x1cf /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-malloc.o)
- .debug_abbrev  0x00004e08      0x192 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-mlock.o)
- .debug_abbrev  0x00004f9a      0x29d /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-makebuf.o)
- .debug_abbrev  0x00005237      0x21a /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-printf.o)
- .debug_abbrev  0x00005451      0x1b0 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-isattyr.o)
- .debug_abbrev  0x00005601      0x36e /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-nano-vfprintf.o)
- .debug_abbrev  0x0000596f      0x236 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-wbuf.o)
- .debug_abbrev  0x00005ba5      0x1da /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-sbrkr.o)
- .debug_abbrev  0x00005d7f      0x224 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-stdio.o)
- .debug_abbrev  0x00005fa3      0x21b /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fvwrite.o)
- .debug_abbrev  0x000061be      0x1b0 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-closer.o)
- .debug_abbrev  0x0000636e       0xc3 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memmove.o)
- .debug_abbrev  0x00006431       0x14 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memchr.o)
- .debug_abbrev  0x00006445      0x1b0 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-readr.o)
- .debug_abbrev  0x000065f5      0x1ee /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-reent.o)
- .debug_abbrev  0x000067e3      0x20c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-reallocr.o)
- .debug_abbrev  0x000069ef      0x284 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-nano-vfprintf_i.o)
- .debug_abbrev  0x00006c73      0x1c3 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fstatr.o)
- .debug_abbrev  0x00006e36      0x1c4 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-lseekr.o)
- .debug_abbrev  0x00006ffa      0x1b5 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-writer.o)
- .debug_abbrev  0x000071af      0x196 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-msizer.o)
- .debug_abbrev  0x00007345       0x14 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_aeabi_uldivmod.o)
- .debug_abbrev  0x00007359      0x16a /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_udivmoddi4.o)
- .debug_abbrev  0x000074c3       0x26 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_dvmd_tls.o)
+.debug_abbrev   0x00000000     0x74e7
+ .debug_abbrev  0x00000000      0x3a0 build/main.o
+ .debug_abbrev  0x000003a0      0x395 build/bootloader.o
+ .debug_abbrev  0x00000735      0x1db build/st7789_bootloader.o
+ .debug_abbrev  0x00000910      0x2e3 build/st7789.o
+ .debug_abbrev  0x00000bf3       0xc9 build/fonts.o
+ .debug_abbrev  0x00000cbc       0x80 build/stm32f4xx_it.o
+ .debug_abbrev  0x00000d3c       0xd3 build/stm32f4xx_hal_msp.o
+ .debug_abbrev  0x00000e0f      0x377 build/stm32f4xx_hal_uart.o
+ .debug_abbrev  0x00001186      0x2de build/stm32f4xx_hal_rcc.o
+ .debug_abbrev  0x00001464      0x1dc build/stm32f4xx_hal_rcc_ex.o
+ .debug_abbrev  0x00001640      0x2d1 build/stm32f4xx_hal_flash.o
+ .debug_abbrev  0x00001911      0x2ab build/stm32f4xx_hal_flash_ex.o
+ .debug_abbrev  0x00001bbc      0x22b build/stm32f4xx_hal_gpio.o
+ .debug_abbrev  0x00001de7      0x3ca build/stm32f4xx_hal_cortex.o
+ .debug_abbrev  0x000021b1      0x275 build/stm32f4xx_hal.o
+ .debug_abbrev  0x00002426      0x11b build/system_stm32f4xx.o
+ .debug_abbrev  0x00002541       0xeb build/sysmem.o
+ .debug_abbrev  0x0000262c      0x1e3 build/syscalls.o
+ .debug_abbrev  0x0000280f      0x160 build/gpio.o
+ .debug_abbrev  0x0000296f      0x20f build/usart.o
+ .debug_abbrev  0x00002b7e      0x1de build/crc.o
+ .debug_abbrev  0x00002d5c      0x1ba build/stm32f4xx_hal_crc.o
+ .debug_abbrev  0x00002f16      0x20f build/spi.o
+ .debug_abbrev  0x00003125      0x2be build/stm32f4xx_hal_spi.o
+ .debug_abbrev  0x000033e3       0x1d build/startup_stm32f401xe.o
+ .debug_abbrev  0x00003400      0x149 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-impure.o)
+ .debug_abbrev  0x00003549       0xc9 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-init.o)
+ .debug_abbrev  0x00003612      0x29c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-puts.o)
+ .debug_abbrev  0x000038ae      0x408 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-findfp.o)
+ .debug_abbrev  0x00003cb6       0xb7 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memset.o)
+ .debug_abbrev  0x00003d6d      0x2e4 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fflush.o)
+ .debug_abbrev  0x00004051      0x15e /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-errno.o)
+ .debug_abbrev  0x000041af      0x24a /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-mallocr.o)
+ .debug_abbrev  0x000043f9      0x249 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-freer.o)
+ .debug_abbrev  0x00004642      0x19b /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fwalk.o)
+ .debug_abbrev  0x000047dd      0x1e2 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-wsetup.o)
+ .debug_abbrev  0x000049bf      0x250 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-setvbuf.o)
+ .debug_abbrev  0x00004c0f       0x28 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memcpy.o)
+ .debug_abbrev  0x00004c37      0x1cf /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-malloc.o)
+ .debug_abbrev  0x00004e06      0x192 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-mlock.o)
+ .debug_abbrev  0x00004f98      0x29d /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-makebuf.o)
+ .debug_abbrev  0x00005235      0x21a /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-printf.o)
+ .debug_abbrev  0x0000544f      0x1b0 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-isattyr.o)
+ .debug_abbrev  0x000055ff      0x36e /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-nano-vfprintf.o)
+ .debug_abbrev  0x0000596d      0x236 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-wbuf.o)
+ .debug_abbrev  0x00005ba3      0x1da /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-sbrkr.o)
+ .debug_abbrev  0x00005d7d      0x224 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-stdio.o)
+ .debug_abbrev  0x00005fa1      0x21b /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fvwrite.o)
+ .debug_abbrev  0x000061bc      0x1b0 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-closer.o)
+ .debug_abbrev  0x0000636c       0xc3 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memmove.o)
+ .debug_abbrev  0x0000642f       0x14 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memchr.o)
+ .debug_abbrev  0x00006443      0x1b0 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-readr.o)
+ .debug_abbrev  0x000065f3      0x1ee /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-reent.o)
+ .debug_abbrev  0x000067e1      0x20c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-reallocr.o)
+ .debug_abbrev  0x000069ed      0x284 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-nano-vfprintf_i.o)
+ .debug_abbrev  0x00006c71      0x1c3 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fstatr.o)
+ .debug_abbrev  0x00006e34      0x1c4 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-lseekr.o)
+ .debug_abbrev  0x00006ff8      0x1b5 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-writer.o)
+ .debug_abbrev  0x000071ad      0x196 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-msizer.o)
+ .debug_abbrev  0x00007343       0x14 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_aeabi_uldivmod.o)
+ .debug_abbrev  0x00007357      0x16a /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_udivmoddi4.o)
+ .debug_abbrev  0x000074c1       0x26 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_dvmd_tls.o)
 
-.debug_loc      0x00000000     0xd49a
- .debug_loc     0x00000000      0x1f0 build/main.o
- .debug_loc     0x000001f0      0x462 build/bootloader.o
- .debug_loc     0x00000652      0x294 build/st7789_bootloader.o
- .debug_loc     0x000008e6     0x1e8e build/st7789.o
- .debug_loc     0x00002774       0x20 build/stm32f4xx_it.o
- .debug_loc     0x00002794       0x2c build/stm32f4xx_hal_msp.o
- .debug_loc     0x000027c0     0x5040 build/stm32f4xx_hal_uart.o
- .debug_loc     0x00007800      0x720 build/stm32f4xx_hal_rcc.o
- .debug_loc     0x00007f20      0x478 build/stm32f4xx_hal_rcc_ex.o
- .debug_loc     0x00008398      0x44d build/stm32f4xx_hal_flash.o
- .debug_loc     0x000087e5      0x8c5 build/stm32f4xx_hal_flash_ex.o
- .debug_loc     0x000090aa      0x60b build/stm32f4xx_hal_gpio.o
- .debug_loc     0x000096b5      0x8ff build/stm32f4xx_hal_cortex.o
- .debug_loc     0x00009fb4      0x1f9 build/stm32f4xx_hal.o
- .debug_loc     0x0000a1ad       0xbd build/system_stm32f4xx.o
- .debug_loc     0x0000a26a       0x90 build/sysmem.o
- .debug_loc     0x0000a2fa      0x583 build/syscalls.o
- .debug_loc     0x0000a87d       0x38 build/gpio.o
- .debug_loc     0x0000a8b5      0x186 build/usart.o
- .debug_loc     0x0000aa3b       0x4c build/crc.o
- .debug_loc     0x0000aa87      0x120 build/spi.o
- .debug_loc     0x0000aba7      0x2d5 build/stm32f4xx_hal_crc.o
- .debug_loc     0x0000ae7c     0x261e build/stm32f4xx_hal_spi.o
+.debug_loc      0x00000000     0xd682
+ .debug_loc     0x00000000      0x20f build/main.o
+ .debug_loc     0x0000020f      0x62b build/bootloader.o
+ .debug_loc     0x0000083a      0x294 build/st7789_bootloader.o
+ .debug_loc     0x00000ace     0x1e8e build/st7789.o
+ .debug_loc     0x0000295c       0x20 build/stm32f4xx_it.o
+ .debug_loc     0x0000297c       0x2c build/stm32f4xx_hal_msp.o
+ .debug_loc     0x000029a8     0x5040 build/stm32f4xx_hal_uart.o
+ .debug_loc     0x000079e8      0x720 build/stm32f4xx_hal_rcc.o
+ .debug_loc     0x00008108      0x478 build/stm32f4xx_hal_rcc_ex.o
+ .debug_loc     0x00008580      0x44d build/stm32f4xx_hal_flash.o
+ .debug_loc     0x000089cd      0x8c5 build/stm32f4xx_hal_flash_ex.o
+ .debug_loc     0x00009292      0x60b build/stm32f4xx_hal_gpio.o
+ .debug_loc     0x0000989d      0x8ff build/stm32f4xx_hal_cortex.o
+ .debug_loc     0x0000a19c      0x1f9 build/stm32f4xx_hal.o
+ .debug_loc     0x0000a395       0xbd build/system_stm32f4xx.o
+ .debug_loc     0x0000a452       0x90 build/sysmem.o
+ .debug_loc     0x0000a4e2      0x583 build/syscalls.o
+ .debug_loc     0x0000aa65       0x38 build/gpio.o
+ .debug_loc     0x0000aa9d      0x186 build/usart.o
+ .debug_loc     0x0000ac23       0x4c build/crc.o
+ .debug_loc     0x0000ac6f      0x2d5 build/stm32f4xx_hal_crc.o
+ .debug_loc     0x0000af44      0x120 build/spi.o
+ .debug_loc     0x0000b064     0x261e build/stm32f4xx_hal_spi.o
 
-.debug_aranges  0x00000000     0x1150
+.debug_aranges  0x00000000     0x1160
  .debug_aranges
                 0x00000000       0x38 build/main.o
  .debug_aranges
-                0x00000038       0x48 build/bootloader.o
+                0x00000038       0x58 build/bootloader.o
  .debug_aranges
-                0x00000080       0x60 build/st7789_bootloader.o
+                0x00000090       0x60 build/st7789_bootloader.o
  .debug_aranges
-                0x000000e0       0xd0 build/st7789.o
+                0x000000f0       0xd0 build/st7789.o
  .debug_aranges
-                0x000001b0       0x18 build/fonts.o
+                0x000001c0       0x18 build/fonts.o
  .debug_aranges
-                0x000001c8       0x60 build/stm32f4xx_it.o
+                0x000001d8       0x60 build/stm32f4xx_it.o
  .debug_aranges
-                0x00000228       0x20 build/stm32f4xx_hal_msp.o
+                0x00000238       0x20 build/stm32f4xx_hal_msp.o
  .debug_aranges
-                0x00000248      0x208 build/stm32f4xx_hal_uart.o
+                0x00000258      0x208 build/stm32f4xx_hal_uart.o
  .debug_aranges
-                0x00000450       0x88 build/stm32f4xx_hal_rcc.o
+                0x00000460       0x88 build/stm32f4xx_hal_rcc.o
  .debug_aranges
-                0x000004d8       0x48 build/stm32f4xx_hal_rcc_ex.o
+                0x000004e8       0x48 build/stm32f4xx_hal_rcc_ex.o
  .debug_aranges
-                0x00000520       0xa0 build/stm32f4xx_hal_flash.o
+                0x00000530       0xa0 build/stm32f4xx_hal_flash.o
  .debug_aranges
-                0x000005c0       0xc8 build/stm32f4xx_hal_flash_ex.o
+                0x000005d0       0xc8 build/stm32f4xx_hal_flash_ex.o
  .debug_aranges
-                0x00000688       0x58 build/stm32f4xx_hal_gpio.o
+                0x00000698       0x58 build/stm32f4xx_hal_gpio.o
  .debug_aranges
-                0x000006e0       0xf8 build/stm32f4xx_hal_cortex.o
+                0x000006f0       0xf8 build/stm32f4xx_hal_cortex.o
  .debug_aranges
-                0x000007d8       0xf0 build/stm32f4xx_hal.o
+                0x000007e8       0xf0 build/stm32f4xx_hal.o
  .debug_aranges
-                0x000008c8       0x28 build/system_stm32f4xx.o
+                0x000008d8       0x28 build/system_stm32f4xx.o
  .debug_aranges
-                0x000008f0       0x20 build/sysmem.o
+                0x00000900       0x20 build/sysmem.o
  .debug_aranges
-                0x00000910       0xa8 build/syscalls.o
+                0x00000920       0xa8 build/syscalls.o
  .debug_aranges
-                0x000009b8       0x20 build/gpio.o
+                0x000009c8       0x20 build/gpio.o
  .debug_aranges
-                0x000009d8       0x38 build/usart.o
+                0x000009e8       0x38 build/usart.o
  .debug_aranges
-                0x00000a10       0x30 build/crc.o
+                0x00000a20       0x30 build/crc.o
  .debug_aranges
-                0x00000a40       0x30 build/spi.o
+                0x00000a50       0x50 build/stm32f4xx_hal_crc.o
  .debug_aranges
-                0x00000a70       0x50 build/stm32f4xx_hal_crc.o
+                0x00000aa0       0x30 build/spi.o
  .debug_aranges
-                0x00000ac0      0x1d0 build/stm32f4xx_hal_spi.o
+                0x00000ad0      0x1d0 build/stm32f4xx_hal_spi.o
  .debug_aranges
-                0x00000c90       0x28 build/startup_stm32f401xe.o
+                0x00000ca0       0x28 build/startup_stm32f401xe.o
  .debug_aranges
-                0x00000cb8       0x18 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-impure.o)
+                0x00000cc8       0x18 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-impure.o)
  .debug_aranges
-                0x00000cd0       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-init.o)
+                0x00000ce0       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-init.o)
  .debug_aranges
-                0x00000cf0       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-puts.o)
+                0x00000d00       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-puts.o)
  .debug_aranges
-                0x00000d10       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-findfp.o)
+                0x00000d20       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-findfp.o)
  .debug_aranges
-                0x00000d30       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memset.o)
+                0x00000d40       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memset.o)
  .debug_aranges
-                0x00000d50       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fflush.o)
+                0x00000d60       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fflush.o)
  .debug_aranges
-                0x00000d70       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-errno.o)
+                0x00000d80       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-errno.o)
  .debug_aranges
-                0x00000d90       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-mallocr.o)
+                0x00000da0       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-mallocr.o)
  .debug_aranges
-                0x00000db0       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-freer.o)
+                0x00000dc0       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-freer.o)
  .debug_aranges
-                0x00000dd0       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fwalk.o)
+                0x00000de0       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fwalk.o)
  .debug_aranges
-                0x00000df0       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-wsetup.o)
+                0x00000e00       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-wsetup.o)
  .debug_aranges
-                0x00000e10       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-setvbuf.o)
+                0x00000e20       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-setvbuf.o)
  .debug_aranges
-                0x00000e30       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memcpy.o)
+                0x00000e40       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memcpy.o)
  .debug_aranges
-                0x00000e50       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-malloc.o)
+                0x00000e60       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-malloc.o)
  .debug_aranges
-                0x00000e70       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-mlock.o)
+                0x00000e80       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-mlock.o)
  .debug_aranges
-                0x00000e90       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-makebuf.o)
+                0x00000ea0       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-makebuf.o)
  .debug_aranges
-                0x00000eb0       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-printf.o)
+                0x00000ec0       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-printf.o)
  .debug_aranges
-                0x00000ed0       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-isattyr.o)
+                0x00000ee0       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-isattyr.o)
  .debug_aranges
-                0x00000ef0       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-nano-vfprintf.o)
+                0x00000f00       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-nano-vfprintf.o)
  .debug_aranges
-                0x00000f10       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-wbuf.o)
+                0x00000f20       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-wbuf.o)
  .debug_aranges
-                0x00000f30       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-sbrkr.o)
+                0x00000f40       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-sbrkr.o)
  .debug_aranges
-                0x00000f50       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-stdio.o)
+                0x00000f60       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-stdio.o)
  .debug_aranges
-                0x00000f70       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fvwrite.o)
+                0x00000f80       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fvwrite.o)
  .debug_aranges
-                0x00000f90       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-closer.o)
+                0x00000fa0       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-closer.o)
  .debug_aranges
-                0x00000fb0       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memmove.o)
+                0x00000fc0       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memmove.o)
  .debug_aranges
-                0x00000fd0       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memchr.o)
+                0x00000fe0       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memchr.o)
  .debug_aranges
-                0x00000ff0       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-readr.o)
+                0x00001000       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-readr.o)
  .debug_aranges
-                0x00001010       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-reent.o)
+                0x00001020       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-reent.o)
  .debug_aranges
-                0x00001030       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-reallocr.o)
+                0x00001040       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-reallocr.o)
  .debug_aranges
-                0x00001050       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-nano-vfprintf_i.o)
+                0x00001060       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-nano-vfprintf_i.o)
  .debug_aranges
-                0x00001070       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fstatr.o)
+                0x00001080       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fstatr.o)
  .debug_aranges
-                0x00001090       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-lseekr.o)
+                0x000010a0       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-lseekr.o)
  .debug_aranges
-                0x000010b0       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-writer.o)
+                0x000010c0       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-writer.o)
  .debug_aranges
-                0x000010d0       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-msizer.o)
+                0x000010e0       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-msizer.o)
  .debug_aranges
-                0x000010f0       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_aeabi_uldivmod.o)
+                0x00001100       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_aeabi_uldivmod.o)
  .debug_aranges
-                0x00001110       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_udivmoddi4.o)
+                0x00001120       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_udivmoddi4.o)
  .debug_aranges
-                0x00001130       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_dvmd_tls.o)
+                0x00001140       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_dvmd_tls.o)
 
-.debug_ranges   0x00000000      0xbe8
+.debug_ranges   0x00000000      0xc18
  .debug_ranges  0x00000000       0x70 build/main.o
- .debug_ranges  0x00000070       0x98 build/bootloader.o
- .debug_ranges  0x00000108       0x50 build/st7789_bootloader.o
- .debug_ranges  0x00000158       0xc0 build/st7789.o
- .debug_ranges  0x00000218       0x50 build/stm32f4xx_it.o
- .debug_ranges  0x00000268       0x10 build/stm32f4xx_hal_msp.o
- .debug_ranges  0x00000278      0x1f8 build/stm32f4xx_hal_uart.o
- .debug_ranges  0x00000470       0x90 build/stm32f4xx_hal_rcc.o
- .debug_ranges  0x00000500       0x38 build/stm32f4xx_hal_rcc_ex.o
- .debug_ranges  0x00000538       0x90 build/stm32f4xx_hal_flash.o
- .debug_ranges  0x000005c8       0xb8 build/stm32f4xx_hal_flash_ex.o
- .debug_ranges  0x00000680       0x48 build/stm32f4xx_hal_gpio.o
- .debug_ranges  0x000006c8       0xe8 build/stm32f4xx_hal_cortex.o
- .debug_ranges  0x000007b0       0xe0 build/stm32f4xx_hal.o
- .debug_ranges  0x00000890       0x18 build/system_stm32f4xx.o
- .debug_ranges  0x000008a8       0x10 build/sysmem.o
- .debug_ranges  0x000008b8       0x98 build/syscalls.o
- .debug_ranges  0x00000950       0x10 build/gpio.o
- .debug_ranges  0x00000960       0x28 build/usart.o
- .debug_ranges  0x00000988       0x20 build/crc.o
- .debug_ranges  0x000009a8       0x20 build/spi.o
- .debug_ranges  0x000009c8       0x40 build/stm32f4xx_hal_crc.o
- .debug_ranges  0x00000a08      0x1c0 build/stm32f4xx_hal_spi.o
- .debug_ranges  0x00000bc8       0x20 build/startup_stm32f401xe.o
+ .debug_ranges  0x00000070       0xc8 build/bootloader.o
+ .debug_ranges  0x00000138       0x50 build/st7789_bootloader.o
+ .debug_ranges  0x00000188       0xc0 build/st7789.o
+ .debug_ranges  0x00000248       0x50 build/stm32f4xx_it.o
+ .debug_ranges  0x00000298       0x10 build/stm32f4xx_hal_msp.o
+ .debug_ranges  0x000002a8      0x1f8 build/stm32f4xx_hal_uart.o
+ .debug_ranges  0x000004a0       0x90 build/stm32f4xx_hal_rcc.o
+ .debug_ranges  0x00000530       0x38 build/stm32f4xx_hal_rcc_ex.o
+ .debug_ranges  0x00000568       0x90 build/stm32f4xx_hal_flash.o
+ .debug_ranges  0x000005f8       0xb8 build/stm32f4xx_hal_flash_ex.o
+ .debug_ranges  0x000006b0       0x48 build/stm32f4xx_hal_gpio.o
+ .debug_ranges  0x000006f8       0xe8 build/stm32f4xx_hal_cortex.o
+ .debug_ranges  0x000007e0       0xe0 build/stm32f4xx_hal.o
+ .debug_ranges  0x000008c0       0x18 build/system_stm32f4xx.o
+ .debug_ranges  0x000008d8       0x10 build/sysmem.o
+ .debug_ranges  0x000008e8       0x98 build/syscalls.o
+ .debug_ranges  0x00000980       0x10 build/gpio.o
+ .debug_ranges  0x00000990       0x28 build/usart.o
+ .debug_ranges  0x000009b8       0x20 build/crc.o
+ .debug_ranges  0x000009d8       0x40 build/stm32f4xx_hal_crc.o
+ .debug_ranges  0x00000a18       0x20 build/spi.o
+ .debug_ranges  0x00000a38      0x1c0 build/stm32f4xx_hal_spi.o
+ .debug_ranges  0x00000bf8       0x20 build/startup_stm32f401xe.o
 
-.debug_line     0x00000000    0x1112e
- .debug_line    0x00000000      0x551 build/main.o
- .debug_line    0x00000551      0x4e7 build/bootloader.o
- .debug_line    0x00000a38      0x220 build/st7789_bootloader.o
- .debug_line    0x00000c58      0xa63 build/st7789.o
- .debug_line    0x000016bb       0x7b build/fonts.o
- .debug_line    0x00001736      0x13d build/stm32f4xx_it.o
- .debug_line    0x00001873       0xd1 build/stm32f4xx_hal_msp.o
- .debug_line    0x00001944     0x348b build/stm32f4xx_hal_uart.o
- .debug_line    0x00004dcf      0xb38 build/stm32f4xx_hal_rcc.o
- .debug_line    0x00005907      0x5f1 build/stm32f4xx_hal_rcc_ex.o
- .debug_line    0x00005ef8      0x6cd build/stm32f4xx_hal_flash.o
- .debug_line    0x000065c5      0x743 build/stm32f4xx_hal_flash_ex.o
- .debug_line    0x00006d08      0x634 build/stm32f4xx_hal_gpio.o
- .debug_line    0x0000733c      0x7a5 build/stm32f4xx_hal_cortex.o
- .debug_line    0x00007ae1      0x4e2 build/stm32f4xx_hal.o
- .debug_line    0x00007fc3      0x1c9 build/system_stm32f4xx.o
- .debug_line    0x0000818c       0xfd build/sysmem.o
- .debug_line    0x00008289      0x372 build/syscalls.o
- .debug_line    0x000085fb      0x18a build/gpio.o
- .debug_line    0x00008785      0x2fd build/usart.o
- .debug_line    0x00008a82      0x199 build/crc.o
- .debug_line    0x00008c1b      0x25b build/spi.o
- .debug_line    0x00008e76      0x31a build/stm32f4xx_hal_crc.o
- .debug_line    0x00009190     0x23ec build/stm32f4xx_hal_spi.o
- .debug_line    0x0000b57c       0x73 build/startup_stm32f401xe.o
- .debug_line    0x0000b5ef       0xe7 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-impure.o)
- .debug_line    0x0000b6d6      0x11e /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-init.o)
- .debug_line    0x0000b7f4      0x2cf /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-puts.o)
- .debug_line    0x0000bac3      0x4fc /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-findfp.o)
- .debug_line    0x0000bfbf      0x1b6 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memset.o)
- .debug_line    0x0000c175      0x446 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fflush.o)
- .debug_line    0x0000c5bb      0x10c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-errno.o)
- .debug_line    0x0000c6c7      0x446 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-mallocr.o)
- .debug_line    0x0000cb0d      0x2c3 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-freer.o)
- .debug_line    0x0000cdd0      0x1d1 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fwalk.o)
- .debug_line    0x0000cfa1      0x2b0 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-wsetup.o)
- .debug_line    0x0000d251      0x361 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-setvbuf.o)
- .debug_line    0x0000d5b2       0xb9 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memcpy.o)
- .debug_line    0x0000d66b      0x16b /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-malloc.o)
- .debug_line    0x0000d7d6      0x153 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-mlock.o)
- .debug_line    0x0000d929      0x3a7 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-makebuf.o)
- .debug_line    0x0000dcd0      0x1c5 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-printf.o)
- .debug_line    0x0000de95      0x194 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-isattyr.o)
- .debug_line    0x0000e029      0x6c5 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-nano-vfprintf.o)
- .debug_line    0x0000e6ee      0x256 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-wbuf.o)
- .debug_line    0x0000e944      0x193 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-sbrkr.o)
- .debug_line    0x0000ead7      0x22b /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-stdio.o)
- .debug_line    0x0000ed02      0x5ec /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fvwrite.o)
- .debug_line    0x0000f2ee      0x193 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-closer.o)
- .debug_line    0x0000f481      0x1f1 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memmove.o)
- .debug_line    0x0000f672       0x84 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memchr.o)
- .debug_line    0x0000f6f6      0x198 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-readr.o)
- .debug_line    0x0000f88e      0x27b /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-reent.o)
- .debug_line    0x0000fb09      0x1f8 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-reallocr.o)
- .debug_line    0x0000fd01      0x75d /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-nano-vfprintf_i.o)
- .debug_line    0x0001045e      0x21c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fstatr.o)
- .debug_line    0x0001067a      0x199 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-lseekr.o)
- .debug_line    0x00010813      0x199 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-writer.o)
- .debug_line    0x000109ac      0x176 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-msizer.o)
- .debug_line    0x00010b22       0x4e /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_aeabi_uldivmod.o)
- .debug_line    0x00010b70      0x574 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_udivmoddi4.o)
- .debug_line    0x000110e4       0x4a /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_dvmd_tls.o)
+.debug_line     0x00000000    0x112b0
+ .debug_line    0x00000000      0x553 build/main.o
+ .debug_line    0x00000553      0x667 build/bootloader.o
+ .debug_line    0x00000bba      0x220 build/st7789_bootloader.o
+ .debug_line    0x00000dda      0xa63 build/st7789.o
+ .debug_line    0x0000183d       0x7b build/fonts.o
+ .debug_line    0x000018b8      0x13d build/stm32f4xx_it.o
+ .debug_line    0x000019f5       0xd1 build/stm32f4xx_hal_msp.o
+ .debug_line    0x00001ac6     0x348b build/stm32f4xx_hal_uart.o
+ .debug_line    0x00004f51      0xb38 build/stm32f4xx_hal_rcc.o
+ .debug_line    0x00005a89      0x5f1 build/stm32f4xx_hal_rcc_ex.o
+ .debug_line    0x0000607a      0x6cd build/stm32f4xx_hal_flash.o
+ .debug_line    0x00006747      0x743 build/stm32f4xx_hal_flash_ex.o
+ .debug_line    0x00006e8a      0x634 build/stm32f4xx_hal_gpio.o
+ .debug_line    0x000074be      0x7a5 build/stm32f4xx_hal_cortex.o
+ .debug_line    0x00007c63      0x4e2 build/stm32f4xx_hal.o
+ .debug_line    0x00008145      0x1c9 build/system_stm32f4xx.o
+ .debug_line    0x0000830e       0xfd build/sysmem.o
+ .debug_line    0x0000840b      0x372 build/syscalls.o
+ .debug_line    0x0000877d      0x18a build/gpio.o
+ .debug_line    0x00008907      0x2fd build/usart.o
+ .debug_line    0x00008c04      0x199 build/crc.o
+ .debug_line    0x00008d9d      0x31a build/stm32f4xx_hal_crc.o
+ .debug_line    0x000090b7      0x25b build/spi.o
+ .debug_line    0x00009312     0x23ec build/stm32f4xx_hal_spi.o
+ .debug_line    0x0000b6fe       0x73 build/startup_stm32f401xe.o
+ .debug_line    0x0000b771       0xe7 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-impure.o)
+ .debug_line    0x0000b858      0x11e /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-init.o)
+ .debug_line    0x0000b976      0x2cf /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-puts.o)
+ .debug_line    0x0000bc45      0x4fc /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-findfp.o)
+ .debug_line    0x0000c141      0x1b6 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memset.o)
+ .debug_line    0x0000c2f7      0x446 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fflush.o)
+ .debug_line    0x0000c73d      0x10c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-errno.o)
+ .debug_line    0x0000c849      0x446 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-mallocr.o)
+ .debug_line    0x0000cc8f      0x2c3 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-freer.o)
+ .debug_line    0x0000cf52      0x1d1 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fwalk.o)
+ .debug_line    0x0000d123      0x2b0 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-wsetup.o)
+ .debug_line    0x0000d3d3      0x361 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-setvbuf.o)
+ .debug_line    0x0000d734       0xb9 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memcpy.o)
+ .debug_line    0x0000d7ed      0x16b /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-malloc.o)
+ .debug_line    0x0000d958      0x153 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-mlock.o)
+ .debug_line    0x0000daab      0x3a7 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-makebuf.o)
+ .debug_line    0x0000de52      0x1c5 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-printf.o)
+ .debug_line    0x0000e017      0x194 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-isattyr.o)
+ .debug_line    0x0000e1ab      0x6c5 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-nano-vfprintf.o)
+ .debug_line    0x0000e870      0x256 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-wbuf.o)
+ .debug_line    0x0000eac6      0x193 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-sbrkr.o)
+ .debug_line    0x0000ec59      0x22b /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-stdio.o)
+ .debug_line    0x0000ee84      0x5ec /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fvwrite.o)
+ .debug_line    0x0000f470      0x193 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-closer.o)
+ .debug_line    0x0000f603      0x1f1 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memmove.o)
+ .debug_line    0x0000f7f4       0x84 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memchr.o)
+ .debug_line    0x0000f878      0x198 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-readr.o)
+ .debug_line    0x0000fa10      0x27b /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-reent.o)
+ .debug_line    0x0000fc8b      0x1f8 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-reallocr.o)
+ .debug_line    0x0000fe83      0x75d /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-nano-vfprintf_i.o)
+ .debug_line    0x000105e0      0x21c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fstatr.o)
+ .debug_line    0x000107fc      0x199 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-lseekr.o)
+ .debug_line    0x00010995      0x199 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-writer.o)
+ .debug_line    0x00010b2e      0x176 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-msizer.o)
+ .debug_line    0x00010ca4       0x4e /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_aeabi_uldivmod.o)
+ .debug_line    0x00010cf2      0x574 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_udivmoddi4.o)
+ .debug_line    0x00011266       0x4a /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_dvmd_tls.o)
 
-.debug_str      0x00000000     0x4fe4
- .debug_str     0x00000000     0x4fe4 build/main.o
-                                0xe91 (size before relaxing)
- .debug_str     0x00004fe4      0x4f5 build/bootloader.o
- .debug_str     0x00004fe4      0x33f build/st7789_bootloader.o
- .debug_str     0x00004fe4      0x94b build/st7789.o
- .debug_str     0x00004fe4      0x1d4 build/fonts.o
- .debug_str     0x00004fe4      0x215 build/stm32f4xx_it.o
- .debug_str     0x00004fe4      0x2a8 build/stm32f4xx_hal_msp.o
- .debug_str     0x00004fe4      0xd56 build/stm32f4xx_hal_uart.o
- .debug_str     0x00004fe4      0x6d3 build/stm32f4xx_hal_rcc.o
- .debug_str     0x00004fe4      0x4bb build/stm32f4xx_hal_rcc_ex.o
- .debug_str     0x00004fe4      0x505 build/stm32f4xx_hal_flash.o
- .debug_str     0x00004fe4      0x633 build/stm32f4xx_hal_flash_ex.o
- .debug_str     0x00004fe4      0x4b8 build/stm32f4xx_hal_gpio.o
- .debug_str     0x00004fe4      0xada build/stm32f4xx_hal_cortex.o
- .debug_str     0x00004fe4      0x9ef build/stm32f4xx_hal.o
- .debug_str     0x00004fe4      0x358 build/system_stm32f4xx.o
- .debug_str     0x00004fe4      0x1f6 build/sysmem.o
- .debug_str     0x00004fe4      0x3df build/syscalls.o
- .debug_str     0x00004fe4      0x35c build/gpio.o
- .debug_str     0x00004fe4      0x829 build/usart.o
- .debug_str     0x00004fe4      0x403 build/crc.o
- .debug_str     0x00004fe4      0x7df build/spi.o
- .debug_str     0x00004fe4      0x369 build/stm32f4xx_hal_crc.o
- .debug_str     0x00004fe4      0xbba build/stm32f4xx_hal_spi.o
- .debug_str     0x00004fe4       0x66 build/startup_stm32f401xe.o
- .debug_str     0x00004fe4      0x4bc /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-impure.o)
- .debug_str     0x00004fe4      0x1fa /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-init.o)
- .debug_str     0x00004fe4      0x503 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-puts.o)
- .debug_str     0x00004fe4      0x6bf /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-findfp.o)
- .debug_str     0x00004fe4      0x1ad /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memset.o)
- .debug_str     0x00004fe4      0x543 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fflush.o)
- .debug_str     0x00004fe4      0x4b6 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-errno.o)
- .debug_str     0x00004fe4      0x59d /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-mallocr.o)
- .debug_str     0x00004fe4      0x53c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-freer.o)
- .debug_str     0x00004fe4      0x4cc /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fwalk.o)
- .debug_str     0x00004fe4      0x4ed /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-wsetup.o)
- .debug_str     0x00004fe4      0x521 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-setvbuf.o)
- .debug_str     0x00004fe4       0xac /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memcpy.o)
- .debug_str     0x00004fe4      0x4e1 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-malloc.o)
- .debug_str     0x00004fe4      0x4da /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-mlock.o)
- .debug_str     0x00004fe4      0x64f /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-makebuf.o)
- .debug_str     0x00004fe4      0x4f7 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-printf.o)
- .debug_str     0x00004fe4      0x4bc /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-isattyr.o)
- .debug_str     0x00004fe4      0x829 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-nano-vfprintf.o)
- .debug_str     0x00004fe4      0x4f2 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-wbuf.o)
- .debug_str     0x00004fe4      0x4c5 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-sbrkr.o)
- .debug_str     0x00004fe4      0x529 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-stdio.o)
- .debug_str     0x00004fe4      0x560 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fvwrite.o)
- .debug_str     0x00004fe4      0x4b2 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-closer.o)
- .debug_str     0x00004fe4      0x1cc /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memmove.o)
- .debug_str     0x00004fe4       0x9e /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memchr.o)
- .debug_str     0x00004fe4      0x4c0 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-readr.o)
- .debug_str     0x00004fe4      0x4db /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-reent.o)
- .debug_str     0x00004fe4      0x532 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-reallocr.o)
- .debug_str     0x00004fe4      0x79b /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-nano-vfprintf_i.o)
- .debug_str     0x00004fe4      0x604 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fstatr.o)
- .debug_str     0x00004fe4      0x4c0 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-lseekr.o)
- .debug_str     0x00004fe4      0x4c2 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-writer.o)
- .debug_str     0x00004fe4      0x505 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-msizer.o)
- .debug_str     0x00004fe4       0xa3 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_aeabi_uldivmod.o)
- .debug_str     0x00004fe4      0x685 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_udivmoddi4.o)
- .debug_str     0x00004fe4       0xc3 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_dvmd_tls.o)
+.debug_str      0x00000000     0x5032
+ .debug_str     0x00000000     0x5032 build/main.o
+                                0xe72 (size before relaxing)
+ .debug_str     0x00005032      0x5ba build/bootloader.o
+ .debug_str     0x00005032      0x33f build/st7789_bootloader.o
+ .debug_str     0x00005032      0x94b build/st7789.o
+ .debug_str     0x00005032      0x1d4 build/fonts.o
+ .debug_str     0x00005032      0x215 build/stm32f4xx_it.o
+ .debug_str     0x00005032      0x2a8 build/stm32f4xx_hal_msp.o
+ .debug_str     0x00005032      0xd56 build/stm32f4xx_hal_uart.o
+ .debug_str     0x00005032      0x6d3 build/stm32f4xx_hal_rcc.o
+ .debug_str     0x00005032      0x4bb build/stm32f4xx_hal_rcc_ex.o
+ .debug_str     0x00005032      0x505 build/stm32f4xx_hal_flash.o
+ .debug_str     0x00005032      0x633 build/stm32f4xx_hal_flash_ex.o
+ .debug_str     0x00005032      0x4b8 build/stm32f4xx_hal_gpio.o
+ .debug_str     0x00005032      0xada build/stm32f4xx_hal_cortex.o
+ .debug_str     0x00005032      0x9ef build/stm32f4xx_hal.o
+ .debug_str     0x00005032      0x358 build/system_stm32f4xx.o
+ .debug_str     0x00005032      0x1f6 build/sysmem.o
+ .debug_str     0x00005032      0x3df build/syscalls.o
+ .debug_str     0x00005032      0x35c build/gpio.o
+ .debug_str     0x00005032      0x829 build/usart.o
+ .debug_str     0x00005032      0x403 build/crc.o
+ .debug_str     0x00005032      0x369 build/stm32f4xx_hal_crc.o
+ .debug_str     0x00005032      0x7df build/spi.o
+ .debug_str     0x00005032      0xbba build/stm32f4xx_hal_spi.o
+ .debug_str     0x00005032       0x66 build/startup_stm32f401xe.o
+ .debug_str     0x00005032      0x4bc /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-impure.o)
+ .debug_str     0x00005032      0x1fa /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-init.o)
+ .debug_str     0x00005032      0x503 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-puts.o)
+ .debug_str     0x00005032      0x6bf /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-findfp.o)
+ .debug_str     0x00005032      0x1ad /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memset.o)
+ .debug_str     0x00005032      0x543 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fflush.o)
+ .debug_str     0x00005032      0x4b6 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-errno.o)
+ .debug_str     0x00005032      0x59d /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-mallocr.o)
+ .debug_str     0x00005032      0x53c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-freer.o)
+ .debug_str     0x00005032      0x4cc /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fwalk.o)
+ .debug_str     0x00005032      0x4ed /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-wsetup.o)
+ .debug_str     0x00005032      0x521 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-setvbuf.o)
+ .debug_str     0x00005032       0xac /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memcpy.o)
+ .debug_str     0x00005032      0x4e1 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-malloc.o)
+ .debug_str     0x00005032      0x4da /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-mlock.o)
+ .debug_str     0x00005032      0x64f /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-makebuf.o)
+ .debug_str     0x00005032      0x4f7 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-printf.o)
+ .debug_str     0x00005032      0x4bc /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-isattyr.o)
+ .debug_str     0x00005032      0x829 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-nano-vfprintf.o)
+ .debug_str     0x00005032      0x4f2 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-wbuf.o)
+ .debug_str     0x00005032      0x4c5 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-sbrkr.o)
+ .debug_str     0x00005032      0x529 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-stdio.o)
+ .debug_str     0x00005032      0x560 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fvwrite.o)
+ .debug_str     0x00005032      0x4b2 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-closer.o)
+ .debug_str     0x00005032      0x1cc /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memmove.o)
+ .debug_str     0x00005032       0x9e /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memchr.o)
+ .debug_str     0x00005032      0x4c0 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-readr.o)
+ .debug_str     0x00005032      0x4db /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-reent.o)
+ .debug_str     0x00005032      0x532 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-reallocr.o)
+ .debug_str     0x00005032      0x79b /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-nano-vfprintf_i.o)
+ .debug_str     0x00005032      0x604 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fstatr.o)
+ .debug_str     0x00005032      0x4c0 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-lseekr.o)
+ .debug_str     0x00005032      0x4c2 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-writer.o)
+ .debug_str     0x00005032      0x505 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-msizer.o)
+ .debug_str     0x00005032       0xa3 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_aeabi_uldivmod.o)
+ .debug_str     0x00005032      0x685 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_udivmoddi4.o)
+ .debug_str     0x00005032       0xc3 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_dvmd_tls.o)
 
-.debug_frame    0x00000000     0x2a24
+.debug_frame    0x00000000     0x2a64
  .debug_frame   0x00000000       0x80 build/main.o
- .debug_frame   0x00000080       0xd0 build/bootloader.o
- .debug_frame   0x00000150      0x114 build/st7789_bootloader.o
- .debug_frame   0x00000264      0x394 build/st7789.o
- .debug_frame   0x000005f8       0xa8 build/stm32f4xx_it.o
- .debug_frame   0x000006a0       0x28 build/stm32f4xx_hal_msp.o
- .debug_frame   0x000006c8      0x5e0 build/stm32f4xx_hal_uart.o
- .debug_frame   0x00000ca8      0x16c build/stm32f4xx_hal_rcc.o
- .debug_frame   0x00000e14       0xa0 build/stm32f4xx_hal_rcc_ex.o
- .debug_frame   0x00000eb4      0x164 build/stm32f4xx_hal_flash.o
- .debug_frame   0x00001018      0x1dc build/stm32f4xx_hal_flash_ex.o
- .debug_frame   0x000011f4       0xd8 build/stm32f4xx_hal_gpio.o
- .debug_frame   0x000012cc      0x214 build/stm32f4xx_hal_cortex.o
- .debug_frame   0x000014e0      0x1ec build/stm32f4xx_hal.o
- .debug_frame   0x000016cc       0x30 build/system_stm32f4xx.o
- .debug_frame   0x000016fc       0x28 build/sysmem.o
- .debug_frame   0x00001724      0x190 build/syscalls.o
- .debug_frame   0x000018b4       0x38 build/gpio.o
- .debug_frame   0x000018ec       0x78 build/usart.o
- .debug_frame   0x00001964       0x50 build/crc.o
- .debug_frame   0x000019b4       0x60 build/spi.o
- .debug_frame   0x00001a14       0xb8 build/stm32f4xx_hal_crc.o
- .debug_frame   0x00001acc      0x5d0 build/stm32f4xx_hal_spi.o
- .debug_frame   0x0000209c       0x2c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-init.o)
- .debug_frame   0x000020c8       0x40 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-puts.o)
- .debug_frame   0x00002108       0xf4 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-findfp.o)
- .debug_frame   0x000021fc       0x2c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memset.o)
- .debug_frame   0x00002228       0x8c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fflush.o)
- .debug_frame   0x000022b4       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-errno.o)
- .debug_frame   0x000022d4       0x50 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-mallocr.o)
- .debug_frame   0x00002324       0x58 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-freer.o)
- .debug_frame   0x0000237c       0x34 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fwalk.o)
- .debug_frame   0x000023b0       0x2c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-wsetup.o)
- .debug_frame   0x000023dc       0x44 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-setvbuf.o)
- .debug_frame   0x00002420       0x30 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-malloc.o)
- .debug_frame   0x00002450       0x30 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-mlock.o)
- .debug_frame   0x00002480       0x60 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-makebuf.o)
- .debug_frame   0x000024e0       0x74 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-printf.o)
- .debug_frame   0x00002554       0x2c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-isattyr.o)
- .debug_frame   0x00002580       0xbc /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-nano-vfprintf.o)
- .debug_frame   0x0000263c       0x4c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-wbuf.o)
- .debug_frame   0x00002688       0x2c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-sbrkr.o)
- .debug_frame   0x000026b4       0x8c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-stdio.o)
- .debug_frame   0x00002740       0x64 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fvwrite.o)
- .debug_frame   0x000027a4       0x2c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-closer.o)
- .debug_frame   0x000027d0       0x40 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memmove.o)
- .debug_frame   0x00002810       0x2c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-readr.o)
- .debug_frame   0x0000283c       0x40 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-reent.o)
- .debug_frame   0x0000287c       0x38 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-reallocr.o)
- .debug_frame   0x000028b4       0x6c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-nano-vfprintf_i.o)
- .debug_frame   0x00002920       0x2c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fstatr.o)
- .debug_frame   0x0000294c       0x2c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-lseekr.o)
- .debug_frame   0x00002978       0x2c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-writer.o)
- .debug_frame   0x000029a4       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-msizer.o)
- .debug_frame   0x000029c4       0x2c /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_aeabi_uldivmod.o)
- .debug_frame   0x000029f0       0x34 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_udivmoddi4.o)
+ .debug_frame   0x00000080      0x110 build/bootloader.o
+ .debug_frame   0x00000190      0x114 build/st7789_bootloader.o
+ .debug_frame   0x000002a4      0x394 build/st7789.o
+ .debug_frame   0x00000638       0xa8 build/stm32f4xx_it.o
+ .debug_frame   0x000006e0       0x28 build/stm32f4xx_hal_msp.o
+ .debug_frame   0x00000708      0x5e0 build/stm32f4xx_hal_uart.o
+ .debug_frame   0x00000ce8      0x16c build/stm32f4xx_hal_rcc.o
+ .debug_frame   0x00000e54       0xa0 build/stm32f4xx_hal_rcc_ex.o
+ .debug_frame   0x00000ef4      0x164 build/stm32f4xx_hal_flash.o
+ .debug_frame   0x00001058      0x1dc build/stm32f4xx_hal_flash_ex.o
+ .debug_frame   0x00001234       0xd8 build/stm32f4xx_hal_gpio.o
+ .debug_frame   0x0000130c      0x214 build/stm32f4xx_hal_cortex.o
+ .debug_frame   0x00001520      0x1ec build/stm32f4xx_hal.o
+ .debug_frame   0x0000170c       0x30 build/system_stm32f4xx.o
+ .debug_frame   0x0000173c       0x28 build/sysmem.o
+ .debug_frame   0x00001764      0x190 build/syscalls.o
+ .debug_frame   0x000018f4       0x38 build/gpio.o
+ .debug_frame   0x0000192c       0x78 build/usart.o
+ .debug_frame   0x000019a4       0x50 build/crc.o
+ .debug_frame   0x000019f4       0xb8 build/stm32f4xx_hal_crc.o
+ .debug_frame   0x00001aac       0x60 build/spi.o
+ .debug_frame   0x00001b0c      0x5d0 build/stm32f4xx_hal_spi.o
+ .debug_frame   0x000020dc       0x2c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-init.o)
+ .debug_frame   0x00002108       0x40 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-puts.o)
+ .debug_frame   0x00002148       0xf4 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-findfp.o)
+ .debug_frame   0x0000223c       0x2c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memset.o)
+ .debug_frame   0x00002268       0x8c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fflush.o)
+ .debug_frame   0x000022f4       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-errno.o)
+ .debug_frame   0x00002314       0x50 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-mallocr.o)
+ .debug_frame   0x00002364       0x58 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-freer.o)
+ .debug_frame   0x000023bc       0x34 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fwalk.o)
+ .debug_frame   0x000023f0       0x2c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-wsetup.o)
+ .debug_frame   0x0000241c       0x44 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-setvbuf.o)
+ .debug_frame   0x00002460       0x30 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-malloc.o)
+ .debug_frame   0x00002490       0x30 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-mlock.o)
+ .debug_frame   0x000024c0       0x60 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-makebuf.o)
+ .debug_frame   0x00002520       0x74 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-printf.o)
+ .debug_frame   0x00002594       0x2c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-isattyr.o)
+ .debug_frame   0x000025c0       0xbc /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-nano-vfprintf.o)
+ .debug_frame   0x0000267c       0x4c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-wbuf.o)
+ .debug_frame   0x000026c8       0x2c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-sbrkr.o)
+ .debug_frame   0x000026f4       0x8c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-stdio.o)
+ .debug_frame   0x00002780       0x64 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fvwrite.o)
+ .debug_frame   0x000027e4       0x2c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-closer.o)
+ .debug_frame   0x00002810       0x40 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-memmove.o)
+ .debug_frame   0x00002850       0x2c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-readr.o)
+ .debug_frame   0x0000287c       0x40 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-reent.o)
+ .debug_frame   0x000028bc       0x38 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-reallocr.o)
+ .debug_frame   0x000028f4       0x6c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-nano-vfprintf_i.o)
+ .debug_frame   0x00002960       0x2c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fstatr.o)
+ .debug_frame   0x0000298c       0x2c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-lseekr.o)
+ .debug_frame   0x000029b8       0x2c /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-writer.o)
+ .debug_frame   0x000029e4       0x20 /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-msizer.o)
+ .debug_frame   0x00002a04       0x2c /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_aeabi_uldivmod.o)
+ .debug_frame   0x00002a30       0x34 /usr/lib/gcc/arm-none-eabi/13.2.1/thumb/v7e-m+fp/hard/libgcc.a(_udivmoddi4.o)
 
 .debug_loclists
                 0x00000000     0x33ec
@@ -2559,8 +2571,6 @@ Error_Handler                                     build/main.o
                                                   build/usart.o
 FLASH_Erase_Sector                                build/stm32f4xx_hal_flash_ex.o
                                                   build/stm32f4xx_hal_flash.o
-                                                  build/bootloader.o
-                                                  build/main.o
 FLASH_FlushCaches                                 build/stm32f4xx_hal_flash_ex.o
                                                   build/stm32f4xx_hal_flash.o
 FLASH_IRQHandler                                  build/startup_stm32f401xe.o
@@ -2631,6 +2641,7 @@ HAL_EnableCompensationCell                        build/stm32f4xx_hal.o
 HAL_FLASHEx_AdvOBGetConfig                        build/stm32f4xx_hal_flash_ex.o
 HAL_FLASHEx_AdvOBProgram                          build/stm32f4xx_hal_flash_ex.o
 HAL_FLASHEx_Erase                                 build/stm32f4xx_hal_flash_ex.o
+                                                  build/bootloader.o
 HAL_FLASHEx_Erase_IT                              build/stm32f4xx_hal_flash_ex.o
 HAL_FLASHEx_OBGetConfig                           build/stm32f4xx_hal_flash_ex.o
 HAL_FLASHEx_OBProgram                             build/stm32f4xx_hal_flash_ex.o
@@ -2638,10 +2649,10 @@ HAL_FLASHEx_OB_DeSelectPCROP                      build/stm32f4xx_hal_flash_ex.o
 HAL_FLASHEx_OB_SelectPCROP                        build/stm32f4xx_hal_flash_ex.o
 HAL_FLASH_EndOfOperationCallback                  build/stm32f4xx_hal_flash.o
 HAL_FLASH_GetError                                build/stm32f4xx_hal_flash.o
+                                                  build/bootloader.o
 HAL_FLASH_IRQHandler                              build/stm32f4xx_hal_flash.o
 HAL_FLASH_Lock                                    build/stm32f4xx_hal_flash.o
                                                   build/bootloader.o
-                                                  build/main.o
 HAL_FLASH_OB_Launch                               build/stm32f4xx_hal_flash.o
 HAL_FLASH_OB_Lock                                 build/stm32f4xx_hal_flash.o
 HAL_FLASH_OB_Unlock                               build/stm32f4xx_hal_flash.o
@@ -2651,7 +2662,6 @@ HAL_FLASH_Program                                 build/stm32f4xx_hal_flash.o
 HAL_FLASH_Program_IT                              build/stm32f4xx_hal_flash.o
 HAL_FLASH_Unlock                                  build/stm32f4xx_hal_flash.o
                                                   build/bootloader.o
-                                                  build/main.o
 HAL_GPIO_DeInit                                   build/stm32f4xx_hal_gpio.o
                                                   build/spi.o
                                                   build/usart.o
@@ -3160,6 +3170,7 @@ atexit                                            /usr/lib/gcc/arm-none-eabi/13.
 bcb_reset                                         build/bootloader.o
 bcb_slotswitch                                    build/bootloader.o
                                                   build/main.o
+compute_crc                                       build/bootloader.o
 environ                                           build/syscalls.o
 errno                                             /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-reent.o)
                                                   /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-writer.o)
@@ -3172,6 +3183,8 @@ errno                                             /usr/lib/gcc/arm-none-eabi/13.
 exit                                              /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-exit.o)
                                                   /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/crt0.o
 fflush                                            /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-fflush.o)
+flash_erase_sectors                               build/bootloader.o
+                                                  build/main.o
 free                                              /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-malloc.o)
 g_pfnVectors                                      build/startup_stm32f401xe.o
 hardware_init_hook                                /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/crt0.o
@@ -3212,6 +3225,7 @@ printf                                            /usr/lib/gcc/arm-none-eabi/13.
                                                   build/bootloader.o
                                                   build/main.o
 puts                                              /usr/lib/gcc/arm-none-eabi/13.2.1/../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard/libc_nano.a(libc_a-puts.o)
+                                                  build/bootloader.o
                                                   build/main.o
 saber                                             build/fonts.o
                                                   build/st7789.o

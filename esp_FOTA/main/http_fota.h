@@ -1,7 +1,7 @@
 #ifndef INC_HTTP_FOTA_
 #define INC_HTTP_FOTA_
 
-#define WEB_SERVER              "192.168.1.226"
+#define WEB_SERVER              "100.71.105.61"
 #define WEB_PORT                8000
 #define WEB_PATH                "/firmware_encrypted.bin"
 

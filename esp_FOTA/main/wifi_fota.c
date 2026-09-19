@@ -66,10 +66,9 @@ void wifi_init(void){
     } else {
         ESP_LOGI(WIFI_TAG, "some other problem has occured.");
     }
-
+    
     ESP_ERROR_CHECK(esp_event_handler_unregister(IP_EVENT, IP_EVENT_STA_GOT_IP, &wifi_event_handler));
     ESP_ERROR_CHECK(esp_event_handler_unregister(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler));
 
-    esp_wifi_connect();
-
+    esp_wifi_connect(); 
 }

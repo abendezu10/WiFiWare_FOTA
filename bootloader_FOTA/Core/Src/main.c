@@ -62,7 +62,6 @@
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -109,8 +108,8 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   MX_CRC_Init();
-  MX_SPI1_Init();
   MX_USART1_UART_Init();
+  MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
 
   HAL_GPIO_WritePin(TFT_BCKLIGHT_GPIO_Port, TFT_BCKLIGHT_Pin, GPIO_PIN_SET);
@@ -161,22 +160,26 @@ int main(void)
 
 		  addr = SLOT_B_SEC;
 
-		  HAL_FLASH_Unlock();
-		  FLASH_Erase_Sector(FLASH_SECTOR_6, FLASH_VOLTAGE_RANGE_3);
-		  FLASH_Erase_Sector(FLASH_SECTOR_7, FLASH_VOLTAGE_RANGE_3);
-		  HAL_FLASH_Lock();
+		  /* Sectors 6-7 in ONE call. Back-to-back FLASH_Erase_Sector() calls
+		   * write FLASH_CR while BSY is still set, which can retarget the
+		   * running erase at sector 0 and wipe the bootloader. */
+		  if (flash_erase_sectors(FLASH_SECTOR_6, 2) != HAL_OK) {
+			  printf("SLOT_B erase failed, aborting update\r\n");
+			  UI_Bootloader_ShowFailed();
+			  while(1);
+		  }
 
 		  bcb_slotswitch(SLOT_B);
 	  } else if(bcb->active_slot == SLOT_B){
 		  printf("Writing to SLOT_A\n\r");
 		  addr = SLOT_A_SEC;
 
-
-		  HAL_FLASH_Unlock();
-		  FLASH_Erase_Sector(FLASH_SECTOR_3, FLASH_VOLTAGE_RANGE_3);
-		  FLASH_Erase_Sector(FLASH_SECTOR_4, FLASH_VOLTAGE_RANGE_3);
-		  FLASH_Erase_Sector(FLASH_SECTOR_5, FLASH_VOLTAGE_RANGE_3);
-	      HAL_FLASH_Lock();
+		  /* Sectors 3-4-5 in ONE call. Same reason as above. */
+		  if (flash_erase_sectors(FLASH_SECTOR_3, 3) != HAL_OK) {
+			  printf("SLOT_A erase failed, aborting update\r\n");
+			  UI_Bootloader_ShowFailed();
+			  while(1);
+		  }
 
 	      bcb_slotswitch(SLOT_A);
 	  }else{
@@ -216,10 +219,12 @@ int main(void)
 	    			             fw_chunk.fw_img[fw_chunk.length - 1]);
 	    	  }
 
-	    	  if (write_to_flash(&fw_chunk, addr)) {
+	    	  /* FLASH_OK is 0, so test against the enum, not truthiness. */
+	    	  if (write_to_flash(&fw_chunk, addr) == FLASH_OK)
+	    		  printf("success ...\r\n");
+	    	  else
+	    		  printf("writing failed ...\r\n");
 
-	    		  printf("success ...\n\r");
-	    	  }
 	    	  addr += fw_chunk.length;
 	    	  printf("address = 0x%08lX\r\n", (uint32_t)addr);
 
@@ -232,6 +237,10 @@ int main(void)
 	    		  printf("Last chunk, breaking.\n");
 	    		  break;
 	    	  }
+	      } else {
+	    	  /* Without this the loop silently blocks forever on a desync. */
+	    	  printf("rejected chunk: len=%u last=%u\r\n",
+	    	         fw_chunk.length, fw_chunk.last_chunk);
 	      }
 
 	  }while(1);

@@ -1,4 +1,4 @@
-ARM GAS  /tmp/ccs1sLk1.s 			page 1
+ARM GAS  /tmp/cczesN0x.s 			page 1
 
 
    1              		.cpu cortex-m4
@@ -58,7 +58,7 @@ ARM GAS  /tmp/ccs1sLk1.s 			page 1
   28:Core/Src/st7789_bootloader.c **** static uint8_t s_dot_count = 0;
   29:Core/Src/st7789_bootloader.c **** 
   30:Core/Src/st7789_bootloader.c **** /* Helper: clamp 0..100 */
-ARM GAS  /tmp/ccs1sLk1.s 			page 2
+ARM GAS  /tmp/cczesN0x.s 			page 2
 
 
   31:Core/Src/st7789_bootloader.c **** static uint8_t clamp_percent(uint8_t p)
@@ -118,7 +118,7 @@ ARM GAS  /tmp/ccs1sLk1.s 			page 1
   54:Core/Src/st7789_bootloader.c ****     uint16_t inner_y      = PROGRESS_BAR_Y + 1;
   55:Core/Src/st7789_bootloader.c ****     uint16_t inner_w_max  = PROGRESS_BAR_W - 1;   /* leave 1px margin on right */
   56:Core/Src/st7789_bootloader.c ****     uint16_t inner_h      = PROGRESS_BAR_H - 1;
-ARM GAS  /tmp/ccs1sLk1.s 			page 3
+ARM GAS  /tmp/cczesN0x.s 			page 3
 
 
   57:Core/Src/st7789_bootloader.c **** 
@@ -178,7 +178,7 @@ ARM GAS  /tmp/ccs1sLk1.s 			page 1
   90              	.L8:
   91              		.align	2
   92              	.L7:
-ARM GAS  /tmp/ccs1sLk1.s 			page 4
+ARM GAS  /tmp/cczesN0x.s 			page 4
 
 
   93 0020 00000000 		.word	Font_11x18
@@ -238,7 +238,7 @@ ARM GAS  /tmp/ccs1sLk1.s 			page 1
   49:Core/Src/st7789_bootloader.c ****     uint8_t p = clamp_percent(percent);
  147              		.loc 1 49 1 is_stmt 0 view .LVU15
  148 0000 00B5     		push	{lr}
-ARM GAS  /tmp/ccs1sLk1.s 			page 5
+ARM GAS  /tmp/cczesN0x.s 			page 5
 
 
  149              	.LCFI6:
@@ -298,7 +298,7 @@ ARM GAS  /tmp/ccs1sLk1.s 			page 1
  190              	.LCFI9:
  191              		.cfi_restore_state
   64:Core/Src/st7789_bootloader.c ****                                inner_y,
-ARM GAS  /tmp/ccs1sLk1.s 			page 6
+ARM GAS  /tmp/cczesN0x.s 			page 6
 
 
  192              		.loc 1 64 5 is_stmt 1 view .LVU29
@@ -358,7 +358,7 @@ ARM GAS  /tmp/ccs1sLk1.s 			page 1
  233              		.cfi_offset 14, -4
  234 0002 84B0     		sub	sp, sp, #16
  235              	.LCFI11:
-ARM GAS  /tmp/ccs1sLk1.s 			page 7
+ARM GAS  /tmp/cczesN0x.s 			page 7
 
 
  236              		.cfi_def_cfa_offset 24
@@ -418,7 +418,7 @@ ARM GAS  /tmp/ccs1sLk1.s 			page 1
  270 0040 094B     		ldr	r3, .L19+16
  271 0042 1C70     		strb	r4, [r3]
  107:Core/Src/st7789_bootloader.c ****     clear_dots_area();
-ARM GAS  /tmp/ccs1sLk1.s 			page 8
+ARM GAS  /tmp/cczesN0x.s 			page 8
 
 
  272              		.loc 1 107 5 is_stmt 1 view .LVU37
@@ -478,7 +478,7 @@ ARM GAS  /tmp/ccs1sLk1.s 			page 1
  116:Core/Src/st7789_bootloader.c ****     /* Re-draw bar frame once (cheap), then fill portion */
  117:Core/Src/st7789_bootloader.c ****     draw_progress_bar_frame();
  320              		.loc 1 117 5 is_stmt 1 view .LVU43
-ARM GAS  /tmp/ccs1sLk1.s 			page 9
+ARM GAS  /tmp/cczesN0x.s 			page 9
 
 
  321 0004 FFF7FEFF 		bl	draw_progress_bar_frame
@@ -538,7 +538,7 @@ ARM GAS  /tmp/ccs1sLk1.s 			page 1
  357              	.LCFI14:
  358              		.cfi_def_cfa_offset 12
  359              		.cfi_offset 4, -12
-ARM GAS  /tmp/ccs1sLk1.s 			page 10
+ARM GAS  /tmp/cczesN0x.s 			page 10
 
 
  360              		.cfi_offset 5, -8
@@ -598,7 +598,7 @@ ARM GAS  /tmp/ccs1sLk1.s 			page 1
  140:Core/Src/st7789_bootloader.c **** 
  141:Core/Src/st7789_bootloader.c ****     /* Clear dots/text area and re-print */
  142:Core/Src/st7789_bootloader.c ****     clear_dots_area();
-ARM GAS  /tmp/ccs1sLk1.s 			page 11
+ARM GAS  /tmp/cczesN0x.s 			page 11
 
 
  400              		.loc 1 142 5 view .LVU60
@@ -658,7 +658,7 @@ ARM GAS  /tmp/ccs1sLk1.s 			page 1
  445 0082 DCE7     		b	.L25
  446              	.L31:
  136:Core/Src/st7789_bootloader.c ****     } else {
-ARM GAS  /tmp/ccs1sLk1.s 			page 12
+ARM GAS  /tmp/cczesN0x.s 			page 12
 
 
  447              		.loc 1 136 9 view .LVU65
@@ -718,7 +718,7 @@ ARM GAS  /tmp/ccs1sLk1.s 			page 1
  494              		.cfi_def_cfa_offset 24
  154:Core/Src/st7789_bootloader.c ****     ST7789_Fill_Color(BOOT_BG);
  495              		.loc 1 154 5 view .LVU67
-ARM GAS  /tmp/ccs1sLk1.s 			page 13
+ARM GAS  /tmp/cczesN0x.s 			page 13
 
 
  496 0004 0020     		movs	r0, #0
@@ -778,7 +778,7 @@ ARM GAS  /tmp/ccs1sLk1.s 			page 1
  535 0044 00000000 		.word	Font_16x26
  536 0048 00000000 		.word	.LC5
  537 004c 00000000 		.word	Font_11x18
-ARM GAS  /tmp/ccs1sLk1.s 			page 14
+ARM GAS  /tmp/cczesN0x.s 			page 14
 
 
  538 0050 10000000 		.word	.LC6
@@ -838,7 +838,7 @@ ARM GAS  /tmp/ccs1sLk1.s 			page 1
  176:Core/Src/st7789_bootloader.c ****                        DONE_MSG_Y,
  177:Core/Src/st7789_bootloader.c ****                        "Update Failed",
  178:Core/Src/st7789_bootloader.c ****                        Font_16x26,
-ARM GAS  /tmp/ccs1sLk1.s 			page 15
+ARM GAS  /tmp/cczesN0x.s 			page 15
 
 
  179:Core/Src/st7789_bootloader.c ****                        RED,
@@ -889,41 +889,41 @@ ARM GAS  /tmp/ccs1sLk1.s 			page 1
  623              		.file 4 "Core/Inc/fonts.h"
  624              		.file 5 "Core/Inc/st7789.h"
  625              		.file 6 "/usr/include/newlib/stdio.h"
-ARM GAS  /tmp/ccs1sLk1.s 			page 16
+ARM GAS  /tmp/cczesN0x.s 			page 16
 
 
 DEFINED SYMBOLS
                             *ABS*:00000000 st7789_bootloader.c
-     /tmp/ccs1sLk1.s:21     .text.clamp_percent:00000000 $t
-     /tmp/ccs1sLk1.s:26     .text.clamp_percent:00000000 clamp_percent
-     /tmp/ccs1sLk1.s:53     .text.clear_dots_area:00000000 $t
-     /tmp/ccs1sLk1.s:58     .text.clear_dots_area:00000000 clear_dots_area
-     /tmp/ccs1sLk1.s:93     .text.clear_dots_area:00000020 $d
-     /tmp/ccs1sLk1.s:98     .text.draw_progress_bar_frame:00000000 $t
-     /tmp/ccs1sLk1.s:103    .text.draw_progress_bar_frame:00000000 draw_progress_bar_frame
-     /tmp/ccs1sLk1.s:135    .text.draw_progress_bar_fill:00000000 $t
-     /tmp/ccs1sLk1.s:140    .text.draw_progress_bar_fill:00000000 draw_progress_bar_fill
-     /tmp/ccs1sLk1.s:205    .text.draw_progress_bar_fill:00000038 $d
-     /tmp/ccs1sLk1.s:210    .rodata.UI_Bootloader_ShowStart.str1.4:00000000 $d
-     /tmp/ccs1sLk1.s:217    .text.UI_Bootloader_ShowStart:00000000 $t
-     /tmp/ccs1sLk1.s:223    .text.UI_Bootloader_ShowStart:00000000 UI_Bootloader_ShowStart
-     /tmp/ccs1sLk1.s:291    .text.UI_Bootloader_ShowStart:00000058 $d
-     /tmp/ccs1sLk1.s:617    .bss.s_dot_count:00000000 s_dot_count
-     /tmp/ccs1sLk1.s:300    .text.UI_Bootloader_UpdateProgress:00000000 $t
-     /tmp/ccs1sLk1.s:306    .text.UI_Bootloader_UpdateProgress:00000000 UI_Bootloader_UpdateProgress
-     /tmp/ccs1sLk1.s:334    .rodata.UI_Bootloader_TickDots.str1.4:00000000 $d
-     /tmp/ccs1sLk1.s:344    .text.UI_Bootloader_TickDots:00000000 $t
-     /tmp/ccs1sLk1.s:350    .text.UI_Bootloader_TickDots:00000000 UI_Bootloader_TickDots
-     /tmp/ccs1sLk1.s:458    .text.UI_Bootloader_TickDots:00000094 $d
-     /tmp/ccs1sLk1.s:468    .rodata.UI_Bootloader_ShowDone.str1.4:00000000 $d
-     /tmp/ccs1sLk1.s:475    .text.UI_Bootloader_ShowDone:00000000 $t
-     /tmp/ccs1sLk1.s:481    .text.UI_Bootloader_ShowDone:00000000 UI_Bootloader_ShowDone
-     /tmp/ccs1sLk1.s:535    .text.UI_Bootloader_ShowDone:00000044 $d
-     /tmp/ccs1sLk1.s:543    .rodata.UI_Bootloader_ShowFailed.str1.4:00000000 $d
-     /tmp/ccs1sLk1.s:547    .text.UI_Bootloader_ShowFailed:00000000 $t
-     /tmp/ccs1sLk1.s:553    .text.UI_Bootloader_ShowFailed:00000000 UI_Bootloader_ShowFailed
-     /tmp/ccs1sLk1.s:607    .text.UI_Bootloader_ShowFailed:00000044 $d
-     /tmp/ccs1sLk1.s:618    .bss.s_dot_count:00000000 $d
+     /tmp/cczesN0x.s:21     .text.clamp_percent:00000000 $t
+     /tmp/cczesN0x.s:26     .text.clamp_percent:00000000 clamp_percent
+     /tmp/cczesN0x.s:53     .text.clear_dots_area:00000000 $t
+     /tmp/cczesN0x.s:58     .text.clear_dots_area:00000000 clear_dots_area
+     /tmp/cczesN0x.s:93     .text.clear_dots_area:00000020 $d
+     /tmp/cczesN0x.s:98     .text.draw_progress_bar_frame:00000000 $t
+     /tmp/cczesN0x.s:103    .text.draw_progress_bar_frame:00000000 draw_progress_bar_frame
+     /tmp/cczesN0x.s:135    .text.draw_progress_bar_fill:00000000 $t
+     /tmp/cczesN0x.s:140    .text.draw_progress_bar_fill:00000000 draw_progress_bar_fill
+     /tmp/cczesN0x.s:205    .text.draw_progress_bar_fill:00000038 $d
+     /tmp/cczesN0x.s:210    .rodata.UI_Bootloader_ShowStart.str1.4:00000000 $d
+     /tmp/cczesN0x.s:217    .text.UI_Bootloader_ShowStart:00000000 $t
+     /tmp/cczesN0x.s:223    .text.UI_Bootloader_ShowStart:00000000 UI_Bootloader_ShowStart
+     /tmp/cczesN0x.s:291    .text.UI_Bootloader_ShowStart:00000058 $d
+     /tmp/cczesN0x.s:617    .bss.s_dot_count:00000000 s_dot_count
+     /tmp/cczesN0x.s:300    .text.UI_Bootloader_UpdateProgress:00000000 $t
+     /tmp/cczesN0x.s:306    .text.UI_Bootloader_UpdateProgress:00000000 UI_Bootloader_UpdateProgress
+     /tmp/cczesN0x.s:334    .rodata.UI_Bootloader_TickDots.str1.4:00000000 $d
+     /tmp/cczesN0x.s:344    .text.UI_Bootloader_TickDots:00000000 $t
+     /tmp/cczesN0x.s:350    .text.UI_Bootloader_TickDots:00000000 UI_Bootloader_TickDots
+     /tmp/cczesN0x.s:458    .text.UI_Bootloader_TickDots:00000094 $d
+     /tmp/cczesN0x.s:468    .rodata.UI_Bootloader_ShowDone.str1.4:00000000 $d
+     /tmp/cczesN0x.s:475    .text.UI_Bootloader_ShowDone:00000000 $t
+     /tmp/cczesN0x.s:481    .text.UI_Bootloader_ShowDone:00000000 UI_Bootloader_ShowDone
+     /tmp/cczesN0x.s:535    .text.UI_Bootloader_ShowDone:00000044 $d
+     /tmp/cczesN0x.s:543    .rodata.UI_Bootloader_ShowFailed.str1.4:00000000 $d
+     /tmp/cczesN0x.s:547    .text.UI_Bootloader_ShowFailed:00000000 $t
+     /tmp/cczesN0x.s:553    .text.UI_Bootloader_ShowFailed:00000000 UI_Bootloader_ShowFailed
+     /tmp/cczesN0x.s:607    .text.UI_Bootloader_ShowFailed:00000044 $d
+     /tmp/cczesN0x.s:618    .bss.s_dot_count:00000000 $d
 
 UNDEFINED SYMBOLS
 ST7789_Fill

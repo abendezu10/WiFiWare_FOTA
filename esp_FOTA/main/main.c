@@ -179,144 +179,68 @@ void taskRecieveFirmware(void *pvParameter){
             ESP_LOGI(HTTP_TAG, "set socket receiving timeout success");
 
 
-
-            int eofheader = 0, eofpackage = 0;
+            int header_done = 0, package_done = 0;
             int track = 0;
-            int prev_fw_len = 0;
+            size_t pkg_have = 0;
             uint32_t total_fw_bytes = 0;
 
             fw_chunk_t fw_chunk = {.fw_length = 0, .last_chunk = 0};
             uint8_t http_buffer[FW_BUFFER_SIZE];
 
-
-
-            do{
-                memset(http_buffer, 0, sizeof(http_buffer));
-
+            for(;;){
                 received_http = read(sock, http_buffer, sizeof(http_buffer));
+
+                if(received_http < 0){
+                    ESP_LOGE(HTTP_TAG, "socket read failed at %d of %d bytes", total_fw_bytes, fw_size);
+                    break;
+                }
+
+                if(received_http == 0){
+                    if(fw_chunk.fw_length > 0){
+                        fw_chunk.last_chunk = 1;
+                        xQueueSend(qBuffer, &fw_chunk, portMAX_DELAY);
+                        ESP_LOGI(HTTP_TAG, "EOF flush of %d bytes now being sent to queue [%d]", fw_chunk.fw_length, track);
+                        track++;
+                    } else {
+                        ESP_LOGE(HTTP_TAG, "EOF at %d of %d bytes, image is incomplete", total_fw_bytes, fw_size);
+                    }
+                    break;
+                }
+
                 ESP_LOGI(HTTP_TAG, "Received HTTP: %d [%d]", received_http, track);
 
-                // Sending out Firmware Image chunk
-                if (eofpackage && eofheader) {
+                size_t offset = 0;
+                size_t avail = (size_t)received_http;
 
-                    if (fw_chunk.fw_length < FW_BUFFER_SIZE) {
+                if(!header_done){
+                    for(size_t i = 3; i < avail; ++i){
+                        if(http_buffer[i]   == '\n' &&
+                           http_buffer[i-1] == '\r' &&
+                           http_buffer[i-2] == '\n' &&
+                           http_buffer[i-3] == '\r'){
 
-                        size_t space_left = FW_BUFFER_SIZE - fw_chunk.fw_length;
-                        size_t src_len    = (size_t)received_http;
-
-                        // don't read past the end of the firmware image
-                        size_t remaining_fw = (fw_size > total_fw_bytes)
-                                            ? (fw_size - total_fw_bytes)
-                                            : 0;
-
-                        size_t to_add = space_left;
-                        if (to_add > src_len)      to_add = src_len;
-                        if (to_add > remaining_fw) to_add = remaining_fw;
-
-                        if (to_add == 0) {
-
-                            if (fw_chunk.fw_length > 0 && total_fw_bytes == fw_size) {
-                                fw_chunk.last_chunk = 1;
-                                xQueueSend(qBuffer, &fw_chunk, portMAX_DELAY);
-                                ESP_LOGI(HTTP_TAG, "HOWDY");
-                                ESP_LOGI(HTTP_TAG, "The bytes received are: %d and now being sent to queue [%d]", received_http, track);
-                                ESP_LOGI(HTTP_TAG, "%02X\n\r", fw_chunk.fw_img[0]);
-                                ESP_LOGI(HTTP_TAG, "%02X\n\r", fw_chunk.fw_img[1]);
-                                ESP_LOGI(HTTP_TAG, "%02X\n\r", fw_chunk.fw_img[2]);
-                                ESP_LOGI(HTTP_TAG, "%02X\n\r", fw_chunk.fw_img[3]);
-                                ESP_LOGI(HTTP_TAG, "%02X\n\r", fw_chunk.fw_img[4]);
-                                track++;
-                            }
-                            break; // done
-                        }
-
-                        memcpy(&fw_chunk.fw_img[fw_chunk.fw_length], &http_buffer[0], to_add);
-                        fw_chunk.fw_length   += to_add;
-                        total_fw_bytes       += to_add;
-
-                        size_t remaining = src_len - to_add;
-                        size_t offset    = to_add;
-
-                        // if we've just reached the end of the firmware, mark last chunk
-                        if (total_fw_bytes == fw_size) {
-                            fw_chunk.last_chunk = 1;
-                        }
-
-                        if (fw_chunk.fw_length == FW_BUFFER_SIZE || fw_chunk.last_chunk) {
-                            fw_chunk_t out = fw_chunk;
-
-                            if (xQueueSend(qBuffer, &out, portMAX_DELAY) != pdPASS)
-                                ESP_LOGI(HTTP_TAG, "Sending firmware buffer to the Send Task has failed!");
-                            else{
-                                ESP_LOGI(HTTP_TAG, "The bytes received are: %d and now being sent to queue [%d]", received_http, track);
-                                ESP_LOGI(HTTP_TAG, "%02X\n\r", fw_chunk.fw_img[0]);
-                                ESP_LOGI(HTTP_TAG, "%02X\n\r", fw_chunk.fw_img[1]);
-                                ESP_LOGI(HTTP_TAG, "%02X\n\r", fw_chunk.fw_img[2]);
-                                ESP_LOGI(HTTP_TAG, "%02X\n\r", fw_chunk.fw_img[3]);
-                                ESP_LOGI(HTTP_TAG, "%02X\n\r", fw_chunk.fw_img[4]);
-                                track++;
-
-                            }
-                            // reset chunk state
-                            fw_chunk.last_chunk = 0;
-                            fw_chunk.fw_length  = 0;
-                            memset(fw_chunk.fw_img, 0, FW_BUFFER_SIZE);
-
-                            // if we still have bytes from this HTTP read AND we haven’t finished firmware,
-                            // start filling the next chunk
-                            if (remaining > 0 && total_fw_bytes < fw_size) {
-                                size_t second_copy = remaining;
-                                size_t remaining_fw2 = fw_size - total_fw_bytes;
-                                if (second_copy > FW_BUFFER_SIZE)  second_copy = FW_BUFFER_SIZE;
-                                if (second_copy > remaining_fw2)   second_copy = remaining_fw2;
-
-                                memcpy(fw_chunk.fw_img, &http_buffer[offset], second_copy);
-                                fw_chunk.fw_length = second_copy;
-                                total_fw_bytes    += second_copy;
-
-                                if (total_fw_bytes == fw_size) {
-                                    fw_chunk.last_chunk = 1;
-                                }
-                            }
+                            offset += i + 1;
+                            avail  -= i + 1;
+                            header_done = 1;
+                            break;
                         }
                     }
 
-                    continue;
+                    if(!header_done) continue;
+
+                    ESP_LOGI(HTTP_TAG, "HTTP Header Parsed out");
                 }
 
-                ESP_LOGI(HTTP_TAG, "First bytes of raw cipher:");
-                for (int i = 0; i < 16; ++i) {
-                    ESP_LOGI(HTTP_TAG, "%02X", fw_chunk.fw_img[i]);
-                }
+                if(!package_done){
+                    size_t take = PACKAGE_LEN - pkg_have;
+                    if(take > avail) take = avail;
 
+                    memcpy(&package[pkg_have], &http_buffer[offset], take);
+                    pkg_have += take;
+                    offset   += take;
+                    avail    -= take;
 
-
-                // Packet Parsing
-                if (!eofpackage && eofheader) {
-
-                    if (prev_fw_len == 0) {
-
-                        memcpy(&package[0], &http_buffer[0], PACKAGE_LEN);
-                        memcpy(&fw_chunk.fw_img[0], &http_buffer[PACKAGE_LEN], received_http - PACKAGE_LEN);
-                        fw_chunk.fw_length = received_http - PACKAGE_LEN;
-                        // 472 bytes / 512
-
-                    } else if (prev_fw_len > 0) {
-                        // If that assumption is wrong with your server pattern, this logic needs rework.
-                        memcpy(&package[0], &fw_chunk.fw_img[0], PACKAGE_LEN);
-                        memmove(&fw_chunk.fw_img[0], &fw_chunk.fw_img[PACKAGE_LEN], prev_fw_len - PACKAGE_LEN);
-                        fw_chunk.fw_length = prev_fw_len - PACKAGE_LEN;
-                        total_fw_bytes = fw_chunk.fw_length;
-
-                        // 270 bytes /512 so from 0-269 it holds space
-
-                    } else {
-                        ESP_LOGE(HTTP_TAG, "ERROR: PREV_FW_LENGTH IS A NEGATIVE NUMBER");
-                    }
-
-                    printf("the first %02x %02x %02x %02x\n\r", fw_chunk.fw_img[0],fw_chunk.fw_img[1],fw_chunk.fw_img[2],fw_chunk.fw_img[3]);
-                    printf("the cipher %02x %02x %02x %02x\n\r", fw_chunk.fw_img[24],fw_chunk.fw_img[25],fw_chunk.fw_img[26],fw_chunk.fw_img[27]);
-                    total_fw_bytes = fw_chunk.fw_length;
+                    if(pkg_have < PACKAGE_LEN) continue;
 
                     memcpy(magic, package, MAGIC_LEN);
                     magic[4] = '\0';
@@ -326,58 +250,54 @@ void taskRecieveFirmware(void *pvParameter){
                               ((uint32_t)package[6] << 8 ) |
                               ((uint32_t)package[7] << 0 );
 
-                    ESP_LOGI(HTTP_TAG, "magic: %s and firmware size: %d", magic, fw_size);
-
                     memcpy(iv, &package[8], IV_LEN);
 
                     mbedtls_aes_init(&aes_ctx);
-                    int ret = mbedtls_aes_setkey_enc(&aes_ctx, AES_KEY, 256);  // 256-bit key
-                    if (ret != 0) {
+                    int ret = mbedtls_aes_setkey_enc(&aes_ctx, AES_KEY, 256);
+                    if(ret != 0){
                         ESP_LOGE(HTTP_TAG, "AES setkey failed: %d", ret);
-                    } else {
-                        memcpy(ctr_nonce_counter, iv, IV_LEN);   // initial counter = IV
-                        memset(stream_block, 0, sizeof(stream_block));
-                        nc_off = 0;
-                        aes_ready = true;
-                        ESP_LOGI(HTTP_TAG, "AES-CTR context initialised");
+                        break;
                     }
 
+                    memcpy(ctr_nonce_counter, iv, IV_LEN);
+                    memset(stream_block, 0, sizeof(stream_block));
+                    nc_off = 0;
+                    aes_ready = true;
+                    package_done = 1;
 
-                    eofpackage = 1;
-                    // after this, remaining fw_chunk.fw_img bytes (if any) are firmware body
-                    // subsequent packets will hit the eofpackage && eofheader path
-
+                    ESP_LOGI(HTTP_TAG, "magic: %s and firmware size: %d", magic, fw_size);
                     ESP_LOGI(HTTP_TAG, "Package parsed out!");
                 }
 
-                // HTTP PARSING
-                if (!eofheader) {
-                     printf("the first %02x %02x %02x %02x\n\r", http_buffer[0],http_buffer[1],http_buffer[2],http_buffer[3]);
-                    for (int i = 3; i < received_http; ++i) {
-                        if (http_buffer[i]   == '\n' &&
-                            http_buffer[i-1] == '\r' &&
-                            http_buffer[i-2] == '\n' &&
-                            http_buffer[i-3] == '\r') {
+                while(avail > 0){
+                    size_t space = FW_BUFFER_SIZE - fw_chunk.fw_length;
+                    size_t take  = (avail < space) ? avail : space;
 
-                            int header_end = i + 1;  // index just after \r\n\r\n
-                            int body_bytes = received_http - header_end;
-                            if (body_bytes < 0) body_bytes = 0;
+                    memcpy(&fw_chunk.fw_img[fw_chunk.fw_length], &http_buffer[offset], take);
+                    fw_chunk.fw_length += take;
+                    total_fw_bytes     += take;
+                    offset += take;
+                    avail  -= take;
 
-                            prev_fw_len = body_bytes;
+                    if(total_fw_bytes >= fw_size) fw_chunk.last_chunk = 1;
 
-                            if (body_bytes > 0) {
-                                memcpy(&fw_chunk.fw_img[0], &http_buffer[header_end], body_bytes);
-                            }
-
-                            eofheader = 1;
-                            break;
+                    if(fw_chunk.fw_length == FW_BUFFER_SIZE || fw_chunk.last_chunk){
+                        if(xQueueSend(qBuffer, &fw_chunk, portMAX_DELAY) != pdPASS){
+                            ESP_LOGI(HTTP_TAG, "Sending firmware buffer to the Send Task has failed!");
+                        } else {
+                            ESP_LOGI(HTTP_TAG, "The bytes received are: %d and now being sent to queue [%d]", fw_chunk.fw_length, track);
+                            track++;
                         }
-                    }
 
-                    ESP_LOGI(HTTP_TAG, "HTTP Header Parsed out");
+                        if(fw_chunk.last_chunk) break;
+
+                        fw_chunk.fw_length = 0;
+                        memset(fw_chunk.fw_img, 0, FW_BUFFER_SIZE);
+                    }
                 }
 
-            } while (1);
+                if(fw_chunk.last_chunk) break;
+            }
 
 
             ESP_LOGI(HTTP_TAG, "done reading from socket.");
@@ -435,6 +355,7 @@ void taskSendFirmware(void *pvParameter){
                  */
 
                 int m = 0;
+                int retries = 0;
                 fw_chunk.crc = crc32_le(0, fw_chunk.fw_img, fw_chunk.fw_length);
                 do{
                     ESP_LOGI(UART_TAG, "Sending to STM32- first i: %02X, length: %d, last chunk: %d and id(%d)",
@@ -445,9 +366,15 @@ void taskSendFirmware(void *pvParameter){
                     if (n == sizeof(fw_chunk)) vTaskDelay(10);
                     m = uart_read_bytes(UART_NUM_0, &flash_write, 1, 0);
                     printf("the value of m= %d\n", m);
-                }while(!m); // doesnt recieve the received
+                    retries++;
+                }while(!m && retries < 20);
 
-                    // int n = uart_write_bytes(UART_NUM_1, (const char *) &fw_chunk, sizeof(fw_chunk));
+                if(!m){
+                    ESP_LOGE(UART_TAG, "no ACK for id(%d) after %d tries, aborting update", id, retries);
+                    task_send_done = 1;
+                    continue;
+                }
+
                  if (fw_chunk.last_chunk) {
                     task_send_done  = 1;   // all firmware has been sent
                 }

@@ -185,7 +185,7 @@ void ST7789_Init(void)
     ST7789_WriteCommand (ST7789_INVON);		//	Inversion ON
 	ST7789_WriteCommand (ST7789_SLPOUT);	//	Out of sleep mode
   	ST7789_WriteCommand (ST7789_NORON);		//	Normal Display on
-  	ST7789_WriteCommand (ST7789_DISPON);	//	Main screen turned on	
+  	ST7789_WriteCommand (ST7789_DISPON);	//	Main screen turned on
 
 	HAL_Delay(50);
 	ST7789_Fill_Color(BLACK);				//	Fill with Black.

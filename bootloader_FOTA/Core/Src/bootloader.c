@@ -32,6 +32,51 @@ static int __io_putchar(int ch)
 }
 
 /*
+ * Erase a contiguous run of sectors.
+ *
+ * Do NOT call FLASH_Erase_Sector() directly. It is an internal HAL helper that
+ * only pokes FLASH_CR (SNB/SER/STRT) and returns immediately. It never waits
+ * for BSY to clear and never clears SER afterwards. Two consequences:
+ *
+ *   1) A second call lands while the first erase is still running. SNB is read
+ *      continuously by the flash controller, not latched at STRT, so clearing
+ *      SNB mid-erase retargets the running erase at sector 0 - the bootloader.
+ *   2) SER is left set, so the next HAL_FLASH_Program() runs with SER and PG
+ *      both set in FLASH_CR, which the reference manual forbids.
+ *
+ * HAL_FLASHEx_Erase() does the full protocol: wait, check flags, clear SER.
+ */
+HAL_StatusTypeDef flash_erase_sectors(uint32_t first_sector, uint32_t nb_sectors)
+{
+	FLASH_EraseInitTypeDef erase = {0};
+	uint32_t sector_err = 0xFFFFFFFFU;
+
+	erase.TypeErase    = FLASH_TYPEERASE_SECTORS;
+	erase.VoltageRange = FLASH_VOLTAGE_RANGE_3;
+	erase.Banks        = FLASH_BANK_1;
+	erase.Sector       = first_sector;
+	erase.NbSectors    = nb_sectors;
+
+	HAL_FLASH_Unlock();
+
+	__HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_EOP    | FLASH_FLAG_OPERR  |
+	                       FLASH_FLAG_WRPERR | FLASH_FLAG_PGAERR |
+	                       FLASH_FLAG_PGSERR | FLASH_FLAG_PGPERR);
+
+	HAL_StatusTypeDef status = HAL_FLASHEx_Erase(&erase, &sector_err);
+
+	HAL_FLASH_Lock();
+
+	if (status != HAL_OK) {
+		printf("erase failed at sector %lu err=0x%08lX\r\n",
+		       (unsigned long)sector_err,
+		       (unsigned long)HAL_FLASH_GetError());
+	}
+
+	return status;
+}
+
+/*
  * Fetches the first value in the Vector Table, which is the Main Stack Pointer.
  * Returns 1 if the MSP is the range of the correct SRAM region
  */
@@ -120,13 +165,16 @@ void bcb_reset(void){
 	bcb.active_slot = SLOT_A;
 	int num_word = (sizeof(bcb_t) + 3)/4;
 
-	HAL_FLASH_Unlock();
+	if (flash_erase_sectors(FLASH_SECTOR_2, 1) != HAL_OK) {
+		printf("bcb_reset: erase failed, BCB not written\r\n");
+		return;
+	}
 
-	FLASH_Erase_Sector(FLASH_SECTOR_2, FLASH_VOLTAGE_RANGE_3);
+	HAL_FLASH_Unlock();
 		for(int i = 0; i < num_word; i ++){
 
 			HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, BCB_SEC + (i * 4) , *(((uint32_t *)&bcb) + i));
-			printf("value: %d", *(((uint32_t *)&bcb) + i));
+			printf("value: %lu\r\n", (unsigned long)*(((uint32_t *)&bcb) + i));
 		}
 	HAL_FLASH_Lock();
 }
@@ -138,17 +186,24 @@ void bcb_slotswitch(uint8_t active_slot){
 	printf("inside bcb_slotswitch: %d\n\r", bcb.active_slot);
 	int num_word = (sizeof(bcb_t) + 3)/4;
 
+	if (flash_erase_sectors(FLASH_SECTOR_2, 1) != HAL_OK) {
+		printf("bcb_slotswitch: erase failed, BCB unchanged\r\n");
+		return;
+	}
+
 	HAL_FLASH_Unlock();
 
-	FLASH_Erase_Sector(FLASH_SECTOR_2, FLASH_VOLTAGE_RANGE_3);
-
-
 	for(int i = 0; i < num_word; i ++){
-		HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, BCB_SEC + (i * 4) , *(((uint32_t *)&bcb) + i));
-
+		if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, BCB_SEC + (i * 4),
+		                      *(((uint32_t *)&bcb) + i)) != HAL_OK) {
+			HAL_FLASH_Lock();
+			printf("bcb write failed at word %d err=0x%08lX\r\n",
+			       i, (unsigned long)HAL_FLASH_GetError());
+			return;
+		}
 	}
-	printf("write sucessful in bcb\n\r");
 	HAL_FLASH_Lock();
+	printf("write sucessful in bcb\n\r");
 }
 
 FlashStatus write_to_flash(fw_chunk_t* fw_chunk, uint32_t address){
@@ -170,6 +225,8 @@ FlashStatus write_to_flash(fw_chunk_t* fw_chunk, uint32_t address){
 
 		if(HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, dst , val) != HAL_OK){
 			HAL_FLASH_Lock();
+			printf("Failed writing to memory at 0x%08lX err=0x%08lX\r\n",
+			       (unsigned long)dst, (unsigned long)HAL_FLASH_GetError());
 			return FLASH_ERR;
 		}
 	}
@@ -179,6 +236,9 @@ FlashStatus write_to_flash(fw_chunk_t* fw_chunk, uint32_t address){
 		memcpy(&padding, &src[offset], tail);
 		if(HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, address + offset, padding) != HAL_OK){
 			HAL_FLASH_Lock();
+			printf("Failed writing to memory tail at 0x%08lX err=0x%08lX\r\n",
+			       (unsigned long)(address + offset),
+			       (unsigned long)HAL_FLASH_GetError());
 			return FLASH_ERR;
 		}
 	}
