@@ -1,0 +1,9 @@
+../Core/Src/st7789_bootloader.c:31:16:clamp_percent	16	static
+../Core/Src/st7789_bootloader.c:38:13:draw_progress_bar_frame	16	static
+../Core/Src/st7789_bootloader.c:48:13:draw_progress_bar_fill	48	static
+../Core/Src/st7789_bootloader.c:72:13:clear_dots_area	16	static
+../Core/Src/st7789_bootloader.c:85:6:UI_Bootloader_ShowStart	24	static
+../Core/Src/st7789_bootloader.c:114:6:UI_Bootloader_UpdateProgress	16	static
+../Core/Src/st7789_bootloader.c:124:6:UI_Bootloader_TickDots	56	static
+../Core/Src/st7789_bootloader.c:152:6:UI_Bootloader_ShowDone	24	static
+../Core/Src/st7789_bootloader.c:171:6:UI_Bootloader_ShowFailed	24	static

@@ -1,3 +1,0 @@
-../Core/Src/bootloader.c:16:5:IMG_valid	16	static
-../Core/Src/bootloader.c:25:20:jump_to_reset	24	static
-../Core/Src/bootloader.c:35:6:jmp_to_IMG	32	static,ignoring_inline_asm

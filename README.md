@@ -11,3 +11,9 @@ cmake --build build --target flip_slot
 
 # Build + flash BCB struct (sector 2)
 cmake --build build --target bcb
+
+
+CMake 
+1. Build BCB structure onto the stm32 then flash the bootloader
+2. Build and flash the esp program onto esp
+3.

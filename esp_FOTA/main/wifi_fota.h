@@ -10,8 +10,8 @@
 #include "tcpip_adapter.h"
 
 /* ---- FILL THESE IN with your actual network credentials ---- */
-#define FOTA_WIFI_SSID          "YOUR_SSID_HERE"
-#define FOTA_WIFI_PASS          "YOUR_PASSWORD_HERE"
+#define FOTA_WIFI_SSID          "Verizon_6TX76C"
+#define FOTA_WIFI_PASS          "flue-jog6-surge"
 
 /* How many times to retry connecting before giving up */
 #define FOTA_WIFI_MAX_RETRY     5

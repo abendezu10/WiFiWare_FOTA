@@ -123,6 +123,7 @@ void taskRecieveFirmware(void *pvParameter){
     for(;;){
         uint8_t b_signal = 0; // Bootloader sends UART signal to ESP that it wants to update firmware
         int len = uart_read_bytes(UART_NUM_0, &b_signal, 1, pdMS_TO_TICKS(5000));
+        ESP_LOGI(UART_TAG, "read result: len=%d b_signal=%d", len, b_signal);
         if(len && b_signal){
             ESP_LOGI(UART_TAG, "b_signal changed from 0 to 1");
 
@@ -425,11 +426,26 @@ void taskSendFirmware(void *pvParameter){
                     }
                 }
 
+                ESP_LOGI(UART_TAG, "Decryption success!");
+                
+                ESP_LOGI(UART_TAG, "after decryption %02x %02x %02x %02x\n\r", fw_chunk.fw_img[0],fw_chunk.fw_img[1],fw_chunk.fw_img[2],fw_chunk.fw_img[3]);
+                /* The fw_chunk is correctly decrypted but once it goes
+                 *
+                 *
+                 */
 
+                int m = 0;
+                fw_chunk.crc = crc32_le(0, fw_chunk.fw_img, fw_chunk.fw_length);
                 do{
+                    ESP_LOGI(UART_TAG, "Sending to STM32- first i: %02X, length: %d, last chunk: %d and id(%d)",
+                        fw_chunk.fw_img[0], fw_chunk.fw_length, fw_chunk.last_chunk, id);
+
                     int n = uart_write_bytes(UART_NUM_1, (const char *) &fw_chunk, sizeof(fw_chunk));
+                    printf("the value of n= %d\n", n);
                     if (n == sizeof(fw_chunk)) vTaskDelay(10);
-                }while(!uart_read_bytes(UART_NUM_0, &flash_write, 1, 0));
+                    m = uart_read_bytes(UART_NUM_0, &flash_write, 1, 0);
+                    printf("the value of m= %d\n", m);
+                }while(!m); // doesnt recieve the received
 
                     // int n = uart_write_bytes(UART_NUM_1, (const char *) &fw_chunk, sizeof(fw_chunk));
                  if (fw_chunk.last_chunk) {

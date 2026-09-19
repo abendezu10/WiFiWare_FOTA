@@ -57,10 +57,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /mnt/c/Users/abend/Programming/WiFiWare/bcb
+CMAKE_SOURCE_DIR = /home/abendezu/projects/WiFiWare_FOTA/bcb
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /mnt/c/Users/abend/Programming/WiFiWare/bcb/build
+CMAKE_BINARY_DIR = /home/abendezu/projects/WiFiWare_FOTA/bcb/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -87,9 +87,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /mnt/c/Users/abend/Programming/WiFiWare/bcb/build/CMakeFiles /mnt/c/Users/abend/Programming/WiFiWare/bcb/build//CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/abendezu/projects/WiFiWare_FOTA/bcb/build/CMakeFiles /home/abendezu/projects/WiFiWare_FOTA/bcb/build//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /mnt/c/Users/abend/Programming/WiFiWare/bcb/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/abendezu/projects/WiFiWare_FOTA/bcb/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target

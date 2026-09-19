@@ -7,10 +7,9 @@ set(CMAKE_DEPENDS_GENERATOR "Unix Makefiles")
 # The top level Makefile was generated from the following files:
 set(CMAKE_MAKEFILE_DEPENDS
   "CMakeCache.txt"
-  "/mnt/c/Users/abend/Programming/WiFiWare/bcb/CMakeLists.txt"
+  "/home/abendezu/projects/WiFiWare_FOTA/bcb/CMakeLists.txt"
   "CMakeFiles/3.28.3/CMakeCCompiler.cmake"
   "CMakeFiles/3.28.3/CMakeSystem.cmake"
-  "/mnt/c/Users/abend/Programming/WiFiWare/bcb/toolchain-arm-none-eabi.cmake"
   "/usr/share/cmake-3.28/Modules/CMakeCCompiler.cmake.in"
   "/usr/share/cmake-3.28/Modules/CMakeCCompilerABI.c"
   "/usr/share/cmake-3.28/Modules/CMakeCInformation.cmake"
@@ -81,7 +80,11 @@ set(CMAKE_MAKEFILE_DEPENDS
   "/usr/share/cmake-3.28/Modules/Compiler/XLClang-C-DetermineCompiler.cmake"
   "/usr/share/cmake-3.28/Modules/Compiler/zOS-C-DetermineCompiler.cmake"
   "/usr/share/cmake-3.28/Modules/Internal/FeatureTesting.cmake"
-  "/usr/share/cmake-3.28/Modules/Platform/Generic.cmake"
+  "/usr/share/cmake-3.28/Modules/Platform/Linux-GNU-C.cmake"
+  "/usr/share/cmake-3.28/Modules/Platform/Linux-GNU.cmake"
+  "/usr/share/cmake-3.28/Modules/Platform/Linux-Initialize.cmake"
+  "/usr/share/cmake-3.28/Modules/Platform/Linux.cmake"
+  "/usr/share/cmake-3.28/Modules/Platform/UnixPaths.cmake"
   )
 
 # The corresponding makefile is:

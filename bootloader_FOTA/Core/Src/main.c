@@ -129,7 +129,7 @@ int main(void)
 
 
   const bcb_t *bcb = (bcb_t*)BCB_SEC;
-  printf("before if current slot: %d\n\r", bcb->active_slot);
+  printf("Active Slot: %d\n\r", bcb->active_slot);
   uint32_t active_addr = (bcb->active_slot) ? SLOT_A_SEC : SLOT_B_SEC;
   uint8_t update_complete = 0;
   //printf("active_addr: 0x%08lX\n\r", active_addr);
@@ -182,12 +182,22 @@ int main(void)
 	  }else{
     	  printf("ERROR HAS OCCURED! BCB IS NOT 1 OR 0");
     	  update_complete = 0;
+    	  UI_Bootloader_ShowFailed();
+    	  while(1);
       }
+
+	  uint8_t junk;
+	  while (HAL_UART_Receive(&huart1, &junk, 1, 1) == HAL_OK) {
+	      printf("drained stray byte: %02X\r\n", junk);
+	  }
 
 	  do{
 		  fw_chunk_t fw_chunk = {0};
 
-	      HAL_UART_Receive(&huart1, (uint8_t*)&fw_chunk, sizeof(fw_chunk), HAL_MAX_DELAY);
+	      HAL_UART_Receive(&huart1, (uint8_t*)&fw_chunk, sizeof(fw_chunk), HAL_MAX_DELAY); //
+	      printf("RAW: len=%u last=%u b0=%02X b1=%02X b2=%02X b3=%02X\r\n",
+	      fw_chunk.length, fw_chunk.last_chunk,
+	      fw_chunk.fw_img[0], fw_chunk.fw_img[1], fw_chunk.fw_img[2], fw_chunk.fw_img[3]);
 
 	      if (fw_chunk.length > 0 && fw_chunk.length <= FW_IMG_SIZE && fw_chunk.last_chunk <= 1) {
 	    	  if (fw_chunk.length >= 4) {
@@ -213,9 +223,10 @@ int main(void)
 	    	  addr += fw_chunk.length;
 	    	  printf("address = 0x%08lX\r\n", (uint32_t)addr);
 
-	    	  if (HAL_UART_Transmit(&huart1, &fw_chunk_signal, 1, HAL_MAX_DELAY) != HAL_OK) {
-	    		  printf("transmit error\n");
-	    	  }
+
+	    	  HAL_StatusTypeDef tx_status = HAL_UART_Transmit(&huart1, &fw_chunk_signal, 1, HAL_MAX_DELAY);
+	    	  printf("ACK TX status: %d\r\n", tx_status);
+
 
 	    	  if (fw_chunk.last_chunk == 1) {
 	    		  printf("Last chunk, breaking.\n");

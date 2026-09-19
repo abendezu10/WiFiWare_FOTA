@@ -1,4 +1,4 @@
-/mnt/c/Users/abend/Programming/WiFiWare/bcb/build/CMakeFiles/bcb.dir
-/mnt/c/Users/abend/Programming/WiFiWare/bcb/build/CMakeFiles/flash_bcb.dir
-/mnt/c/Users/abend/Programming/WiFiWare/bcb/build/CMakeFiles/edit_cache.dir
-/mnt/c/Users/abend/Programming/WiFiWare/bcb/build/CMakeFiles/rebuild_cache.dir
+/home/abendezu/projects/WiFiWare_FOTA/bcb/build/CMakeFiles/bcb.dir
+/home/abendezu/projects/WiFiWare_FOTA/bcb/build/CMakeFiles/flash_bcb.dir
+/home/abendezu/projects/WiFiWare_FOTA/bcb/build/CMakeFiles/edit_cache.dir
+/home/abendezu/projects/WiFiWare_FOTA/bcb/build/CMakeFiles/rebuild_cache.dir

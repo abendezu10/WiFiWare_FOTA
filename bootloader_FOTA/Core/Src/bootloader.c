@@ -187,3 +187,15 @@ FlashStatus write_to_flash(fw_chunk_t* fw_chunk, uint32_t address){
 
 	return FLASH_OK;
 }
+
+uint32_t compute_crc(const uint8_t *data, uint32_t len){
+    uint32_t crc = 0xffffffffU;
+    while (len--) {
+        crc ^= (uint32_t)(*data++);
+        for (int i = 0; i < 8; i++) {
+            uint32_t mask = -(crc & 1U);
+            crc = (crc >> 1) ^ (0xEDB88320U & mask);
+        }
+    }
+    return crc ^ 0xffffffffU;
+}

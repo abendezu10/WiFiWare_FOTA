@@ -1,4 +1,4 @@
-ARM GAS  /tmp/ccI9p076.s 			page 1
+ARM GAS  /tmp/ccCrGE8J.s 			page 1
 
 
    1              		.cpu cortex-m4
@@ -58,7 +58,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
   35              	.LCFI0:
   36              		.cfi_def_cfa_offset 8
   37              		.cfi_offset 4, -8
-ARM GAS  /tmp/ccI9p076.s 			page 2
+ARM GAS  /tmp/ccCrGE8J.s 			page 2
 
 
   38              		.cfi_offset 14, -4
@@ -118,7 +118,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
   88              		.thumb
   89              		.thumb_func
   91              	ST7789_WriteSmallData:
-ARM GAS  /tmp/ccI9p076.s 			page 3
+ARM GAS  /tmp/ccCrGE8J.s 			page 3
 
 
   92              	.LVL6:
@@ -178,7 +178,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  105              	.LCFI4:
  106              		.cfi_def_cfa_offset 16
  107 0004 8DF80700 		strb	r0, [sp, #7]
-ARM GAS  /tmp/ccI9p076.s 			page 4
+ARM GAS  /tmp/ccCrGE8J.s 			page 4
 
 
   68:Core/Src/st7789.c **** 	ST7789_Select();
@@ -238,7 +238,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
   35:Core/Src/st7789.c **** 	ST7789_Select();
  159              		.loc 1 35 1 is_stmt 1 view -0
  160              		.cfi_startproc
-ARM GAS  /tmp/ccI9p076.s 			page 5
+ARM GAS  /tmp/ccCrGE8J.s 			page 5
 
 
  161              		@ args = 0, pretend = 0, frame = 0
@@ -298,7 +298,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  204              		.loc 1 53 4 is_stmt 1 view .LVU27
  205 002a 4FF0FF33 		mov	r3, #-1
  206 002e 2246     		mov	r2, r4
-ARM GAS  /tmp/ccI9p076.s 			page 6
+ARM GAS  /tmp/ccCrGE8J.s 			page 6
 
 
  207 0030 3146     		mov	r1, r6
@@ -358,7 +358,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
   75:Core/Src/st7789.c ****  * @brief Set the rotation direction of the display
   76:Core/Src/st7789.c ****  * @param m -> rotation parameter(please refer it in st7789.h)
   77:Core/Src/st7789.c ****  * @return none
-ARM GAS  /tmp/ccI9p076.s 			page 7
+ARM GAS  /tmp/ccCrGE8J.s 			page 7
 
 
   78:Core/Src/st7789.c ****  */
@@ -418,7 +418,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  276              	.LVL24:
  277              		.loc 1 107 2 is_stmt 0 view .LVU40
  278 0014 1021     		movs	r1, #16
-ARM GAS  /tmp/ccI9p076.s 			page 8
+ARM GAS  /tmp/ccCrGE8J.s 			page 8
 
 
  279              	.LVL25:
@@ -433,13 +433,13 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  109:Core/Src/st7789.c **** 	uint16_t y_start = y0 + Y_SHIFT, y_end = y1 + Y_SHIFT;
  287              		.loc 1 109 2 view .LVU44
  288              		.loc 1 109 11 is_stmt 0 view .LVU45
- 289 001c 2335     		adds	r5, r5, #35
+ 289 001c 2135     		adds	r5, r5, #33
  290              	.LVL28:
  291              		.loc 1 109 11 view .LVU46
  292 001e ADB2     		uxth	r5, r5
  293              	.LVL29:
  294              		.loc 1 109 35 view .LVU47
- 295 0020 2334     		adds	r4, r4, #35
+ 295 0020 2134     		adds	r4, r4, #33
  296              	.LVL30:
  297              		.loc 1 109 35 view .LVU48
  298 0022 A4B2     		uxth	r4, r4
@@ -478,7 +478,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  321 004a FFF7FEFF 		bl	ST7789_WriteCommand
  322              	.LVL34:
  323              	.LBB4:
-ARM GAS  /tmp/ccI9p076.s 			page 9
+ARM GAS  /tmp/ccCrGE8J.s 			page 9
 
 
  120:Core/Src/st7789.c **** 	{
@@ -538,7 +538,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  372              	.LFB137:
   80:Core/Src/st7789.c **** 	ST7789_WriteCommand(ST7789_MADCTL);	// MADCTL
  373              		.loc 1 80 1 is_stmt 1 view -0
-ARM GAS  /tmp/ccI9p076.s 			page 10
+ARM GAS  /tmp/ccCrGE8J.s 			page 10
 
 
  374              		.cfi_startproc
@@ -598,7 +598,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  418              		.loc 1 90 3 view .LVU71
  419 0026 0020     		movs	r0, #0
  420 0028 FFF7FEFF 		bl	ST7789_WriteSmallData
-ARM GAS  /tmp/ccI9p076.s 			page 11
+ARM GAS  /tmp/ccCrGE8J.s 			page 11
 
 
  421              	.LVL45:
@@ -658,7 +658,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  156:Core/Src/st7789.c ****     ST7789_WriteSmallData(0x35);			//	Default value
  157:Core/Src/st7789.c ****     ST7789_WriteCommand(0xBB);				//	VCOM setting
  158:Core/Src/st7789.c ****     ST7789_WriteSmallData(0x19);			//	0.725v (default 0.75v for 0x20)
-ARM GAS  /tmp/ccI9p076.s 			page 12
+ARM GAS  /tmp/ccCrGE8J.s 			page 12
 
 
  159:Core/Src/st7789.c ****     ST7789_WriteCommand(0xC0);				//	LCMCTRL	
@@ -718,7 +718,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  457 0002 82B0     		sub	sp, sp, #8
  458              	.LCFI12:
  459              		.cfi_def_cfa_offset 24
-ARM GAS  /tmp/ccI9p076.s 			page 13
+ARM GAS  /tmp/ccCrGE8J.s 			page 13
 
 
  460 0004 0546     		mov	r5, r0
@@ -726,7 +726,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  461              		.loc 1 201 2 is_stmt 1 view .LVU78
  202:Core/Src/st7789.c **** 	ST7789_SetAddressWindow(0, 0, ST7789_WIDTH - 1, ST7789_HEIGHT - 1);
  462              		.loc 1 202 2 view .LVU79
- 463 0006 A923     		movs	r3, #169
+ 463 0006 AB23     		movs	r3, #171
  464 0008 40F23F12 		movw	r2, #319
  465 000c 0021     		movs	r1, #0
  466 000e 0846     		mov	r0, r1
@@ -778,7 +778,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  497              		.loc 1 214 37 discriminator 3 view .LVU89
  498 0034 0134     		adds	r4, r4, #1
  499              	.LVL53:
-ARM GAS  /tmp/ccI9p076.s 			page 14
+ARM GAS  /tmp/ccCrGE8J.s 			page 14
 
 
  214:Core/Src/st7789.c **** 				for (j = 0; j < ST7789_HEIGHT; j++) {
@@ -788,7 +788,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  503              	.L31:
  214:Core/Src/st7789.c **** 				for (j = 0; j < ST7789_HEIGHT; j++) {
  504              		.loc 1 214 19 is_stmt 1 discriminator 1 view .LVU91
- 505 0038 A92C     		cmp	r4, #169
+ 505 0038 AB2C     		cmp	r4, #171
  506 003a F2D9     		bls	.L30
  213:Core/Src/st7789.c **** 		for (i = 0; i < ST7789_WIDTH; i++)
  507              		.loc 1 213 34 discriminator 2 view .LVU92
@@ -838,7 +838,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  545 0000 D0040D11 		.ascii	"\320\004\015\021\023+?TL\030\015\013\037#\000"
  545      132B3F54 
  545      4C180D0B 
-ARM GAS  /tmp/ccI9p076.s 			page 15
+ARM GAS  /tmp/ccCrGE8J.s 			page 15
 
 
  545      1F2300
@@ -898,7 +898,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  591              		.loc 1 143 5 view .LVU104
  592 0026 1420     		movs	r0, #20
  593 0028 FFF7FEFF 		bl	HAL_Delay
-ARM GAS  /tmp/ccI9p076.s 			page 16
+ARM GAS  /tmp/ccCrGE8J.s 			page 16
 
 
  594              	.LVL63:
@@ -958,7 +958,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  637 006a 1920     		movs	r0, #25
  638 006c FFF7FEFF 		bl	ST7789_WriteSmallData
  639              	.LVL72:
-ARM GAS  /tmp/ccI9p076.s 			page 17
+ARM GAS  /tmp/ccCrGE8J.s 			page 17
 
 
  159:Core/Src/st7789.c ****     ST7789_WriteSmallData (0x2C);			//	Default value
@@ -1018,7 +1018,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  683              	.LVL83:
  170:Core/Src/st7789.c ****     ST7789_WriteSmallData (0xA1);			//	Default value
  684              		.loc 1 170 5 view .LVU127
-ARM GAS  /tmp/ccI9p076.s 			page 18
+ARM GAS  /tmp/ccCrGE8J.s 			page 18
 
 
  685 00b2 A420     		movs	r0, #164
@@ -1078,7 +1078,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  729 00f6 2120     		movs	r0, #33
  730 00f8 FFF7FEFF 		bl	ST7789_WriteCommand
  731              	.LVL90:
-ARM GAS  /tmp/ccI9p076.s 			page 19
+ARM GAS  /tmp/ccCrGE8J.s 			page 19
 
 
  186:Core/Src/st7789.c ****   	ST7789_WriteCommand (ST7789_NORON);		//	Normal Display on
@@ -1138,7 +1138,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  225:Core/Src/st7789.c ****  * @param color -> color of the Pixel
  226:Core/Src/st7789.c ****  * @return none
  227:Core/Src/st7789.c ****  */
-ARM GAS  /tmp/ccI9p076.s 			page 20
+ARM GAS  /tmp/ccCrGE8J.s 			page 20
 
 
  228:Core/Src/st7789.c **** void ST7789_DrawPixel(uint16_t x, uint16_t y, uint16_t color)
@@ -1165,7 +1165,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  795 000a 1446     		mov	r4, r2
  231:Core/Src/st7789.c **** 		 (y < 0) || (y >= ST7789_HEIGHT))	return;
  796              		.loc 1 231 12 view .LVU148
- 797 000c A929     		cmp	r1, #169
+ 797 000c AB29     		cmp	r1, #171
  798 000e 01D9     		bls	.L49
  799              	.LVL97:
  800              	.L41:
@@ -1198,7 +1198,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  818              	.LVL100:
  234:Core/Src/st7789.c **** 	ST7789_Select();
  819              		.loc 1 234 2 is_stmt 1 view .LVU152
-ARM GAS  /tmp/ccI9p076.s 			page 21
+ARM GAS  /tmp/ccCrGE8J.s 			page 21
 
 
  234:Core/Src/st7789.c **** 	ST7789_Select();
@@ -1258,7 +1258,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  239:Core/Src/st7789.c **** 
  240:Core/Src/st7789.c **** /**
  241:Core/Src/st7789.c ****  * @brief Fill an Area with single color
-ARM GAS  /tmp/ccI9p076.s 			page 22
+ARM GAS  /tmp/ccCrGE8J.s 			page 22
 
 
  242:Core/Src/st7789.c ****  * @param xSta&ySta -> coordinate of the start point
@@ -1298,7 +1298,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  896 0016 9846     		mov	r8, r3
  250:Core/Src/st7789.c **** 		 (yEnd < 0) || (yEnd >= ST7789_HEIGHT))	return;
  897              		.loc 1 250 15 view .LVU163
- 898 0018 A92B     		cmp	r3, #169
+ 898 0018 AB2B     		cmp	r3, #171
  899 001a 02D9     		bls	.L59
  900              	.LVL107:
  901              	.L52:
@@ -1318,7 +1318,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  905              		.cfi_remember_state
  906              		.cfi_def_cfa_offset 28
  907              		@ sp needed
-ARM GAS  /tmp/ccI9p076.s 			page 23
+ARM GAS  /tmp/ccCrGE8J.s 			page 23
 
 
  908 001e BDE8F083 		pop	{r4, r5, r6, r7, r8, r9, pc}
@@ -1378,7 +1378,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  950              		.loc 1 255 30 discriminator 3 view .LVU176
  951 004e 0134     		adds	r4, r4, #1
  952              	.LVL116:
-ARM GAS  /tmp/ccI9p076.s 			page 24
+ARM GAS  /tmp/ccCrGE8J.s 			page 24
 
 
  255:Core/Src/st7789.c **** 			uint8_t data[] = {color >> 8, color & 0xFF};
@@ -1438,7 +1438,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  265:Core/Src/st7789.c ****  * @param color -> color of the Pixel
  266:Core/Src/st7789.c ****  * @return none
  267:Core/Src/st7789.c ****  */
-ARM GAS  /tmp/ccI9p076.s 			page 25
+ARM GAS  /tmp/ccCrGE8J.s 			page 25
 
 
  268:Core/Src/st7789.c **** void ST7789_DrawPixel_4px(uint16_t x, uint16_t y, uint16_t color)
@@ -1475,7 +1475,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  1026 0016 09B1     		cbz	r1, .L63
  271:Core/Src/st7789.c **** 		 (y <= 0) || (y > ST7789_HEIGHT))	return;
  1027              		.loc 1 271 13 view .LVU190
- 1028 0018 AA29     		cmp	r1, #170
+ 1028 0018 AC29     		cmp	r1, #172
  1029 001a 02D9     		bls	.L66
  1030              	.LVL122:
  1031              	.L63:
@@ -1498,7 +1498,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  1043              		.loc 1 272 2 is_stmt 1 view .LVU192
  1044 0022 DFF82C80 		ldr	r8, .L67
  1045 0026 0022     		movs	r2, #0
-ARM GAS  /tmp/ccI9p076.s 			page 26
+ARM GAS  /tmp/ccCrGE8J.s 			page 26
 
 
  1046              	.LVL124:
@@ -1558,7 +1558,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  282:Core/Src/st7789.c ****  * @return none
  283:Core/Src/st7789.c ****  */
  284:Core/Src/st7789.c **** void ST7789_DrawLine(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1,
-ARM GAS  /tmp/ccI9p076.s 			page 27
+ARM GAS  /tmp/ccCrGE8J.s 			page 27
 
 
  285:Core/Src/st7789.c ****         uint16_t color) {
@@ -1618,7 +1618,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  1141 002e 8346     		mov	fp, r0
  1142              	.LVL136:
  1143              		.loc 1 288 8 view .LVU210
-ARM GAS  /tmp/ccI9p076.s 			page 28
+ARM GAS  /tmp/ccCrGE8J.s 			page 28
 
 
  1144 0030 1846     		mov	r0, r3
@@ -1678,7 +1678,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  1173              	.LVL143:
  314:Core/Src/st7789.c ****     dy = ABS(y1 - y0);
  1174              		.loc 1 314 5 is_stmt 1 view .LVU220
-ARM GAS  /tmp/ccI9p076.s 			page 29
+ARM GAS  /tmp/ccCrGE8J.s 			page 29
 
 
  1175              		.loc 1 314 10 is_stmt 0 view .LVU221
@@ -1738,7 +1738,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  1212 0074 A3B2     		uxth	r3, r4
  1213 0076 24B2     		sxth	r4, r4
  1214              	.LVL150:
-ARM GAS  /tmp/ccI9p076.s 			page 30
+ARM GAS  /tmp/ccCrGE8J.s 			page 30
 
 
  332:Core/Src/st7789.c ****         if (err < 0) {
@@ -1798,7 +1798,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  320:Core/Src/st7789.c ****     } else {
  1260              		.loc 1 320 15 view .LVU247
  1261 00a2 0123     		movs	r3, #1
-ARM GAS  /tmp/ccI9p076.s 			page 31
+ARM GAS  /tmp/ccCrGE8J.s 			page 31
 
 
  1262 00a4 0193     		str	r3, [sp, #4]
@@ -1858,7 +1858,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  1306 0006 0746     		mov	r7, r0
  1307 0008 0D46     		mov	r5, r1
  1308 000a 1446     		mov	r4, r2
-ARM GAS  /tmp/ccI9p076.s 			page 32
+ARM GAS  /tmp/ccCrGE8J.s 			page 32
 
 
  1309 000c 1E46     		mov	r6, r3
@@ -1918,7 +1918,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  1357 0060 0122     		movs	r2, #1
  1358 0062 1021     		movs	r1, #16
  1359 0064 4846     		mov	r0, r9
-ARM GAS  /tmp/ccI9p076.s 			page 33
+ARM GAS  /tmp/ccCrGE8J.s 			page 33
 
 
  1360 0066 FFF7FEFF 		bl	HAL_GPIO_WritePin
@@ -1978,7 +1978,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  1405              	.LCFI37:
  1406              		.cfi_def_cfa_offset 64
  1407 0006 8346     		mov	fp, r0
-ARM GAS  /tmp/ccI9p076.s 			page 34
+ARM GAS  /tmp/ccCrGE8J.s 			page 34
 
 
  1408 0008 8A46     		mov	r10, r1
@@ -2038,7 +2038,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  1453 003e 89B2     		uxth	r1, r1
  1454 0040 5846     		mov	r0, fp
  1455 0042 FFF7FEFF 		bl	ST7789_DrawPixel
-ARM GAS  /tmp/ccI9p076.s 			page 35
+ARM GAS  /tmp/ccCrGE8J.s 			page 35
 
 
  1456              	.LVL181:
@@ -2098,7 +2098,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  1500              	.LVL187:
  1501              	.L88:
  381:Core/Src/st7789.c **** 		}
-ARM GAS  /tmp/ccI9p076.s 			page 36
+ARM GAS  /tmp/ccCrGE8J.s 			page 36
 
 
  382:Core/Src/st7789.c **** 		x++;
@@ -2158,7 +2158,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  1549              	.LVL193:
  389:Core/Src/st7789.c **** 		ST7789_DrawPixel(x0 - x, y0 - y, color);
  1550              		.loc 1 389 3 view .LVU302
-ARM GAS  /tmp/ccI9p076.s 			page 37
+ARM GAS  /tmp/ccCrGE8J.s 			page 37
 
 
  1551 00de 3246     		mov	r2, r6
@@ -2218,7 +2218,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  1597 0136 99DA     		bge	.L92
  1598 0138 A4E7     		b	.L88
  1599              	.L91:
-ARM GAS  /tmp/ccI9p076.s 			page 38
+ARM GAS  /tmp/ccCrGE8J.s 			page 38
 
 
  395:Core/Src/st7789.c **** 	}
@@ -2278,7 +2278,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  1641              	.LCFI39:
  1642              		.cfi_def_cfa_offset 24
  1643              		.cfi_offset 4, -24
-ARM GAS  /tmp/ccI9p076.s 			page 39
+ARM GAS  /tmp/ccCrGE8J.s 			page 39
 
 
  1644              		.cfi_offset 5, -20
@@ -2291,7 +2291,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  1651 000e 1746     		mov	r7, r2
  1652 0010 1E46     		mov	r6, r3
  1653              		.loc 1 408 26 discriminator 1 view .LVU317
- 1654 0012 A929     		cmp	r1, #169
+ 1654 0012 AB29     		cmp	r1, #171
  1655 0014 06D8     		bhi	.L95
  409:Core/Src/st7789.c **** 		return;
  410:Core/Src/st7789.c **** 	if ((x + w - 1) >= ST7789_WIDTH)
@@ -2308,7 +2308,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  1664              		.loc 1 412 9 is_stmt 0 view .LVU322
  1665 001e 8B19     		adds	r3, r1, r6
  1666              		.loc 1 412 5 view .LVU323
- 1667 0020 AA2B     		cmp	r3, #170
+ 1667 0020 AC2B     		cmp	r3, #172
  1668 0022 01DD     		ble	.L101
  1669              	.LVL203:
  1670              	.L95:
@@ -2338,7 +2338,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  1684              	.LVL207:
  415:Core/Src/st7789.c **** 	ST7789_SetAddressWindow(x, y, x + w - 1, y + h - 1);
  1685              		.loc 1 415 2 view .LVU328
-ARM GAS  /tmp/ccI9p076.s 			page 40
+ARM GAS  /tmp/ccCrGE8J.s 			page 40
 
 
  1686 0032 FFF7FEFF 		bl	HAL_GPIO_WritePin
@@ -2398,7 +2398,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  1731              	.L103:
  1732              		.align	2
  1733              	.L102:
-ARM GAS  /tmp/ccI9p076.s 			page 41
+ARM GAS  /tmp/ccCrGE8J.s 			page 41
 
 
  1734 0068 00080240 		.word	1073874944
@@ -2458,7 +2458,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  1779 001c FFF7FEFF 		bl	HAL_GPIO_WritePin
  1780              	.LVL217:
  431:Core/Src/st7789.c **** }
-ARM GAS  /tmp/ccI9p076.s 			page 42
+ARM GAS  /tmp/ccCrGE8J.s 			page 42
 
 
  1781              		.loc 1 431 1 is_stmt 0 view .LVU346
@@ -2518,7 +2518,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  1824              		.cfi_offset 14, -12
  1825 0006 83B0     		sub	sp, sp, #12
  1826              	.LCFI44:
-ARM GAS  /tmp/ccI9p076.s 			page 43
+ARM GAS  /tmp/ccCrGE8J.s 			page 43
 
 
  1827              		.cfi_def_cfa_offset 56
@@ -2578,7 +2578,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  450:Core/Src/st7789.c **** 		for (j = 0; j < font.width; j++) {
  451:Core/Src/st7789.c **** 			if ((b << j) & 0x8000) {
  452:Core/Src/st7789.c **** 				uint8_t data[] = {color >> 8, color & 0xFF};
-ARM GAS  /tmp/ccI9p076.s 			page 44
+ARM GAS  /tmp/ccCrGE8J.s 			page 44
 
 
  453:Core/Src/st7789.c **** 				ST7789_WriteData(data, sizeof(data));
@@ -2638,7 +2638,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  1915              		.loc 1 448 32 discriminator 2 view .LVU376
  1916 0082 09F10109 		add	r9, r9, #1
  1917              	.LVL229:
-ARM GAS  /tmp/ccI9p076.s 			page 45
+ARM GAS  /tmp/ccCrGE8J.s 			page 45
 
 
  1918              	.L111:
@@ -2698,7 +2698,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  1959              		.cfi_restore 4
  1960              		.cfi_def_cfa_offset 8
  1961              	.LVL233:
-ARM GAS  /tmp/ccI9p076.s 			page 46
+ARM GAS  /tmp/ccCrGE8J.s 			page 46
 
 
  1962              		.loc 1 462 1 view .LVU387
@@ -2758,7 +2758,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  2006 000a 0D46     		mov	r5, r1
  2007 000c 1746     		mov	r7, r2
  2008 000e 0D93     		str	r3, [sp, #52]
-ARM GAS  /tmp/ccI9p076.s 			page 47
+ARM GAS  /tmp/ccCrGE8J.s 			page 47
 
 
  2009 0010 BDF83C90 		ldrh	r9, [sp, #60]
@@ -2818,7 +2818,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  2046 003a 3046     		mov	r0, r6
  2047 003c FFF7FEFF 		bl	ST7789_WriteChar
  2048              	.LVL242:
-ARM GAS  /tmp/ccI9p076.s 			page 48
+ARM GAS  /tmp/ccCrGE8J.s 			page 48
 
 
  491:Core/Src/st7789.c **** 		x += font.width;
@@ -2872,13 +2872,13 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  2083 005e 2B44     		add	r3, r3, r5
  480:Core/Src/st7789.c **** 				break;
  2084              		.loc 1 480 7 view .LVU418
- 2085 0060 A92B     		cmp	r3, #169
+ 2085 0060 AB2B     		cmp	r3, #171
  2086 0062 03DC     		bgt	.L125
  484:Core/Src/st7789.c **** 				// skip spaces in the beginning of the new line
  2087              		.loc 1 484 4 is_stmt 1 view .LVU419
  484:Core/Src/st7789.c **** 				// skip spaces in the beginning of the new line
  2088              		.loc 1 484 7 is_stmt 0 view .LVU420
-ARM GAS  /tmp/ccI9p076.s 			page 49
+ARM GAS  /tmp/ccCrGE8J.s 			page 49
 
 
  2089 0064 202A     		cmp	r2, #32
@@ -2938,7 +2938,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  497:Core/Src/st7789.c **** /** 
  498:Core/Src/st7789.c ****  * @brief Draw a filled Rectangle with single color
  499:Core/Src/st7789.c ****  * @param  x&y -> coordinates of the starting point
-ARM GAS  /tmp/ccI9p076.s 			page 50
+ARM GAS  /tmp/ccCrGE8J.s 			page 50
 
 
  500:Core/Src/st7789.c ****  * @param w&h -> width & height of the Rectangle
@@ -2993,12 +2993,12 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  2178 001c B5F5A07F 		cmp	r5, #320
  2179 0020 26D2     		bcs	.L133
  2180              		.loc 1 510 24 discriminator 1 view .LVU434
- 2181 0022 A92F     		cmp	r7, #169
+ 2181 0022 AB2F     		cmp	r7, #171
  2182 0024 24D8     		bhi	.L133
  511:Core/Src/st7789.c **** 		y >= ST7789_HEIGHT) {
  512:Core/Src/st7789.c **** 		/* Return error */
  513:Core/Src/st7789.c **** 		return;
-ARM GAS  /tmp/ccI9p076.s 			page 51
+ARM GAS  /tmp/ccCrGE8J.s 			page 51
 
 
  514:Core/Src/st7789.c **** 	}
@@ -3026,12 +3026,12 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  2198              		.loc 1 520 9 is_stmt 0 view .LVU442
  2199 0038 BB19     		adds	r3, r7, r6
  2200              		.loc 1 520 5 view .LVU443
- 2201 003a A92B     		cmp	r3, #169
+ 2201 003a AB2B     		cmp	r3, #171
  2202 003c 02DD     		ble	.L136
  521:Core/Src/st7789.c **** 		h = ST7789_HEIGHT - y;
  2203              		.loc 1 521 3 is_stmt 1 view .LVU444
  2204              		.loc 1 521 5 is_stmt 0 view .LVU445
- 2205 003e C7F1AA06 		rsb	r6, r7, #170
+ 2205 003e C7F1AC06 		rsb	r6, r7, #172
  2206              	.LVL258:
  2207              		.loc 1 521 5 view .LVU446
  2208 0042 B6B2     		uxth	r6, r6
@@ -3058,7 +3058,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  2223 0054 0B46     		mov	r3, r1
  2224 0056 92B2     		uxth	r2, r2
  2225 0058 2846     		mov	r0, r5
-ARM GAS  /tmp/ccI9p076.s 			page 52
+ARM GAS  /tmp/ccCrGE8J.s 			page 52
 
 
  2226 005a FFF7FEFF 		bl	ST7789_DrawLine
@@ -3118,7 +3118,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  537:Core/Src/st7789.c ****  */
  538:Core/Src/st7789.c **** void ST7789_DrawTriangle(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t x3, uint16_t 
  539:Core/Src/st7789.c **** {
-ARM GAS  /tmp/ccI9p076.s 			page 53
+ARM GAS  /tmp/ccCrGE8J.s 			page 53
 
 
  2270              		.loc 1 539 1 is_stmt 1 view -0
@@ -3178,7 +3178,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  2320 003c 5B46     		mov	r3, fp
  2321 003e 5246     		mov	r2, r10
  2322 0040 3946     		mov	r1, r7
-ARM GAS  /tmp/ccI9p076.s 			page 54
+ARM GAS  /tmp/ccCrGE8J.s 			page 54
 
 
  2323 0042 3046     		mov	r0, r6
@@ -3238,7 +3238,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  2367              		@ args = 12, pretend = 0, frame = 32
  2368              		@ frame_needed = 0, uses_anonymous_args = 0
  2369              		.loc 1 555 1 is_stmt 0 view .LVU470
-ARM GAS  /tmp/ccI9p076.s 			page 55
+ARM GAS  /tmp/ccCrGE8J.s 			page 55
 
 
  2370 0000 2DE9F04F 		push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
@@ -3298,7 +3298,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  2418              	.LVL282:
  562:Core/Src/st7789.c **** 	deltay = ABS(y2 - y1);
  2419              		.loc 1 562 2 is_stmt 1 view .LVU480
-ARM GAS  /tmp/ccI9p076.s 			page 56
+ARM GAS  /tmp/ccCrGE8J.s 			page 56
 
 
  2420              		.loc 1 562 11 is_stmt 0 view .LVU481
@@ -3358,7 +3358,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  583:Core/Src/st7789.c **** 
  584:Core/Src/st7789.c **** 	if (deltax >= deltay) {
  2454              		.loc 1 584 2 is_stmt 1 view .LVU493
-ARM GAS  /tmp/ccI9p076.s 			page 57
+ARM GAS  /tmp/ccCrGE8J.s 			page 57
 
 
  2455              		.loc 1 584 5 is_stmt 0 view .LVU494
@@ -3418,7 +3418,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  571:Core/Src/st7789.c **** 		xinc2 = -1;
  2490              		.loc 1 571 9 view .LVU509
  2491 007a 4FF0FF33 		mov	r3, #-1
-ARM GAS  /tmp/ccI9p076.s 			page 58
+ARM GAS  /tmp/ccCrGE8J.s 			page 58
 
 
  2492 007e 0893     		str	r3, [sp, #32]
@@ -3478,7 +3478,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  2531 00a2 E7E7     		b	.L150
  2532              	.LVL302:
  2533              	.L152:
-ARM GAS  /tmp/ccI9p076.s 			page 59
+ARM GAS  /tmp/ccCrGE8J.s 			page 59
 
 
  602:Core/Src/st7789.c **** 		ST7789_DrawLine(x, y, x3, y3, color);
@@ -3538,7 +3538,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  2572              		.loc 1 604 7 is_stmt 0 view .LVU536
  2573 00d0 D844     		add	r8, r8, fp
  2574              	.LVL310:
-ARM GAS  /tmp/ccI9p076.s 			page 60
+ARM GAS  /tmp/ccCrGE8J.s 			page 60
 
 
  604:Core/Src/st7789.c **** 		if (num >= den) {
@@ -3598,7 +3598,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  2616              	.L159:
  2617              		.loc 1 614 1 view .LVU549
  2618              		.align	2
-ARM GAS  /tmp/ccI9p076.s 			page 61
+ARM GAS  /tmp/ccCrGE8J.s 			page 61
 
 
  2619              	.L158:
@@ -3658,7 +3658,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  2664              	.LVL319:
  2665              		.loc 1 625 2 view .LVU554
  2666 0014 4948     		ldr	r0, .L167
-ARM GAS  /tmp/ccI9p076.s 			page 62
+ARM GAS  /tmp/ccCrGE8J.s 			page 62
 
 
  2667              	.LVL320:
@@ -3718,7 +3718,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  2712 004e B6B2     		uxth	r6, r6
  2713 0050 5A46     		mov	r2, fp
  2714 0052 3946     		mov	r1, r7
-ARM GAS  /tmp/ccI9p076.s 			page 63
+ARM GAS  /tmp/ccCrGE8J.s 			page 63
 
 
  2715 0054 3046     		mov	r0, r6
@@ -3778,7 +3778,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  2759              		.loc 1 642 4 is_stmt 1 view .LVU580
  2760              		.loc 1 642 6 is_stmt 0 view .LVU581
  2761 0094 14FA83F3 		uxtah	r3, r4, r3
-ARM GAS  /tmp/ccI9p076.s 			page 64
+ARM GAS  /tmp/ccCrGE8J.s 			page 64
 
 
  2762 0098 1CB2     		sxth	r4, r3
@@ -3838,7 +3838,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  651:Core/Src/st7789.c **** 		ST7789_DrawLine(x0 + y, y0 + x, x0 - y, y0 + x, color);
  2808              		.loc 1 651 3 view .LVU590
  2809 00ea 08EB0609 		add	r9, r8, r6
-ARM GAS  /tmp/ccI9p076.s 			page 65
+ARM GAS  /tmp/ccCrGE8J.s 			page 65
 
 
  2810 00ee 1FFA89F9 		uxth	r9, r9
@@ -3898,7 +3898,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  2857 013a 00BF     		.align	2
  2858              	.L167:
  2859 013c 00080240 		.word	1073874944
-ARM GAS  /tmp/ccI9p076.s 			page 66
+ARM GAS  /tmp/ccCrGE8J.s 			page 66
 
 
  2860              		.cfi_endproc
@@ -3958,7 +3958,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  2904 001c FFF7FEFF 		bl	HAL_GPIO_WritePin
  2905              	.LVL349:
  668:Core/Src/st7789.c **** }
-ARM GAS  /tmp/ccI9p076.s 			page 67
+ARM GAS  /tmp/ccCrGE8J.s 			page 67
 
 
  2906              		.loc 1 668 1 is_stmt 0 view .LVU606
@@ -4018,7 +4018,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  2944      6E676C65 
  2944      00
  2945 0061 000000   		.align	2
-ARM GAS  /tmp/ccI9p076.s 			page 68
+ARM GAS  /tmp/ccCrGE8J.s 			page 68
 
 
  2946              	.LC11:
@@ -4078,7 +4078,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  2987 001e 4FF47846 		mov	r6, #63488
  2988 0022 0196     		str	r6, [sp, #4]
  2989 0024 6368     		ldr	r3, [r4, #4]
-ARM GAS  /tmp/ccI9p076.s 			page 69
+ARM GAS  /tmp/ccCrGE8J.s 			page 69
 
 
  2990 0026 0093     		str	r3, [sp]
@@ -4138,7 +4138,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  3034 0078 4FF6E070 		movw	r0, #65504
  3035 007c FFF7FEFF 		bl	ST7789_Fill_Color
  3036              	.LVL363:
-ARM GAS  /tmp/ccI9p076.s 			page 70
+ARM GAS  /tmp/ccCrGE8J.s 			page 70
 
 
  691:Core/Src/st7789.c ****     HAL_Delay(500);
@@ -4198,7 +4198,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  3080              	.LVL374:
  702:Core/Src/st7789.c **** 	ST7789_Fill_Color(LBBLUE);
  3081              		.loc 1 702 2 view .LVU633
-ARM GAS  /tmp/ccI9p076.s 			page 71
+ARM GAS  /tmp/ccCrGE8J.s 			page 71
 
 
  3082 00d8 42F61230 		movw	r0, #11026
@@ -4258,7 +4258,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  3129 0138 2368     		ldr	r3, [r4]
  3130 013a 4A46     		mov	r2, r9
  3131 013c 4B21     		movs	r1, #75
-ARM GAS  /tmp/ccI9p076.s 			page 72
+ARM GAS  /tmp/ccCrGE8J.s 			page 72
 
 
  3132 013e 0A20     		movs	r0, #10
@@ -4318,7 +4318,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  717:Core/Src/st7789.c **** 
  718:Core/Src/st7789.c **** 	ST7789_Fill_Color(RED);
  3179              		.loc 1 718 2 view .LVU646
-ARM GAS  /tmp/ccI9p076.s 			page 73
+ARM GAS  /tmp/ccCrGE8J.s 			page 73
 
 
  3180 0198 3046     		mov	r0, r6
@@ -4378,7 +4378,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  3227              	.LVL394:
  726:Core/Src/st7789.c **** 	HAL_Delay(1000);
  3228              		.loc 1 726 2 view .LVU653
-ARM GAS  /tmp/ccI9p076.s 			page 74
+ARM GAS  /tmp/ccCrGE8J.s 			page 74
 
 
  3229 01f2 4FF47A70 		mov	r0, #1000
@@ -4438,7 +4438,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  3274 0246 0295     		str	r5, [sp, #8]
  3275 0248 4FF0280A 		mov	r10, #40
  3276 024c CDF804A0 		str	r10, [sp, #4]
-ARM GAS  /tmp/ccI9p076.s 			page 75
+ARM GAS  /tmp/ccCrGE8J.s 			page 75
 
 
  3277 0250 4FF03C09 		mov	r9, #60
@@ -4498,7 +4498,7 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  745:Core/Src/st7789.c **** 	ST7789_DrawImage(0, 0, 128, 128, (uint16_t *)saber);
  3322              		.loc 1 745 2 view .LVU667
  3323 02ac 124B     		ldr	r3, .L177+44
-ARM GAS  /tmp/ccI9p076.s 			page 76
+ARM GAS  /tmp/ccCrGE8J.s 			page 76
 
 
  3324 02ae 0093     		str	r3, [sp]
@@ -4556,86 +4556,86 @@ ARM GAS  /tmp/ccI9p076.s 			page 1
  3374              		.file 9 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_spi.h"
  3375              		.file 10 "Core/Inc/st7789.h"
  3376              		.file 11 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h"
-ARM GAS  /tmp/ccI9p076.s 			page 77
+ARM GAS  /tmp/ccCrGE8J.s 			page 77
 
 
 DEFINED SYMBOLS
                             *ABS*:00000000 st7789.c
-     /tmp/ccI9p076.s:21     .text.ST7789_WriteCommand:00000000 $t
-     /tmp/ccI9p076.s:26     .text.ST7789_WriteCommand:00000000 ST7789_WriteCommand
-     /tmp/ccI9p076.s:80     .text.ST7789_WriteCommand:0000003c $d
-     /tmp/ccI9p076.s:86     .text.ST7789_WriteSmallData:00000000 $t
-     /tmp/ccI9p076.s:91     .text.ST7789_WriteSmallData:00000000 ST7789_WriteSmallData
-     /tmp/ccI9p076.s:145    .text.ST7789_WriteSmallData:0000003c $d
-     /tmp/ccI9p076.s:151    .text.ST7789_WriteData:00000000 $t
-     /tmp/ccI9p076.s:156    .text.ST7789_WriteData:00000000 ST7789_WriteData
-     /tmp/ccI9p076.s:238    .text.ST7789_WriteData:0000004c $d
-     /tmp/ccI9p076.s:244    .text.ST7789_SetAddressWindow:00000000 $t
-     /tmp/ccI9p076.s:249    .text.ST7789_SetAddressWindow:00000000 ST7789_SetAddressWindow
-     /tmp/ccI9p076.s:359    .text.ST7789_SetAddressWindow:00000084 $d
-     /tmp/ccI9p076.s:364    .text.ST7789_SetRotation:00000000 $t
-     /tmp/ccI9p076.s:370    .text.ST7789_SetRotation:00000000 ST7789_SetRotation
-     /tmp/ccI9p076.s:395    .text.ST7789_SetRotation:00000012 $d
-     /tmp/ccI9p076.s:399    .text.ST7789_SetRotation:00000016 $t
-     /tmp/ccI9p076.s:436    .text.ST7789_Fill_Color:00000000 $t
-     /tmp/ccI9p076.s:442    .text.ST7789_Fill_Color:00000000 ST7789_Fill_Color
-     /tmp/ccI9p076.s:538    .text.ST7789_Fill_Color:00000058 $d
-     /tmp/ccI9p076.s:543    .rodata.ST7789_Init.str1.4:00000000 $d
-     /tmp/ccI9p076.s:550    .text.ST7789_Init:00000000 $t
-     /tmp/ccI9p076.s:556    .text.ST7789_Init:00000000 ST7789_Init
-     /tmp/ccI9p076.s:761    .text.ST7789_Init:00000120 $d
-     /tmp/ccI9p076.s:769    .text.ST7789_DrawPixel:00000000 $t
-     /tmp/ccI9p076.s:775    .text.ST7789_DrawPixel:00000000 ST7789_DrawPixel
-     /tmp/ccI9p076.s:856    .text.ST7789_DrawPixel:00000048 $d
-     /tmp/ccI9p076.s:861    .text.ST7789_Fill:00000000 $t
-     /tmp/ccI9p076.s:867    .text.ST7789_Fill:00000000 ST7789_Fill
-     /tmp/ccI9p076.s:984    .text.ST7789_Fill:00000070 $d
-     /tmp/ccI9p076.s:989    .text.ST7789_DrawPixel_4px:00000000 $t
-     /tmp/ccI9p076.s:995    .text.ST7789_DrawPixel_4px:00000000 ST7789_DrawPixel_4px
-     /tmp/ccI9p076.s:1077   .text.ST7789_DrawPixel_4px:00000050 $d
-     /tmp/ccI9p076.s:1082   .text.ST7789_DrawLine:00000000 $t
-     /tmp/ccI9p076.s:1088   .text.ST7789_DrawLine:00000000 ST7789_DrawLine
-     /tmp/ccI9p076.s:1279   .text.ST7789_DrawRectangle:00000000 $t
-     /tmp/ccI9p076.s:1285   .text.ST7789_DrawRectangle:00000000 ST7789_DrawRectangle
-     /tmp/ccI9p076.s:1373   .text.ST7789_DrawRectangle:00000070 $d
-     /tmp/ccI9p076.s:1378   .text.ST7789_DrawCircle:00000000 $t
-     /tmp/ccI9p076.s:1384   .text.ST7789_DrawCircle:00000000 ST7789_DrawCircle
-     /tmp/ccI9p076.s:1617   .text.ST7789_DrawCircle:0000014c $d
-     /tmp/ccI9p076.s:1622   .text.ST7789_DrawImage:00000000 $t
-     /tmp/ccI9p076.s:1628   .text.ST7789_DrawImage:00000000 ST7789_DrawImage
-     /tmp/ccI9p076.s:1734   .text.ST7789_DrawImage:00000068 $d
-     /tmp/ccI9p076.s:1739   .text.ST7789_InvertColors:00000000 $t
-     /tmp/ccI9p076.s:1745   .text.ST7789_InvertColors:00000000 ST7789_InvertColors
-     /tmp/ccI9p076.s:1791   .text.ST7789_InvertColors:00000028 $d
-     /tmp/ccI9p076.s:1796   .text.ST7789_WriteChar:00000000 $t
-     /tmp/ccI9p076.s:1802   .text.ST7789_WriteChar:00000000 ST7789_WriteChar
-     /tmp/ccI9p076.s:1970   .text.ST7789_WriteChar:000000b0 $d
-     /tmp/ccI9p076.s:1975   .text.ST7789_WriteString:00000000 $t
-     /tmp/ccI9p076.s:1981   .text.ST7789_WriteString:00000000 ST7789_WriteString
-     /tmp/ccI9p076.s:2126   .text.ST7789_WriteString:00000080 $d
-     /tmp/ccI9p076.s:2131   .text.ST7789_DrawFilledRectangle:00000000 $t
-     /tmp/ccI9p076.s:2137   .text.ST7789_DrawFilledRectangle:00000000 ST7789_DrawFilledRectangle
-     /tmp/ccI9p076.s:2256   .text.ST7789_DrawFilledRectangle:00000078 $d
-ARM GAS  /tmp/ccI9p076.s 			page 78
+     /tmp/ccCrGE8J.s:21     .text.ST7789_WriteCommand:00000000 $t
+     /tmp/ccCrGE8J.s:26     .text.ST7789_WriteCommand:00000000 ST7789_WriteCommand
+     /tmp/ccCrGE8J.s:80     .text.ST7789_WriteCommand:0000003c $d
+     /tmp/ccCrGE8J.s:86     .text.ST7789_WriteSmallData:00000000 $t
+     /tmp/ccCrGE8J.s:91     .text.ST7789_WriteSmallData:00000000 ST7789_WriteSmallData
+     /tmp/ccCrGE8J.s:145    .text.ST7789_WriteSmallData:0000003c $d
+     /tmp/ccCrGE8J.s:151    .text.ST7789_WriteData:00000000 $t
+     /tmp/ccCrGE8J.s:156    .text.ST7789_WriteData:00000000 ST7789_WriteData
+     /tmp/ccCrGE8J.s:238    .text.ST7789_WriteData:0000004c $d
+     /tmp/ccCrGE8J.s:244    .text.ST7789_SetAddressWindow:00000000 $t
+     /tmp/ccCrGE8J.s:249    .text.ST7789_SetAddressWindow:00000000 ST7789_SetAddressWindow
+     /tmp/ccCrGE8J.s:359    .text.ST7789_SetAddressWindow:00000084 $d
+     /tmp/ccCrGE8J.s:364    .text.ST7789_SetRotation:00000000 $t
+     /tmp/ccCrGE8J.s:370    .text.ST7789_SetRotation:00000000 ST7789_SetRotation
+     /tmp/ccCrGE8J.s:395    .text.ST7789_SetRotation:00000012 $d
+     /tmp/ccCrGE8J.s:399    .text.ST7789_SetRotation:00000016 $t
+     /tmp/ccCrGE8J.s:436    .text.ST7789_Fill_Color:00000000 $t
+     /tmp/ccCrGE8J.s:442    .text.ST7789_Fill_Color:00000000 ST7789_Fill_Color
+     /tmp/ccCrGE8J.s:538    .text.ST7789_Fill_Color:00000058 $d
+     /tmp/ccCrGE8J.s:543    .rodata.ST7789_Init.str1.4:00000000 $d
+     /tmp/ccCrGE8J.s:550    .text.ST7789_Init:00000000 $t
+     /tmp/ccCrGE8J.s:556    .text.ST7789_Init:00000000 ST7789_Init
+     /tmp/ccCrGE8J.s:761    .text.ST7789_Init:00000120 $d
+     /tmp/ccCrGE8J.s:769    .text.ST7789_DrawPixel:00000000 $t
+     /tmp/ccCrGE8J.s:775    .text.ST7789_DrawPixel:00000000 ST7789_DrawPixel
+     /tmp/ccCrGE8J.s:856    .text.ST7789_DrawPixel:00000048 $d
+     /tmp/ccCrGE8J.s:861    .text.ST7789_Fill:00000000 $t
+     /tmp/ccCrGE8J.s:867    .text.ST7789_Fill:00000000 ST7789_Fill
+     /tmp/ccCrGE8J.s:984    .text.ST7789_Fill:00000070 $d
+     /tmp/ccCrGE8J.s:989    .text.ST7789_DrawPixel_4px:00000000 $t
+     /tmp/ccCrGE8J.s:995    .text.ST7789_DrawPixel_4px:00000000 ST7789_DrawPixel_4px
+     /tmp/ccCrGE8J.s:1077   .text.ST7789_DrawPixel_4px:00000050 $d
+     /tmp/ccCrGE8J.s:1082   .text.ST7789_DrawLine:00000000 $t
+     /tmp/ccCrGE8J.s:1088   .text.ST7789_DrawLine:00000000 ST7789_DrawLine
+     /tmp/ccCrGE8J.s:1279   .text.ST7789_DrawRectangle:00000000 $t
+     /tmp/ccCrGE8J.s:1285   .text.ST7789_DrawRectangle:00000000 ST7789_DrawRectangle
+     /tmp/ccCrGE8J.s:1373   .text.ST7789_DrawRectangle:00000070 $d
+     /tmp/ccCrGE8J.s:1378   .text.ST7789_DrawCircle:00000000 $t
+     /tmp/ccCrGE8J.s:1384   .text.ST7789_DrawCircle:00000000 ST7789_DrawCircle
+     /tmp/ccCrGE8J.s:1617   .text.ST7789_DrawCircle:0000014c $d
+     /tmp/ccCrGE8J.s:1622   .text.ST7789_DrawImage:00000000 $t
+     /tmp/ccCrGE8J.s:1628   .text.ST7789_DrawImage:00000000 ST7789_DrawImage
+     /tmp/ccCrGE8J.s:1734   .text.ST7789_DrawImage:00000068 $d
+     /tmp/ccCrGE8J.s:1739   .text.ST7789_InvertColors:00000000 $t
+     /tmp/ccCrGE8J.s:1745   .text.ST7789_InvertColors:00000000 ST7789_InvertColors
+     /tmp/ccCrGE8J.s:1791   .text.ST7789_InvertColors:00000028 $d
+     /tmp/ccCrGE8J.s:1796   .text.ST7789_WriteChar:00000000 $t
+     /tmp/ccCrGE8J.s:1802   .text.ST7789_WriteChar:00000000 ST7789_WriteChar
+     /tmp/ccCrGE8J.s:1970   .text.ST7789_WriteChar:000000b0 $d
+     /tmp/ccCrGE8J.s:1975   .text.ST7789_WriteString:00000000 $t
+     /tmp/ccCrGE8J.s:1981   .text.ST7789_WriteString:00000000 ST7789_WriteString
+     /tmp/ccCrGE8J.s:2126   .text.ST7789_WriteString:00000080 $d
+     /tmp/ccCrGE8J.s:2131   .text.ST7789_DrawFilledRectangle:00000000 $t
+     /tmp/ccCrGE8J.s:2137   .text.ST7789_DrawFilledRectangle:00000000 ST7789_DrawFilledRectangle
+     /tmp/ccCrGE8J.s:2256   .text.ST7789_DrawFilledRectangle:00000078 $d
+ARM GAS  /tmp/ccCrGE8J.s 			page 78
 
 
-     /tmp/ccI9p076.s:2261   .text.ST7789_DrawTriangle:00000000 $t
-     /tmp/ccI9p076.s:2267   .text.ST7789_DrawTriangle:00000000 ST7789_DrawTriangle
-     /tmp/ccI9p076.s:2351   .text.ST7789_DrawTriangle:00000068 $d
-     /tmp/ccI9p076.s:2356   .text.ST7789_DrawFilledTriangle:00000000 $t
-     /tmp/ccI9p076.s:2362   .text.ST7789_DrawFilledTriangle:00000000 ST7789_DrawFilledTriangle
-     /tmp/ccI9p076.s:2620   .text.ST7789_DrawFilledTriangle:00000104 $d
-     /tmp/ccI9p076.s:2625   .text.ST7789_DrawFilledCircle:00000000 $t
-     /tmp/ccI9p076.s:2631   .text.ST7789_DrawFilledCircle:00000000 ST7789_DrawFilledCircle
-     /tmp/ccI9p076.s:2859   .text.ST7789_DrawFilledCircle:0000013c $d
-     /tmp/ccI9p076.s:2864   .text.ST7789_TearEffect:00000000 $t
-     /tmp/ccI9p076.s:2870   .text.ST7789_TearEffect:00000000 ST7789_TearEffect
-     /tmp/ccI9p076.s:2916   .text.ST7789_TearEffect:00000028 $d
-     /tmp/ccI9p076.s:2921   .rodata.ST7789_Test.str1.4:00000000 $d
-     /tmp/ccI9p076.s:2949   .text.ST7789_Test:00000000 $t
-     /tmp/ccI9p076.s:2955   .text.ST7789_Test:00000000 ST7789_Test
-     /tmp/ccI9p076.s:3344   .text.ST7789_Test:000002cc $d
-     /tmp/ccI9p076.s:3361   .rodata:00000000 $d
+     /tmp/ccCrGE8J.s:2261   .text.ST7789_DrawTriangle:00000000 $t
+     /tmp/ccCrGE8J.s:2267   .text.ST7789_DrawTriangle:00000000 ST7789_DrawTriangle
+     /tmp/ccCrGE8J.s:2351   .text.ST7789_DrawTriangle:00000068 $d
+     /tmp/ccCrGE8J.s:2356   .text.ST7789_DrawFilledTriangle:00000000 $t
+     /tmp/ccCrGE8J.s:2362   .text.ST7789_DrawFilledTriangle:00000000 ST7789_DrawFilledTriangle
+     /tmp/ccCrGE8J.s:2620   .text.ST7789_DrawFilledTriangle:00000104 $d
+     /tmp/ccCrGE8J.s:2625   .text.ST7789_DrawFilledCircle:00000000 $t
+     /tmp/ccCrGE8J.s:2631   .text.ST7789_DrawFilledCircle:00000000 ST7789_DrawFilledCircle
+     /tmp/ccCrGE8J.s:2859   .text.ST7789_DrawFilledCircle:0000013c $d
+     /tmp/ccCrGE8J.s:2864   .text.ST7789_TearEffect:00000000 $t
+     /tmp/ccCrGE8J.s:2870   .text.ST7789_TearEffect:00000000 ST7789_TearEffect
+     /tmp/ccCrGE8J.s:2916   .text.ST7789_TearEffect:00000028 $d
+     /tmp/ccCrGE8J.s:2921   .rodata.ST7789_Test.str1.4:00000000 $d
+     /tmp/ccCrGE8J.s:2949   .text.ST7789_Test:00000000 $t
+     /tmp/ccCrGE8J.s:2955   .text.ST7789_Test:00000000 ST7789_Test
+     /tmp/ccCrGE8J.s:3344   .text.ST7789_Test:000002cc $d
+     /tmp/ccCrGE8J.s:3361   .rodata:00000000 $d
 
 UNDEFINED SYMBOLS
 HAL_GPIO_WritePin

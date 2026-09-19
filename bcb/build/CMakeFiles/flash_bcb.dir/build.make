@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /mnt/c/Users/abend/Programming/WiFiWare/bcb
+CMAKE_SOURCE_DIR = /home/abendezu/projects/WiFiWare_FOTA/bcb
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /mnt/c/Users/abend/Programming/WiFiWare/bcb/build
+CMAKE_BINARY_DIR = /home/abendezu/projects/WiFiWare_FOTA/bcb/build
 
 # Utility rule file for flash_bcb.
 
@@ -67,8 +67,8 @@ include CMakeFiles/flash_bcb.dir/compiler_depend.make
 include CMakeFiles/flash_bcb.dir/progress.make
 
 CMakeFiles/flash_bcb:
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=/mnt/c/Users/abend/Programming/WiFiWare/bcb/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Flashing bcb.bin to 0x08008000"
-	st-flash --reset write /mnt/c/Users/abend/Programming/WiFiWare/bcb/build/bcb.bin 0x08008000
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=/home/abendezu/projects/WiFiWare_FOTA/bcb/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Flashing bcb.bin to 0x08008000"
+	st-flash --reset write /home/abendezu/projects/WiFiWare_FOTA/bcb/build/bcb.bin 0x08008000
 
 flash_bcb: CMakeFiles/flash_bcb
 flash_bcb: CMakeFiles/flash_bcb.dir/build.make
@@ -83,6 +83,6 @@ CMakeFiles/flash_bcb.dir/clean:
 .PHONY : CMakeFiles/flash_bcb.dir/clean
 
 CMakeFiles/flash_bcb.dir/depend:
-	cd /mnt/c/Users/abend/Programming/WiFiWare/bcb/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /mnt/c/Users/abend/Programming/WiFiWare/bcb /mnt/c/Users/abend/Programming/WiFiWare/bcb /mnt/c/Users/abend/Programming/WiFiWare/bcb/build /mnt/c/Users/abend/Programming/WiFiWare/bcb/build /mnt/c/Users/abend/Programming/WiFiWare/bcb/build/CMakeFiles/flash_bcb.dir/DependInfo.cmake "--color=$(COLOR)"
+	cd /home/abendezu/projects/WiFiWare_FOTA/bcb/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/abendezu/projects/WiFiWare_FOTA/bcb /home/abendezu/projects/WiFiWare_FOTA/bcb /home/abendezu/projects/WiFiWare_FOTA/bcb/build /home/abendezu/projects/WiFiWare_FOTA/bcb/build /home/abendezu/projects/WiFiWare_FOTA/bcb/build/CMakeFiles/flash_bcb.dir/DependInfo.cmake "--color=$(COLOR)"
 .PHONY : CMakeFiles/flash_bcb.dir/depend
 

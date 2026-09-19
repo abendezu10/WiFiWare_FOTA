@@ -37,7 +37,7 @@
  * IMG_SEC is still referenced anywhere before relying on it.
  * ============================================================ */
 
-#define IMG_SEC 	0x08008000UL
+
 
 #define START_SRAM	0x20000000UL
 #define END_SRAM	0x20018000UL
@@ -94,6 +94,8 @@ void jmp_to_IMG(uint32_t addr);
 void bcb_init(void);
 void bcb_slotswitch(uint8_t active_slot);
 
+
 FlashStatus write_to_flash(fw_chunk_t *fw_chunk, uint32_t address);
+uint32_t compute_crc(const uint8_t *data, uint32_t len);
 
 #endif /* INC_BOOTLOADER_H_ */

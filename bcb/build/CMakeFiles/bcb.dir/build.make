@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /mnt/c/Users/abend/Programming/WiFiWare/bcb
+CMAKE_SOURCE_DIR = /home/abendezu/projects/WiFiWare_FOTA/bcb
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /mnt/c/Users/abend/Programming/WiFiWare/bcb/build
+CMAKE_BINARY_DIR = /home/abendezu/projects/WiFiWare_FOTA/bcb/build
 
 # Utility rule file for bcb.
 
@@ -67,16 +67,16 @@ include CMakeFiles/bcb.dir/compiler_depend.make
 include CMakeFiles/bcb.dir/progress.make
 
 CMakeFiles/bcb: bcb.bin
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=/mnt/c/Users/abend/Programming/WiFiWare/bcb/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "BCB image ready"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=/home/abendezu/projects/WiFiWare_FOTA/bcb/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "BCB image ready"
 
 bcb.bin: bcb.elf
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=/mnt/c/Users/abend/Programming/WiFiWare/bcb/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Generating bcb.bin"
-	arm-none-eabi-objcopy -O binary /mnt/c/Users/abend/Programming/WiFiWare/bcb/build/bcb.elf /mnt/c/Users/abend/Programming/WiFiWare/bcb/build/bcb.bin
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=/home/abendezu/projects/WiFiWare_FOTA/bcb/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Generating bcb.bin"
+	arm-none-eabi-objcopy -O binary /home/abendezu/projects/WiFiWare_FOTA/bcb/build/bcb.elf /home/abendezu/projects/WiFiWare_FOTA/bcb/build/bcb.bin
 
-bcb.elf: /mnt/c/Users/abend/Programming/WiFiWare/bcb/bcb.c
-bcb.elf: /mnt/c/Users/abend/Programming/WiFiWare/bcb/link.ld
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=/mnt/c/Users/abend/Programming/WiFiWare/bcb/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building BCB ELF with arm-none-eabi-gcc"
-	arm-none-eabi-gcc -nostartfiles -nostdlib -Wl,-T,"/mnt/c/Users/abend/Programming/WiFiWare/bcb/link.ld" -Wl,--gc-sections -o /mnt/c/Users/abend/Programming/WiFiWare/bcb/build/bcb.elf /mnt/c/Users/abend/Programming/WiFiWare/bcb/bcb.c
+bcb.elf: /home/abendezu/projects/WiFiWare_FOTA/bcb/bcb.c
+bcb.elf: /home/abendezu/projects/WiFiWare_FOTA/bcb/link.ld
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=/home/abendezu/projects/WiFiWare_FOTA/bcb/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building BCB ELF with arm-none-eabi-gcc"
+	arm-none-eabi-gcc -nostartfiles -nostdlib -Wl,-T,"/home/abendezu/projects/WiFiWare_FOTA/bcb/link.ld" -Wl,--gc-sections -o /home/abendezu/projects/WiFiWare_FOTA/bcb/build/bcb.elf /home/abendezu/projects/WiFiWare_FOTA/bcb/bcb.c
 
 bcb: CMakeFiles/bcb
 bcb: bcb.bin
@@ -93,6 +93,6 @@ CMakeFiles/bcb.dir/clean:
 .PHONY : CMakeFiles/bcb.dir/clean
 
 CMakeFiles/bcb.dir/depend:
-	cd /mnt/c/Users/abend/Programming/WiFiWare/bcb/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /mnt/c/Users/abend/Programming/WiFiWare/bcb /mnt/c/Users/abend/Programming/WiFiWare/bcb /mnt/c/Users/abend/Programming/WiFiWare/bcb/build /mnt/c/Users/abend/Programming/WiFiWare/bcb/build /mnt/c/Users/abend/Programming/WiFiWare/bcb/build/CMakeFiles/bcb.dir/DependInfo.cmake "--color=$(COLOR)"
+	cd /home/abendezu/projects/WiFiWare_FOTA/bcb/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/abendezu/projects/WiFiWare_FOTA/bcb /home/abendezu/projects/WiFiWare_FOTA/bcb /home/abendezu/projects/WiFiWare_FOTA/bcb/build /home/abendezu/projects/WiFiWare_FOTA/bcb/build /home/abendezu/projects/WiFiWare_FOTA/bcb/build/CMakeFiles/bcb.dir/DependInfo.cmake "--color=$(COLOR)"
 .PHONY : CMakeFiles/bcb.dir/depend
 

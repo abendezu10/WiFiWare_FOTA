@@ -54,10 +54,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /mnt/c/Users/abend/Programming/WiFiWare/bcb
+CMAKE_SOURCE_DIR = /home/abendezu/projects/WiFiWare_FOTA/bcb
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /mnt/c/Users/abend/Programming/WiFiWare/bcb/build
+CMAKE_BINARY_DIR = /home/abendezu/projects/WiFiWare_FOTA/bcb/build
 
 #=============================================================================
 # Directory level rules for the build root directory
@@ -82,14 +82,14 @@ clean: CMakeFiles/flash_bcb.dir/clean
 CMakeFiles/bcb.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/bcb.dir/build.make CMakeFiles/bcb.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/bcb.dir/build.make CMakeFiles/bcb.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/mnt/c/Users/abend/Programming/WiFiWare/bcb/build/CMakeFiles --progress-num=1,2,3 "Built target bcb"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/abendezu/projects/WiFiWare_FOTA/bcb/build/CMakeFiles --progress-num=1,2,3 "Built target bcb"
 .PHONY : CMakeFiles/bcb.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/bcb.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /mnt/c/Users/abend/Programming/WiFiWare/bcb/build/CMakeFiles 3
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/abendezu/projects/WiFiWare_FOTA/bcb/build/CMakeFiles 3
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/bcb.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /mnt/c/Users/abend/Programming/WiFiWare/bcb/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/abendezu/projects/WiFiWare_FOTA/bcb/build/CMakeFiles 0
 .PHONY : CMakeFiles/bcb.dir/rule
 
 # Convenience name for target.
@@ -108,14 +108,14 @@ CMakeFiles/bcb.dir/clean:
 CMakeFiles/flash_bcb.dir/all: CMakeFiles/bcb.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/flash_bcb.dir/build.make CMakeFiles/flash_bcb.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/flash_bcb.dir/build.make CMakeFiles/flash_bcb.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/mnt/c/Users/abend/Programming/WiFiWare/bcb/build/CMakeFiles --progress-num=4 "Built target flash_bcb"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/abendezu/projects/WiFiWare_FOTA/bcb/build/CMakeFiles --progress-num=4 "Built target flash_bcb"
 .PHONY : CMakeFiles/flash_bcb.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/flash_bcb.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /mnt/c/Users/abend/Programming/WiFiWare/bcb/build/CMakeFiles 4
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/abendezu/projects/WiFiWare_FOTA/bcb/build/CMakeFiles 4
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/flash_bcb.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /mnt/c/Users/abend/Programming/WiFiWare/bcb/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/abendezu/projects/WiFiWare_FOTA/bcb/build/CMakeFiles 0
 .PHONY : CMakeFiles/flash_bcb.dir/rule
 
 # Convenience name for target.

@@ -789,7 +789,7 @@ END GROUP
  *(.jcr)
                 0x000000003ffe8420                _data_end = ABSOLUTE (.)
 
-.rodata         0x000000003ffe8420      0xd8c
+.rodata         0x000000003ffe8420      0xd94
                 0x000000003ffe8420                _rodata_start = ABSOLUTE (.)
  *(.rodata)
  *(.rodata.*)
@@ -802,102 +802,102 @@ END GROUP
  .rodata.print_flash_info
                 0x000000003ffe84cc       0x28 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(bootloader_init.o)
  .rodata.bootloader_main.str1.4
-                0x000000003ffe84f4       0x9e /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(bootloader_init.o)
- *fill*         0x000000003ffe8592        0x2 
+                0x000000003ffe84f4       0xa6 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(bootloader_init.o)
+ *fill*         0x000000003ffe859a        0x2 
  .rodata.log_invalid_app_partition.str1.4
-                0x000000003ffe8594       0x68 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(bootloader_utility.o)
+                0x000000003ffe859c       0x68 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(bootloader_utility.o)
                                          0x70 (size before relaxing)
  .rodata.try_load_partition.str1.4
-                0x000000003ffe85fc       0x29 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(bootloader_utility.o)
- *fill*         0x000000003ffe8625        0x3 
+                0x000000003ffe8604       0x29 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(bootloader_utility.o)
+ *fill*         0x000000003ffe862d        0x3 
  .rodata.bootloader_utility_load_partition_table.str1.4
-                0x000000003ffe8628      0x137 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(bootloader_utility.o)
- *fill*         0x000000003ffe875f        0x1 
+                0x000000003ffe8630      0x137 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(bootloader_utility.o)
+ *fill*         0x000000003ffe8767        0x1 
  .rodata.bootloader_utility_get_selected_boot_partition.str1.4
-                0x000000003ffe8760       0xef /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(bootloader_utility.o)
- *fill*         0x000000003ffe884f        0x1 
+                0x000000003ffe8768       0xef /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(bootloader_utility.o)
+ *fill*         0x000000003ffe8857        0x1 
  .rodata.bootloader_utility_load_boot_image.str1.4
-                0x000000003ffe8850       0x9a /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(bootloader_utility.o)
- *fill*         0x000000003ffe88ea        0x2 
+                0x000000003ffe8858       0x9a /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(bootloader_utility.o)
+ *fill*         0x000000003ffe88f2        0x2 
  .rodata.verify_image_header.str1.4
-                0x000000003ffe88ec       0x82 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(esp_image_format.o)
- *fill*         0x000000003ffe896e        0x2 
+                0x000000003ffe88f4       0x82 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(esp_image_format.o)
+ *fill*         0x000000003ffe8976        0x2 
  .rodata.process_segment_data.str1.4
-                0x000000003ffe8970       0x27 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(esp_image_format.o)
- *fill*         0x000000003ffe8997        0x1 
+                0x000000003ffe8978       0x27 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(esp_image_format.o)
+ *fill*         0x000000003ffe899f        0x1 
  .rodata.verify_checksum.str1.4
-                0x000000003ffe8998       0x57 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(esp_image_format.o)
- *fill*         0x000000003ffe89ef        0x1 
+                0x000000003ffe89a0       0x57 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(esp_image_format.o)
+ *fill*         0x000000003ffe89f7        0x1 
  .rodata.process_segment.str1.4
-                0x000000003ffe89f0       0x8f /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(esp_image_format.o)
+                0x000000003ffe89f8       0x8f /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(esp_image_format.o)
                                          0x93 (size before relaxing)
- *fill*         0x000000003ffe8a7f        0x1 
+ *fill*         0x000000003ffe8a87        0x1 
  .rodata.esp_image_load.str1.4
-                0x000000003ffe8a80       0xaf /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(esp_image_format.o)
- *fill*         0x000000003ffe8b2f        0x1 
+                0x000000003ffe8a88       0xaf /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(esp_image_format.o)
+ *fill*         0x000000003ffe8b37        0x1 
  .rodata.esp_partition_table_basic_verify.str1.4
-                0x000000003ffe8b30       0xb4 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(flash_partitions.o)
+                0x000000003ffe8b38       0xb4 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(flash_partitions.o)
  .rodata.bootloader_mmap.str1.4
-                0x000000003ffe8be4       0x57 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(bootloader_flash.o)
- *fill*         0x000000003ffe8c3b        0x1 
+                0x000000003ffe8bec       0x57 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(bootloader_flash.o)
+ *fill*         0x000000003ffe8c43        0x1 
  .rodata.bootloader_flash_read.str1.4
-                0x000000003ffe8c3c       0x9f /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(bootloader_flash.o)
- *fill*         0x000000003ffe8cdb        0x1 
+                0x000000003ffe8c44       0x9f /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(bootloader_flash.o)
+ *fill*         0x000000003ffe8ce3        0x1 
  .rodata.bootloader_execute_flash_command.str1.4
-                0x000000003ffe8cdc       0x19 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(bootloader_flash.o)
- *fill*         0x000000003ffe8cf5        0x3 
+                0x000000003ffe8ce4       0x19 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(bootloader_flash.o)
+ *fill*         0x000000003ffe8cfd        0x3 
  .rodata.bootloader_flash_read_sfdp.str1.4
-                0x000000003ffe8cf8       0x14 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(bootloader_flash.o)
+                0x000000003ffe8d00       0x14 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(bootloader_flash.o)
  .rodata.bootloader_flash_xmc_startup.str1.4
-                0x000000003ffe8d0c       0x2f /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(bootloader_flash.o)
- *fill*         0x000000003ffe8d3b        0x1 
+                0x000000003ffe8d14       0x2f /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/bootloader_support/libbootloader_support.a(bootloader_flash.o)
+ *fill*         0x000000003ffe8d43        0x1 
  .rodata.esp_spi_flash_init.str1.4
-                0x000000003ffe8d3c       0x29 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/spi_flash/libspi_flash.a(spi_flash.o)
- *fill*         0x000000003ffe8d65        0x3 
+                0x000000003ffe8d44       0x29 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/spi_flash/libspi_flash.a(spi_flash.o)
+ *fill*         0x000000003ffe8d6d        0x3 
  .rodata.str1.4
-                0x000000003ffe8d68       0x24 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/log/liblog.a(log.o)
+                0x000000003ffe8d70       0x24 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/log/liblog.a(log.o)
                                          0x22 (size before relaxing)
  .rodata.s_log_prefix
-                0x000000003ffe8d8c        0x6 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/log/liblog.a(log.o)
- *fill*         0x000000003ffe8d92        0x2 
+                0x000000003ffe8d94        0x6 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/log/liblog.a(log.o)
+ *fill*         0x000000003ffe8d9a        0x2 
  .rodata.s_log_color
-                0x000000003ffe8d94       0x18 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/log/liblog.a(log.o)
+                0x000000003ffe8d9c       0x18 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/log/liblog.a(log.o)
  .rodata.crc32_le_table
-                0x000000003ffe8dac      0x400 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/esp8266/libesp8266.a(crc.o)
+                0x000000003ffe8db4      0x400 /home/abendezu/projects/WiFiWare_FOTA/esp_FOTA/build/bootloader/esp8266/libesp8266.a(crc.o)
  *(.gnu.linkonce.r.*)
  *(.rodata1)
-                0x000000003ffe91ac                __XT_EXCEPTION_TABLE_ = ABSOLUTE (.)
+                0x000000003ffe91b4                __XT_EXCEPTION_TABLE_ = ABSOLUTE (.)
  *(.xt_except_table)
  *(.gcc_except_table)
  *(.gnu.linkonce.e.*)
  *(.gnu.version_r)
  *(.eh_frame)
-                0x000000003ffe91ac                . = ((. + 0x3) & 0xfffffffffffffffc)
-                0x000000003ffe91ac                __init_array_start = ABSOLUTE (.)
+                0x000000003ffe91b4                . = ((. + 0x3) & 0xfffffffffffffffc)
+                0x000000003ffe91b4                __init_array_start = ABSOLUTE (.)
  *crtbegin.o(.ctors)
  *(EXCLUDE_FILE(*crtend.o) .ctors)
  *(SORT_BY_NAME(.ctors.*))
  *(.ctors)
-                0x000000003ffe91ac                __init_array_end = ABSOLUTE (.)
+                0x000000003ffe91b4                __init_array_end = ABSOLUTE (.)
  *crtbegin.o(.dtors)
  *(EXCLUDE_FILE(*crtend.o) .dtors)
  *(SORT_BY_NAME(.dtors.*))
  *(.dtors)
-                0x000000003ffe91ac                __XT_EXCEPTION_DESCS_ = ABSOLUTE (.)
+                0x000000003ffe91b4                __XT_EXCEPTION_DESCS_ = ABSOLUTE (.)
  *(.xt_except_desc)
  *(.gnu.linkonce.h.*)
-                0x000000003ffe91ac                __XT_EXCEPTION_DESCS_END__ = ABSOLUTE (.)
+                0x000000003ffe91b4                __XT_EXCEPTION_DESCS_END__ = ABSOLUTE (.)
  *(.xt_except_desc_end)
  *(.dynamic)
  *(.gnu.version_d)
-                0x000000003ffe91ac                _rodata_end = ABSOLUTE (.)
-                0x000000003ffe91ac                _lit4_start = ABSOLUTE (.)
+                0x000000003ffe91b4                _rodata_end = ABSOLUTE (.)
+                0x000000003ffe91b4                _lit4_start = ABSOLUTE (.)
  *(*.lit4)
  *(.lit4.*)
  *(.gnu.linkonce.lit4.*)
-                0x000000003ffe91ac                _lit4_end = ABSOLUTE (.)
-                0x000000003ffe91ac                . = ALIGN (0x4)
-                0x000000003ffe91ac                _heap_start = ABSOLUTE (.)
+                0x000000003ffe91b4                _lit4_end = ABSOLUTE (.)
+                0x000000003ffe91b4                . = ALIGN (0x4)
+                0x000000003ffe91b4                _heap_start = ABSOLUTE (.)
                 0x0000000060001100                PROVIDE (rtc_sys_info = 0x60001100)
                 0x00000000400040c0                PROVIDE (SPI_sector_erase = 0x400040c0)
                 0x0000000040004174                PROVIDE (SPI_page_program = 0x40004174)
